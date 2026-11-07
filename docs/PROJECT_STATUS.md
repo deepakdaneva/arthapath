@@ -8,7 +8,7 @@ _Last updated: 2026-11-07_
 |---|---|
 | 0 Discovery and architecture | Done |
 | 1 Repository foundation | Done |
-| 2 Firebase infrastructure | In progress |
+| 2 Firebase infrastructure | Done |
 | 3 Frontend foundation | Not started |
 | 4 Security and encryption | Not started |
 | 5 AI integration | Not started |
@@ -90,9 +90,14 @@ local PDF parsing with consented AI assist.
   referrers (UAT also allows `http://localhost`; both allow
   `https://localhost` for the Capacitor Android WebView).
 - WIF configured in both projects (provider ACTIVE, repository and owner ID
-  condition, environment-scoped impersonation, 5 deploy roles). Pending:
-  first
-  CI deploy to UAT verified after merge.
+  condition, environment-scoped impersonation, 5 deploy roles). GitHub
+  issues immutable OIDC subjects for this repo
+  (`repo:deepakdaneva@68489729/arthapath@1449162422:environment:<env>`);
+  the first deploy failed with `iam.serviceAccounts.getAccessToken` denied
+  until the binding used that format.
+- CI deploy to UAT verified (run 42367571546): federated credentials OK,
+  rules and indexes released. Public log scanned: no tokens or keys.
+- `rules` added to required status checks on `main` and `development`.
 
 ## Security issues
 
@@ -108,6 +113,4 @@ Not deployed.
 
 ## Next tasks
 
-1. Finish Phase 2: verified CI deploy to UAT, add `rules`
-   to required checks.
-2. Phase 3: scaffold the Ionic/Angular app.
+1. Phase 3: scaffold the Ionic/Angular app.
