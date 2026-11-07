@@ -3,6 +3,7 @@
 import {
   collection,
   type CollectionReference,
+  deleteDoc,
   deleteField,
   doc,
   getDoc,
@@ -121,4 +122,10 @@ async function deleteAll(col: CollectionReference): Promise<void> {
     page.docs.forEach((d) => batch.delete(d.ref));
     await batch.commit();
   }
+}
+
+/** Account deletion: every encrypted document, then the profile document. */
+export async function deleteAccountData(uid: string): Promise<void> {
+  await deleteVaultData(uid);
+  await deleteDoc(doc(db, 'users', uid));
 }

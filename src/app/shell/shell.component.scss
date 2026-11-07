@@ -4,6 +4,18 @@
   padding: 0 8px;
 }
 
+.start,
+.end {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.start {
+  gap: 12px;
+  min-width: 0;
+}
+
 .brand {
   display: flex;
   align-items: center;
@@ -14,9 +26,25 @@
   text-decoration: none;
 }
 
+@media (max-width: 480px) {
+  .brand-name {
+    display: none;
+  }
+}
+
+.icon-btn {
+  --border-radius: 50%;
+  --padding-start: 8px;
+  --padding-end: 8px;
+  --color: var(--ap-text-muted);
+  height: 44px;
+  font-size: 1.1rem;
+}
+
 .avatar-btn {
   --padding-start: 4px;
   --padding-end: 4px;
+  --border-radius: 50%;
   height: 44px;
 
   ion-avatar {
@@ -35,10 +63,111 @@
 }
 
 .menu {
-  padding: 4px 0;
+  padding: 4px 0 0;
+  min-width: 260px;
 
-  .who h2 {
+  // Account card: photo, bold name, email (opens the profile).
+  .who {
+    --background: var(--ap-surface-2);
+    --background-hover: var(--ion-color-secondary);
+    --background-hover-opacity: 0.08;
+    --border-radius: 14px;
+    --padding-start: 12px;
+    --inner-padding-end: 12px;
+    --padding-top: 10px;
+    --padding-bottom: 10px;
+    margin: 6px 8px 8px;
+    border: 1px solid var(--ap-border);
+    border-radius: 14px;
+
+    h2 {
+      font-weight: 700;
+      font-size: 1rem;
+      margin: 0 0 2px;
+    }
+
+    p {
+      color: var(--ap-text-muted);
+      font-size: 0.85rem;
+    }
+  }
+
+  .who-avatar {
+    width: 44px;
+    height: 44px;
+    margin-inline-end: 12px;
+    display: grid;
+    place-items: center;
+    background: var(--ion-color-secondary);
+  }
+
+  // Footer row: theme switcher on the left, log out on the right.
+  .menu-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 4px;
+    padding: 6px 12px 6px 6px;
+    border-top: 1px solid var(--ap-border);
+    background: var(--ap-surface-2);
+  }
+
+  .theme-btn {
+    --color: var(--ion-text-color);
+    --padding-start: 8px;
+    --padding-end: 8px;
+    margin: 0;
+    font-size: 1.25rem;
+  }
+
+  .logout {
+    background: none;
+    border: 0;
+    padding: 4px 2px;
+    font: inherit;
     font-weight: 600;
+    color: var(--ion-text-color);
+    border-bottom: 1px dashed var(--ap-text-muted);
+    cursor: pointer;
+
+    &:hover {
+      color: var(--ion-color-danger);
+      border-bottom-color: var(--ion-color-danger);
+    }
+  }
+
+  .divider {
+    height: 1px;
+    margin: 4px 16px;
+    background: var(--ap-border);
+  }
+
+  .version {
+    margin: 6px 16px 4px;
+    font-size: 0.75rem;
+    color: var(--ap-text-muted);
+  }
+}
+
+.notifications {
+  padding: 16px 20px 20px;
+  max-width: 280px;
+  text-align: center;
+
+  h2 {
+    margin: 0 0 12px;
+    font-size: 1rem;
+    text-align: left;
+  }
+
+  ion-icon {
+    font-size: 36px;
+    color: var(--ap-text-muted);
+  }
+
+  p {
+    margin: 8px 0 0;
+    font-size: 0.875rem;
   }
 }
 

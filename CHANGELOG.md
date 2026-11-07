@@ -29,6 +29,15 @@ Versioning: [Semantic Versioning](https://semver.org/).
   PIN setup, unlock, encryption, lock, change PIN, reset, and sign-out; runs
   in CI on every PR and push to `development` and `main`, and gates deploys.
 - Android CI build job, disabled by default (`ENABLE_ANDROID_BUILD`).
+- Delete account on the Profile page (re-authentication and typed DELETE;
+  removes encrypted data, profile, and sign-in).
+- Build version `MAJOR.MINOR.BUILD` (BUILD = commit count) shown in the
+  account menu and About page; `/version.json` drives a reload toast when a
+  newer version is deployed.
+- Top bar: current AI indicator next to the logo (blinks 5 times on a
+  provider switch), notifications bell (placeholder).
+- Account menu: profile card (photo, name, email) opens the profile; footer
+  with a System/Light/Dark theme switcher and Log out.
 
 ### Changed
 - Android toolchain: Gradle 9.9.0, Android Gradle Plugin 9.5.1, JDK 25

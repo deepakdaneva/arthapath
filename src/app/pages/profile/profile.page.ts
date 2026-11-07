@@ -8,13 +8,16 @@ import { IonItem } from '@ionic/angular/ion-item';
 import { IonLabel } from '@ionic/angular/ion-label';
 import { IonList } from '@ionic/angular/ion-list';
 import { IonNote } from '@ionic/angular/ion-note';
+import { FirebaseError } from 'firebase/app';
 import { EmailAuthProvider, GoogleAuthProvider } from 'firebase/auth';
+import { IonSpinner } from '@ionic/angular/ion-spinner';
+import { NavController } from '@ionic/angular/nav-controller';
 import { AuthService, authErrorMessage } from '../../core/auth.service';
 import { isSafePhotoUrl } from '../../core/profile-fields';
 
 @Component({
   selector: 'app-profile',
-  imports: [IonContent, IonList, IonItem, IonLabel, IonInput, IonButton, IonNote, IonAvatar, FormsModule],
+  imports: [IonContent, IonList, IonItem, IonLabel, IonInput, IonButton, IonNote, IonAvatar, IonSpinner, FormsModule],
   template: `
     <ion-content>
       <div class="ap-container page">
@@ -81,6 +84,60 @@ import { isSafePhotoUrl } from '../../core/profile-fields';
           Your name, email, and profile picture link are saved to your ArthaPath profile so they
           appear on every device.
         </p>
+
+        <section class="ap-card danger-zone" aria-labelledby="delete-title">
+          <h2 id="delete-title">Delete account</h2>
+          <p>
+            This permanently deletes your ArthaPath account: your profile, your encrypted financial
+            data (goals, transactions, chats, AI keys), and your sign-in. It cannot be undone.
+          </p>
+          <p class="ap-muted small">
+            Data you previously sent to an AI provider is held by that provider; ask them to delete
+            it under their terms.
+          </p>
+          @if (!deleteOpen()) {
+            <ion-button color="danger" fill="outline" (click)="deleteOpen.set(true)">Delete my account</ion-button>
+          } @else {
+            <form class="delete-form" (ngSubmit)="deleteAccount()" novalidate>
+              @if (usesPassword()) {
+                <ion-input
+                  type="password"
+                  label="Your password"
+                  labelPlacement="floating"
+                  fill="outline"
+                  autocomplete="current-password"
+                  name="password"
+                  [ngModel]="password()"
+                  (ngModelChange)="password.set($event ?? '')"
+                />
+              } @else {
+                <p class="ap-muted small">You will be asked to confirm with Google.</p>
+              }
+              <ion-input
+                label="Type DELETE to confirm"
+                labelPlacement="floating"
+                fill="outline"
+                autocomplete="off"
+                name="confirm"
+                [ngModel]="confirmText()"
+                (ngModelChange)="confirmText.set($event ?? '')"
+              />
+              @if (deleteError()) {
+                <p class="ap-error" role="alert">{{ deleteError() }}</p>
+              }
+              <div class="row">
+                <ion-button type="submit" color="danger" [disabled]="confirmText() !== 'DELETE' || deleting()">
+                  @if (deleting()) {
+                    <ion-spinner name="crescent" aria-label="Deleting" />
+                  } @else {
+                    Permanently delete
+                  }
+                </ion-button>
+                <ion-button fill="clear" (click)="cancelDelete()" [disabled]="deleting()">Cancel</ion-button>
+              </div>
+            </form>
+          }
+        </section>
       </div>
     </ion-content>
   `,
@@ -115,6 +172,31 @@ import { isSafePhotoUrl } from '../../core/profile-fields';
       font-size: 0.85rem;
       margin-top: 16px;
     }
+    .danger-zone {
+      margin-top: 24px;
+      border-color: rgba(var(--ion-color-danger-rgb), 0.4);
+      h2 {
+        margin: 0 0 8px;
+        font-size: 1.1rem;
+        color: var(--ion-color-danger);
+      }
+      p {
+        line-height: 1.5;
+      }
+    }
+    .small {
+      font-size: 0.85rem;
+    }
+    .delete-form {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      max-width: 420px;
+    }
+    .row {
+      display: flex;
+      gap: 8px;
+    }
   `,
 })
 export class ProfilePage {
@@ -124,6 +206,16 @@ export class ProfilePage {
   readonly message = signal('');
   readonly name = signal(this.user()?.displayName ?? '');
   readonly photo = signal(this.user()?.photoURL ?? '');
+  private readonly nav = inject(NavController);
+
+  readonly deleteOpen = signal(false);
+  readonly deleting = signal(false);
+  readonly deleteError = signal('');
+  readonly password = signal('');
+  readonly confirmText = signal('');
+  readonly usesPassword = computed(
+    () => !(this.user()?.providers ?? []).some((id) => id === GoogleAuthProvider.PROVIDER_ID),
+  );
 
   readonly photoValid = computed(() => {
     const p = this.photo().trim();
@@ -138,6 +230,32 @@ export class ProfilePage {
     if (p.some((id) => id === GoogleAuthProvider.PROVIDER_ID)) return 'Google';
     if (p.some((id) => id === EmailAuthProvider.PROVIDER_ID)) return 'Email and password';
     return '—';
+  }
+
+  cancelDelete(): void {
+    this.deleteOpen.set(false);
+    this.password.set('');
+    this.confirmText.set('');
+    this.deleteError.set('');
+  }
+
+  async deleteAccount(): Promise<void> {
+    if (this.confirmText() !== 'DELETE') return;
+    this.deleting.set(true);
+    this.deleteError.set('');
+    try {
+      await this.auth.deleteAccount(this.password() || undefined);
+      await this.nav.navigateRoot('/');
+    } catch (e) {
+      this.deleteError.set(
+        e instanceof FirebaseError && e.code.startsWith('auth/')
+          ? authErrorMessage(e)
+          : 'Could not delete your account. Check your connection and try again.',
+      );
+    } finally {
+      this.deleting.set(false);
+      this.password.set('');
+    }
   }
 
   async save(): Promise<void> {

@@ -22,18 +22,23 @@ import {
   add,
   chatbubbles,
   chatbubblesOutline,
+  contrastOutline,
   documentTextOutline,
   informationCircleOutline,
   keyOutline,
-  logOutOutline,
-  personOutline,
+  moonOutline,
+  notificationsOffOutline,
+  notificationsOutline,
   settingsOutline,
-  sparklesOutline,
+  sunnyOutline,
   today,
   todayOutline,
 } from 'ionicons/icons';
 import { AuthService } from '../core/auth.service';
 import { SessionLockService } from '../core/crypto/session-lock.service';
+import { ThemeService } from '../core/theme.service';
+import { UpdateService } from '../core/update.service';
+import { AiStatusComponent } from './ai-status.component';
 
 @Component({
   selector: 'app-shell',
@@ -53,6 +58,7 @@ import { SessionLockService } from '../core/crypto/session-lock.service';
     IonFabButton,
     IonRouterOutlet,
     RouterLink,
+    AiStatusComponent,
   ],
   templateUrl: './shell.component.html',
   styleUrl: './shell.component.scss',
@@ -62,11 +68,23 @@ export class ShellComponent {
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
   private readonly nav = inject(NavController);
-  private readonly menu = viewChild.required(IonPopover);
+  private readonly menu = viewChild.required<IonPopover>('accountMenu');
   // Starts auto-lock (inactivity and background) while the app shell is open.
   private readonly sessionLock = inject(SessionLockService);
 
   readonly user = this.auth.user;
+  readonly version = inject(UpdateService).version;
+  readonly theme = inject(ThemeService);
+  private static readonly THEME = {
+    system: { label: 'System', icon: 'contrast-outline' },
+    light: { label: 'Light', icon: 'sunny-outline' },
+    dark: { label: 'Dark', icon: 'moon-outline' },
+  } as const;
+  readonly themeLabel = computed(() => ShellComponent.THEME[this.theme.mode()].label);
+  readonly themeIcon = computed(() => ShellComponent.THEME[this.theme.mode()].icon);
+  readonly nextThemeLabel = computed(
+    () => ({ system: 'Light', light: 'Dark', dark: 'System' })[this.theme.mode()],
+  );
   readonly initials = computed(() => {
     const u = this.user();
     const src = u?.displayName || u?.email || '?';
@@ -93,13 +111,15 @@ export class ShellComponent {
       add,
       chatbubbles,
       chatbubblesOutline,
+      contrastOutline,
       documentTextOutline,
       informationCircleOutline,
       keyOutline,
-      logOutOutline,
-      personOutline,
+      moonOutline,
+      notificationsOffOutline,
+      notificationsOutline,
       settingsOutline,
-      sparklesOutline,
+      sunnyOutline,
       today,
       todayOutline,
     });

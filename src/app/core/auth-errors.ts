@@ -4,6 +4,8 @@ import { FirebaseError } from 'firebase/app';
 export function authErrorMessage(err: unknown): string {
   const code = err instanceof FirebaseError ? err.code : '';
   switch (code) {
+    case 'auth/missing-password':
+      return 'Enter your password to confirm.';
     case 'auth/invalid-credential':
     case 'auth/wrong-password':
     case 'auth/user-not-found':

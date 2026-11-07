@@ -1,6 +1,10 @@
 import { Injectable, computed, signal } from '@angular/core';
 import {
+  EmailAuthProvider,
   GoogleAuthProvider,
+  deleteUser,
+  reauthenticateWithCredential,
+  reauthenticateWithPopup,
   createUserWithEmailAndPassword,
   onAuthStateChanged,
   sendEmailVerification,
@@ -11,6 +15,7 @@ import {
   updateProfile,
   type User,
 } from 'firebase/auth';
+import { FirebaseError } from 'firebase/app';
 import { auth } from './firebase';
 import { isSafePhotoUrl } from './profile-fields';
 
@@ -118,6 +123,31 @@ export class AuthService {
       }
     });
     return this.syncQueue;
+  }
+
+  /**
+   * Permanently deletes the account: all Firestore data (encrypted documents
+   * and profile), then the Firebase Auth user. Firebase requires a recent
+   * sign-in, so the user re-authenticates first (password, or Google popup);
+   * nothing is deleted if that fails.
+   */
+  async deleteAccount(password?: string): Promise<void> {
+    const u = auth.currentUser;
+    if (!u) throw new Error('Not signed in');
+    if (u.providerData.some((p) => p.providerId === GoogleAuthProvider.PROVIDER_ID)) {
+      await reauthenticateWithPopup(u, new GoogleAuthProvider());
+    } else {
+      if (!password || !u.email) throw new FirebaseError('auth/missing-password', 'Password required');
+      await reauthenticateWithCredential(u, EmailAuthProvider.credential(u.email, password));
+    }
+    const { deleteAccountData } = await import('./crypto/vault-store');
+    await deleteAccountData(u.uid);
+    try {
+      localStorage.removeItem(`arthapath.pinFailures.${u.uid}`);
+    } catch {
+      // Storage unavailable: nothing to clean up.
+    }
+    await deleteUser(u);
   }
 
   signOut(): Promise<void> {

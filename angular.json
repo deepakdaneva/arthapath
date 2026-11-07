@@ -40,6 +40,11 @@
                 "glob": "*.html",
                 "input": "src/generated/legal",
                 "output": "legal"
+              },
+              {
+                "glob": "version.json",
+                "input": "src/generated",
+                "output": "."
               }
             ],
             "styles": [

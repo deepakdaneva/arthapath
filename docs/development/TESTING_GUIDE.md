@@ -48,6 +48,10 @@ browser-agnostic; CI runs them on Playwright's Chromium.
 | Change PIN | Wrong current PIN rejected, old PIN stops working, new PIN unlocks the same data |
 | Reset | Forgotten-PIN reset removes encryption data and keeps the profile |
 | Sign-out | Returns to landing, app requires sign-in again |
+| App shell | AI status indicator, notifications panel, account card opens profile, theme switcher cycles System/Light/Dark, version shown |
+| AI indicator | Blinks 5 times when the provider switches |
+| Updates | Toast offers a reload when `/version.json` reports a newer version |
+| Delete account | Wrong password rejected with nothing deleted; then data, profile, and sign-in removed |
 
 Every test uses a fresh account, so tests are independent.
 
