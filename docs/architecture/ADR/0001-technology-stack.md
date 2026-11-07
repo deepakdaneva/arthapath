@@ -12,7 +12,11 @@ actively maintained, and work with the Firebase client SDK.
 
 - Ionic Framework 9 + Angular 22 (latest stable at time of writing;
   Ionic 9 supports Angular 18–22), standalone components, TypeScript.
-- Capacitor 8 for native shells (Android now, iOS later).
+- Capacitor 8 for native shells (Android now, iOS later). One codebase:
+  the Android app is the same Ionic/Angular web build in a WebView (hybrid).
+- Android toolchain: Gradle 9.9, Android Gradle Plugin 9.5, JDK 25 for the
+  Gradle daemon. Java language level 21 (Capacitor 8 requirement; Android
+  runtime compatibility). Revisit with Capacitor 9.
 - State: Angular signals in feature stores. No NgRx.
 - Firebase: the modular `firebase` JS SDK used directly, without
   `@angular/fire`. Its latest release targets Angular 21; a thin wrapper of

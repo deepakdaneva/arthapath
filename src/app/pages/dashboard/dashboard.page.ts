@@ -1,6 +1,6 @@
 import { Component, computed, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { IonContent } from '@ionic/angular';
+import { IonContent } from '@ionic/angular/ion-content';
 import { AuthService } from '../../core/auth.service';
 import { VerifyBannerComponent } from '../../shell/verify-banner.component';
 

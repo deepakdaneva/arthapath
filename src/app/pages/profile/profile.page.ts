@@ -1,15 +1,13 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import {
-  IonAvatar,
-  IonButton,
-  IonContent,
-  IonInput,
-  IonItem,
-  IonLabel,
-  IonList,
-  IonNote,
-} from '@ionic/angular';
+import { IonAvatar } from '@ionic/angular/ion-avatar';
+import { IonButton } from '@ionic/angular/ion-button';
+import { IonContent } from '@ionic/angular/ion-content';
+import { IonInput } from '@ionic/angular/ion-input';
+import { IonItem } from '@ionic/angular/ion-item';
+import { IonLabel } from '@ionic/angular/ion-label';
+import { IonList } from '@ionic/angular/ion-list';
+import { IonNote } from '@ionic/angular/ion-note';
 import { EmailAuthProvider, GoogleAuthProvider } from 'firebase/auth';
 import { AuthService, authErrorMessage } from '../../core/auth.service';
 import { isSafePhotoUrl } from '../../core/profile-fields';

@@ -31,6 +31,9 @@ ArthaPath profile.
 
 Your financial data is encrypted on your device with a key derived from
 your PIN before it is stored. Your PIN and keys never leave your device.
+ArthaPath locks automatically after inactivity (5 minutes by default) or
+when it stays in the background, and you need your PIN to unlock it.
+Your app preferences, such as the auto-lock time, are stored encrypted too.
 **If you forget your PIN, your data cannot be recovered by anyone.**
 
 ## AI providers (important)

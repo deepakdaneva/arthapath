@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
-import { IonContent, IonIcon } from '@ionic/angular';
+import { IonContent } from '@ionic/angular/ion-content';
+import { IonIcon } from '@ionic/angular/ion-icon';
 import { addIcons } from 'ionicons';
 import { chatbubblesOutline } from 'ionicons/icons';
 

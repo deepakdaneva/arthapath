@@ -1,6 +1,7 @@
 import { Component, inject, resource } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { IonContent, IonSpinner } from '@ionic/angular';
+import { IonContent } from '@ionic/angular/ion-content';
+import { IonSpinner } from '@ionic/angular/ion-spinner';
 import { repoRef, repoUrl } from '../../../environments/app-config';
 
 const DOCS: Record<string, { html: string; source: string }> = {

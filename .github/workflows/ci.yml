@@ -63,13 +63,87 @@ jobs:
         with:
           node-version: 24
           cache: npm
-          cache-dependency-path: firebase/rules-tests/package-lock.json
+          cache-dependency-path: |
+            firebase/rules-tests/package-lock.json
+            package-lock.json
       - run: npm ci
       - run: npm test
+      - name: App integration tests (emulators, real rules)
+        working-directory: .
+        run: |
+          npm ci
+          npm run config
+          firebase/rules-tests/node_modules/.bin/firebase emulators:exec --only auth,firestore --project demo-arthapath "npx ng test --watch=false"
+
+  e2e:
+    # Web regression suite: Playwright against the dev server and the Firebase
+    # emulators with the real security rules. Tests are browser-agnostic; CI
+    # runs them on Playwright's Chromium.
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@77dd5b2ce225ea11469928ac317850245a74ae78 # v6.2.0
+        with:
+          distribution: temurin
+          java-version: 25
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            firebase/rules-tests/package-lock.json
+      - run: npm ci
+      - name: Firebase CLI (pinned in firebase/rules-tests)
+        run: |
+          npm ci --prefix firebase/rules-tests
+          echo "$GITHUB_WORKSPACE/firebase/rules-tests/node_modules/.bin" >> "$GITHUB_PATH"
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e
+        env:
+          CI: 'true'
+      - name: Upload report on failure
+        if: failure()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: playwright-report
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 7
+
+  android:
+    # Skipped until the web app is stable. Enable by setting the repository
+    # variable ENABLE_ANDROID_BUILD=true (Settings > Secrets and variables > Actions).
+    if: vars.ENABLE_ANDROID_BUILD == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@77dd5b2ce225ea11469928ac317850245a74ae78 # v6.2.0
+        with:
+          distribution: temurin
+          java-version: 25
+          cache: gradle
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - run: npx cap sync android
+      - name: Assemble debug APK (Gradle 9, AGP 9, JDK 25)
+        working-directory: android
+        run: ./gradlew assembleDebug --no-daemon
 
   deploy:
     if: github.event_name != 'pull_request' && (github.ref_name == 'main' || github.ref_name == 'development')
-    needs: [validate, rules]
+    needs: [validate, rules, e2e]
     runs-on: ubuntu-latest
     timeout-minutes: 20
     environment:

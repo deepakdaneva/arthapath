@@ -100,16 +100,24 @@ export class AuthService {
     await this.syncProfile(u);
   }
 
-  /** Persists name, email, and photo URL to users/{uid}. Firestore loads lazily. */
-  private async syncProfile(u: User): Promise<void> {
-    try {
-      const { syncUserProfile } = await import('./profile-store');
-      await syncUserProfile(u);
-    } catch {
-      // Offline or quota exhausted: the next sign-in or profile save retries.
-      // No details logged (they may contain personal data).
-      console.warn('Profile sync deferred');
-    }
+  private syncQueue: Promise<void> = Promise.resolve();
+
+  /**
+   * Persists name, email, and photo URL to users/{uid}. Firestore loads lazily.
+   * Calls run one after another (sign-up triggers two in quick succession).
+   */
+  private syncProfile(u: User): Promise<void> {
+    this.syncQueue = this.syncQueue.then(async () => {
+      try {
+        const { syncUserProfile } = await import('./profile-store');
+        await syncUserProfile(u);
+      } catch {
+        // Offline or quota exhausted: the next sign-in or profile save retries.
+        // No details logged (they may contain personal data).
+        console.warn('Profile sync deferred');
+      }
+    });
+    return this.syncQueue;
   }
 
   signOut(): Promise<void> {
