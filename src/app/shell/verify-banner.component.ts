@@ -1,5 +1,6 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { IonButton } from '@ionic/angular';
+import { EmailAuthProvider } from 'firebase/auth';
 import { AuthService } from '../core/auth.service';
 
 /** Reminds email/password users to verify their address. Google accounts are already verified. */
@@ -36,7 +37,7 @@ export class VerifyBannerComponent {
   readonly sent = signal(false);
   readonly show = computed(() => {
     const u = this.auth.user();
-    return !!u && !u.emailVerified && u.providers.includes('password');
+    return !!u && !u.emailVerified && u.providers.some((id) => id === EmailAuthProvider.PROVIDER_ID);
   });
 
   async resend(): Promise<void> {

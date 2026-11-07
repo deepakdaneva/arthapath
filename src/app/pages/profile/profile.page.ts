@@ -1,6 +1,7 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { IonButton, IonContent, IonInput, IonItem, IonLabel, IonList, IonNote } from '@ionic/angular';
+import { EmailAuthProvider, GoogleAuthProvider } from 'firebase/auth';
 import { AuthService, authErrorMessage } from '../../core/auth.service';
 
 @Component({
@@ -65,8 +66,11 @@ export class ProfilePage {
   name = this.user()?.displayName ?? '';
 
   providerLabel(): string {
+    // Exact provider-ID comparison (Firebase constants), not URL matching.
     const p = this.user()?.providers ?? [];
-    return p.includes('google.com') ? 'Google' : p.includes('password') ? 'Email and password' : '—';
+    if (p.some((id) => id === GoogleAuthProvider.PROVIDER_ID)) return 'Google';
+    if (p.some((id) => id === EmailAuthProvider.PROVIDER_ID)) return 'Email and password';
+    return '—';
   }
 
   async save(): Promise<void> {
