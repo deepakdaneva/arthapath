@@ -9,8 +9,8 @@ _Last updated: 2026-11-07_
 | 0 Discovery and architecture | Done |
 | 1 Repository foundation | Done |
 | 2 Firebase infrastructure | Done |
-| 3 Frontend foundation | In progress |
-| 4 Security and encryption | Not started |
+| 3 Frontend foundation | Done |
+| 4 Security and encryption | Done (pending UAT verification) |
 | 5 AI integration | Not started |
 | 6 Financial engine and onboarding | Not started |
 | 7 Dashboard | Not started |
@@ -125,6 +125,39 @@ local PDF parsing with consented AI assist.
 - Known gaps: Google sign-in on Android needs a native plugin; e2e tests
   (Playwright) not yet added.
 
+## Phase 4 results
+
+- Envelope encryption implemented as designed: Argon2id (64 MiB, t=3,
+  p=1) KEK wraps a random AES-256-GCM DEK; data stored as `{v, iv, ct}`.
+- PIN setup (no-recovery acknowledgement, strength hint), unlock with
+  throttling, change PIN (rewrap only), forgotten-PIN reset.
+- Auto-lock: inactivity (default 5 min), background over 30 s, sign-out.
+- Transactional writes prevent a second device from overwriting PIN
+  setup and prevent profile sync from overwriting `crypto`.
+- First encrypted data: lock preferences in `vault/main`.
+- Tests: 12 crypto unit tests, 2 emulator integration tests (setup,
+  conflict, encryption, PIN change, stale-device rejection, reset), 4 new
+  rules tests. Totals: 26 unit/integration, 25 rules.
+- Initial bundle 674 kB (178 kB gzip) after switching to per-component
+  Ionic imports.
+- Browser-verified locally (Brave, emulators): sign-up, PIN setup with
+  strength and mismatch hints, wrong PIN, unlock after reload with return
+  to the same page, encrypted lock preference (Firestore shows only
+  `v/iv/ct`), change PIN (old fails, new works, data still decrypts),
+  forgotten-PIN reset (crypto and vault removed, profile kept), lock now,
+  background lock, inactivity lock, sign-out. No console errors.
+- Fixed from the browser run: cached app pages stayed in the DOM after
+  lock (now root navigation), truncated checkbox label, missing PIN
+  mismatch hint, overlapping profile saves at sign-up.
+- Android: Gradle 9.9.0, AGP 9.5.1, JDK 25 daemon; all modules configure
+  locally. Full APK build runs in CI (no Android SDK on the dev machine).
+- Regression suite: 12 Playwright tests (`e2e/`) covering the flows
+  above; pass locally twice in a row. CI job `e2e` gates deploys. Found and
+  fixed an unlock race (PIN submitted before settings loaded).
+- Android CI build skipped by default (`ENABLE_ANDROID_BUILD`); focus is
+  the web app first.
+- Not yet verified: unlock time on a real Android device; the flow on UAT.
+
 ## Security issues
 
 None open.
@@ -139,4 +172,6 @@ Not deployed.
 
 ## Next tasks
 
-1. Phase 3: scaffold the Ionic/Angular app.
+1. Verify Phase 4 on UAT: sign in, set PIN, lock/unlock, change PIN.
+2. Phase 5: AI provider layer (adapters, encrypted keys, routing, fallback,
+   context, guardrails).

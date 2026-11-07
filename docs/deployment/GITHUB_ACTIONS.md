@@ -14,8 +14,10 @@ comment). Dependabot proposes SHA updates weekly. Workflows default to
 
 ## Required status checks
 
-`validate`, `rules`, `analyze (javascript-typescript)`, `analyze (actions)`,
-`dependency-review` (job names) on PRs into `main` and `development`.
+`validate`, `rules`, `e2e`, `analyze (javascript-typescript)`,
+`analyze (actions)`, `dependency-review` (job names) on PRs into `main` and
+`development`. The `android` job is not required and is skipped unless the
+repository variable `ENABLE_ANDROID_BUILD` is set to `true`.
 
 ## Deployment authentication: Workload Identity Federation
 

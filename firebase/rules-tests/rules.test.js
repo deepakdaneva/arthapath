@@ -170,3 +170,30 @@ describe('profile sync shapes', () => {
     await assertFails(setDoc(doc(db(ALICE), 'users', ALICE), userDoc({ birthDate: '1990-01-01' })));
   });
 });
+
+describe('vault lifecycle', () => {
+  test('crypto params can be added to an existing profile (PIN setup)', async () => {
+    const ref = doc(db(ALICE), 'users', ALICE);
+    await assertSucceeds(setDoc(ref, userDoc()));
+    await assertSucceeds(updateDoc(ref, { crypto, updatedAt: serverTimestamp() }));
+  });
+
+  test('crypto params can be removed (forgotten-PIN reset)', async () => {
+    const ref = doc(db(ALICE), 'users', ALICE);
+    await assertSucceeds(setDoc(ref, userDoc({ crypto })));
+    const { deleteField } = await import('firebase/firestore');
+    await assertSucceeds(updateDoc(ref, { crypto: deleteField(), updatedAt: serverTimestamp() }));
+  });
+
+  test('other users cannot read crypto params', async () => {
+    await assertSucceeds(setDoc(doc(db(ALICE), 'users', ALICE), userDoc({ crypto })));
+    await assertFails(getDoc(doc(db(BOB), 'users', ALICE)));
+  });
+
+  test('encrypted vault/main can be deleted by its owner only', async () => {
+    const ref = doc(db(ALICE), 'users', ALICE, 'vault', 'main');
+    await assertSucceeds(setDoc(ref, envelope()));
+    await assertFails(deleteDoc(doc(db(BOB), 'users', ALICE, 'vault', 'main')));
+    await assertSucceeds(deleteDoc(ref));
+  });
+});

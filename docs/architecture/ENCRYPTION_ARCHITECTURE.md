@@ -66,11 +66,40 @@ No recovery. The user can delete their data and start fresh. There is no
 server-side decryption and no backdoor. This is shown during setup and in
 the PIN screen.
 
+Reset (Unlock → Forgot PIN → type `DELETE`) deletes every document in the
+encrypted collections (`vault`, `goals`, `transactions`, `aggregates`,
+`pendingQuestions`, `contextSnapshots`, `analyses`, `aiKeys`,
+`conversations` and their messages) in batches, then removes `crypto`.
+Profile fields (name, email, photo URL) stay.
+
 ## Argon2id parameters
 
-Default target: `m = 64 MiB, t = 3, p = 1`, tuned in Phase 4 so unlock
-takes about 0.5–1 s on a mid-range Android device. Params are stored per
-user so they can be raised later (rewrap on next unlock).
+`m = 64 MiB, t = 3, p = 1` (`DEFAULT_KDF`). Measured at about 130 ms on a
+desktop CPU; expected around 0.5–1 s on a mid-range Android device (to be
+measured on hardware when Android builds are tested). Params are stored
+per user so they can be raised later (rewrap on next unlock).
+
+## Implementation
+
+| Piece | File |
+|---|---|
+| Primitives (derive, create, open, change PIN, encrypt/decrypt JSON) | `src/app/core/crypto/crypto.ts` |
+| Firestore persistence (params, envelopes, reset), transactional | `src/app/core/crypto/vault-store.ts` |
+| In-memory key, state, throttling, encrypted get/put | `src/app/core/crypto/vault.service.ts` |
+| Auto-lock policy | `src/app/core/crypto/session-lock.service.ts` |
+| Route guards (`/setup-pin`, `/unlock`, `/app`) | `src/app/core/crypto/vault.guards.ts` |
+
+- The in-memory DEK is a non-extractable `CryptoKey`. A PIN change
+  unwraps an extractable copy only long enough to rewrap it.
+- First-time setup runs in a transaction and refuses to overwrite existing
+  parameters (another device may have set a PIN; overwriting would orphan
+  its data). PIN change succeeds only if the stored wrapped key is the one
+  that was unwrapped.
+- Profile sync also runs in a transaction, so it never overwrites `crypto`.
+- Wrong-PIN throttling: 5 free attempts, then 30 s doubling up to 15 min,
+  tracked per account in `localStorage`. This is a UI speed bump only;
+  Argon2id and the rules are the real protection.
+- Crypto and Firestore code load lazily; the initial bundle has neither.
 
 ## Offline brute-force considerations
 
@@ -88,10 +117,14 @@ This limitation is stated plainly in SECURITY.md and the privacy policy.
 
 ## Session lock
 
-- Inactivity timeout (default 5 min, user-configurable 1–30 min).
-- Lock when the app goes to background (configurable grace period).
-- Lock on logout and tab close.
-- Lock = drop DEK reference + clear decrypted stores.
+- Inactivity timeout: default 5 min; options 1, 5, 15, 30 min (Settings).
+  Activity = pointer, key, wheel, or touch events; checked every 15 s.
+- Background: locks if the tab is hidden or the app paused for more than
+  30 s (`visibilitychange`, which also fires when Capacitor pauses).
+- Sign-out and reload: the key exists only in memory, so it is gone.
+- Lock = drop the DEK reference, bump `lockEpoch` so decrypted caches
+  clear, and route to `/unlock` (returning to the same page afterwards).
+- Lock preferences are stored encrypted in `users/{uid}/vault/main`.
 - Biometric unlock: not in v1 (PIN only). Planned later via Android
   Keystore and WebAuthn PRF where supported.
 

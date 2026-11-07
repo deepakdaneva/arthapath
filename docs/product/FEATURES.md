@@ -9,8 +9,8 @@ and tested, not just UI).
 | Google and email/password sign-in | 3 | Done (web); Android Google sign-in pending native plugin |
 | Profile menu, bottom navigation (Chat, Today's Updates), FAB | 3 | Done (Chat, Today's Updates, AI Providers screens arrive in later phases) |
 | Light and dark themes (navy + teal) | 3 | Done |
-| PIN setup, unlock, change, session lock | 4 | Planned |
-| Client-side encryption of all financial data and AI keys | 4 | Planned |
+| PIN setup, unlock, change, session lock | 4 | Done |
+| Client-side encryption of all financial data and AI keys | 4 | Done (encryption layer; AI keys use it in Phase 5) |
 | Biometric unlock | Later | Deferred (PIN only in v1) |
 | BYOK AI: Gemini, Groq, OpenRouter, custom OpenAI-compatible | 5 | Planned |
 | Multiple keys, priority, automatic fallback with notices | 5 | Planned |

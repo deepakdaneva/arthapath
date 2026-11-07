@@ -2,22 +2,21 @@ import { Component, computed, inject, viewChild } from '@angular/core';
 import { NavigationEnd, Router, RouterLink } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { filter, map } from 'rxjs';
-import {
-  IonAvatar,
-  IonButton,
-  IonFab,
-  IonFabButton,
-  IonFooter,
-  IonHeader,
-  IonIcon,
-  IonItem,
-  IonLabel,
-  IonList,
-  IonNote,
-  IonPopover,
-  IonRouterOutlet,
-  IonToolbar,
-} from '@ionic/angular';
+import { IonAvatar } from '@ionic/angular/ion-avatar';
+import { IonButton } from '@ionic/angular/ion-button';
+import { IonFab } from '@ionic/angular/ion-fab';
+import { IonFabButton } from '@ionic/angular/ion-fab-button';
+import { IonFooter } from '@ionic/angular/ion-footer';
+import { IonHeader } from '@ionic/angular/ion-header';
+import { IonIcon } from '@ionic/angular/ion-icon';
+import { IonItem } from '@ionic/angular/ion-item';
+import { IonLabel } from '@ionic/angular/ion-label';
+import { IonList } from '@ionic/angular/ion-list';
+import { IonNote } from '@ionic/angular/ion-note';
+import { IonPopover } from '@ionic/angular/ion-popover';
+import { IonRouterOutlet } from '@ionic/angular/ion-router-outlet';
+import { IonToolbar } from '@ionic/angular/ion-toolbar';
+import { NavController } from '@ionic/angular/nav-controller';
 import { addIcons } from 'ionicons';
 import {
   add,
@@ -34,6 +33,7 @@ import {
   todayOutline,
 } from 'ionicons/icons';
 import { AuthService } from '../core/auth.service';
+import { SessionLockService } from '../core/crypto/session-lock.service';
 
 @Component({
   selector: 'app-shell',
@@ -61,7 +61,10 @@ import { AuthService } from '../core/auth.service';
 export class ShellComponent {
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
+  private readonly nav = inject(NavController);
   private readonly menu = viewChild.required(IonPopover);
+  // Starts auto-lock (inactivity and background) while the app shell is open.
+  private readonly sessionLock = inject(SessionLockService);
 
   readonly user = this.auth.user;
   readonly initials = computed(() => {
@@ -110,6 +113,6 @@ export class ShellComponent {
   async logout(): Promise<void> {
     await this.menu().dismiss();
     await this.auth.signOut();
-    await this.router.navigateByUrl('/', { replaceUrl: true });
+    await this.nav.navigateRoot('/');
   }
 }

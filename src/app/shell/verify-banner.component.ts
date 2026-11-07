@@ -1,5 +1,5 @@
 import { Component, computed, inject, signal } from '@angular/core';
-import { IonButton } from '@ionic/angular';
+import { IonButton } from '@ionic/angular/ion-button';
 import { EmailAuthProvider } from 'firebase/auth';
 import { AuthService } from '../core/auth.service';
 

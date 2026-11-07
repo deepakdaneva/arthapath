@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { IonContent } from '@ionic/angular';
+import { IonContent } from '@ionic/angular/ion-content';
 import { version } from '../../../../package.json';
 import { repoRef, repoUrl } from '../../../environments/app-config';
 

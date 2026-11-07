@@ -17,6 +17,11 @@ module.exports = tseslint.config(
       '@angular-eslint/directive-selector': ['error', { type: 'attribute', prefix: 'app', style: 'camelCase' }],
       '@angular-eslint/component-selector': ['error', { type: 'element', prefix: 'app', style: 'kebab-case' }],
       'no-console': ['error', { allow: ['warn', 'error'] }],
+      // Per-component entry points keep lazily loaded pages' components out of the main bundle.
+      'no-restricted-imports': [
+        'error',
+        { paths: [{ name: '@ionic/angular', message: "Import from '@ionic/angular/<component>' instead." }] },
+      ],
     },
   },
   {

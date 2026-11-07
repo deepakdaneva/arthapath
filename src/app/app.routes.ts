@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { authGuard, guestGuard } from './core/auth.guards';
+import { needsPinGuard, vaultUnlockedGuard } from './core/crypto/vault.guards';
 
 export const routes: Routes = [
   {
@@ -28,8 +29,21 @@ export const routes: Routes = [
     title: 'Terms of Service · ArthaPath',
   },
   {
-    path: 'app',
+    path: 'setup-pin',
+    canActivate: [authGuard, needsPinGuard],
+    loadComponent: () => import('./pages/pin/setup-pin.page').then((m) => m.SetupPinPage),
+    title: 'Set up your PIN · ArthaPath',
+  },
+  {
+    path: 'unlock',
     canActivate: [authGuard],
+    loadComponent: () => import('./pages/pin/unlock.page').then((m) => m.UnlockPage),
+    title: 'Unlock · ArthaPath',
+  },
+  {
+    path: 'app',
+    canActivate: [authGuard, vaultUnlockedGuard],
+    canActivateChild: [vaultUnlockedGuard],
     loadComponent: () => import('./shell/shell.component').then((m) => m.ShellComponent),
     children: [
       {

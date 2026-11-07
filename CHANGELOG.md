@@ -18,7 +18,29 @@ Versioning: [Semantic Versioning](https://semver.org/).
 - Profile (name, email, photo URL) saved to Firestore on sign-in; profile
   page edits name and photo URL.
 
+- Encryption PIN: setup with a no-recovery warning, unlock, change PIN,
+  and forgotten-PIN reset that deletes encrypted data. Argon2id key
+  derivation, AES-256-GCM envelope encryption, non-extractable in-memory
+  key, wrong-PIN throttling.
+- Auto-lock after inactivity (1, 5, 15, or 30 minutes) and in the
+  background; lock preferences stored encrypted.
+- Integration tests against the emulators, run in CI.
+- Playwright regression suite (12 browser tests) for public pages, sign-up,
+  PIN setup, unlock, encryption, lock, change PIN, reset, and sign-out; runs
+  in CI on every PR and push to `development` and `main`, and gates deploys.
+- Android CI build job, disabled by default (`ENABLE_ANDROID_BUILD`).
+
+### Changed
+- Android toolchain: Gradle 9.9.0, Android Gradle Plugin 9.5.1, JDK 25
+  Gradle daemon; app module on the new AGP DSL; CI builds a debug APK.
+- Locking and signing out reset the navigation stack, so no app page (and
+  later, no decrypted data) stays in the hidden DOM.
+- Ionic components imported from per-component entry points; initial
+  bundle reduced from 909 kB to 674 kB.
+
 ### Fixed
+- Unlocking right after a reload could fail with a misleading connection
+  error if the PIN was submitted before the encryption settings loaded.
 - Privacy policy and terms pages showed raw markdown; they are now rendered
   to HTML at build time.
 - In-app GitHub links point to `development` on UAT and `main` in

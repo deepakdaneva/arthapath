@@ -1,5 +1,6 @@
 import { Component, inject } from '@angular/core';
-import { IonApp, IonRouterOutlet } from '@ionic/angular';
+import { IonApp } from '@ionic/angular/ion-app';
+import { IonRouterOutlet } from '@ionic/angular/ion-router-outlet';
 import { ThemeService } from './core/theme.service';
 
 @Component({
