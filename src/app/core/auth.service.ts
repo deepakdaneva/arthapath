@@ -12,6 +12,7 @@ import {
   type User,
 } from 'firebase/auth';
 import { auth } from './firebase';
+import { isSafePhotoUrl } from './profile-fields';
 
 export { authErrorMessage } from './auth-errors';
 
@@ -50,6 +51,7 @@ export class AuthService {
   constructor() {
     onAuthStateChanged(auth, (u) => {
       this._user.set(u ? toAppUser(u) : null);
+      if (u) void this.syncProfile(u);
       if (!this._ready()) {
         this._ready.set(true);
         this.readyResolve();
@@ -60,7 +62,10 @@ export class AuthService {
   async signInWithGoogle(): Promise<void> {
     // Popup works in browsers. Native Android sign-in needs a platform plugin
     // (planned); the WebView blocks third-party auth popups.
+    // Default scopes only: name, email, profile picture. No sensitive scopes.
     const provider = new GoogleAuthProvider();
+    provider.addScope('profile');
+    provider.addScope('email');
     provider.setCustomParameters({ prompt: 'select_account' });
     await signInWithPopup(auth, provider);
   }
@@ -74,6 +79,7 @@ export class AuthService {
     if (name.trim()) await updateProfile(cred.user, { displayName: name.trim() });
     await sendEmailVerification(cred.user);
     this._user.set(toAppUser(cred.user));
+    await this.syncProfile(cred.user);
   }
 
   async resendVerification(): Promise<void> {
@@ -84,11 +90,26 @@ export class AuthService {
     await sendPasswordResetEmail(auth, email.trim());
   }
 
-  async updateDisplayName(name: string): Promise<void> {
+  /** Updates name and photo in Firebase Auth and the Firestore profile. */
+  async updateProfileDetails(name: string, photoURL: string | null): Promise<void> {
     const u = auth.currentUser;
     if (!u) return;
-    await updateProfile(u, { displayName: name.trim() || null });
+    if (photoURL && !isSafePhotoUrl(photoURL)) throw new Error('invalid-photo-url');
+    await updateProfile(u, { displayName: name.trim() || null, photoURL: photoURL || null });
     this._user.set(toAppUser(u));
+    await this.syncProfile(u);
+  }
+
+  /** Persists name, email, and photo URL to users/{uid}. Firestore loads lazily. */
+  private async syncProfile(u: User): Promise<void> {
+    try {
+      const { syncUserProfile } = await import('./profile-store');
+      await syncUserProfile(u);
+    } catch {
+      // Offline or quota exhausted: the next sign-in or profile save retries.
+      // No details logged (they may contain personal data).
+      console.warn('Profile sync deferred');
+    }
   }
 
   signOut(): Promise<void> {

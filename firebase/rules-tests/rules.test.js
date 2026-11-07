@@ -145,3 +145,28 @@ describe('encrypted subcollections', () => {
     await assertFails(setDoc(ref, envelope({ status: 'whatever' })));
   });
 });
+
+describe('profile sync shapes', () => {
+  test('minimal profile from email sign-up (no name, no photo) is accepted', async () => {
+    const ref = doc(db(ALICE), 'users', ALICE);
+    await assertSucceeds(
+      setDoc(ref, { email: 'a@example.com', photoURL: null, createdAt: serverTimestamp(), updatedAt: serverTimestamp() }),
+    );
+  });
+
+  test('partial update of changed fields is accepted', async () => {
+    const ref = doc(db(ALICE), 'users', ALICE);
+    await assertSucceeds(setDoc(ref, userDoc()));
+    await assertSucceeds(updateDoc(ref, { displayName: 'New Name', updatedAt: serverTimestamp() }));
+  });
+
+  test('client-chosen updatedAt rejected', async () => {
+    const ref = doc(db(ALICE), 'users', ALICE);
+    await assertSucceeds(setDoc(ref, userDoc()));
+    await assertFails(updateDoc(ref, { displayName: 'X', updatedAt: Timestamp.fromMillis(0) }));
+  });
+
+  test('date of birth is not an accepted profile field', async () => {
+    await assertFails(setDoc(doc(db(ALICE), 'users', ALICE), userDoc({ birthDate: '1990-01-01' })));
+  });
+});

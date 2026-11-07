@@ -46,5 +46,6 @@ Thumbs.db
 *.log
 npm-debug.log*
 
-# Generated at build time from environment variables (scripts/write-firebase-config.mjs)
-src/environments/firebase-config.ts
+# Generated at build time (scripts/write-app-config.mjs)
+src/environments/
+src/generated/

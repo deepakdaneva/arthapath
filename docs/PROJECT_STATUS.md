@@ -104,13 +104,19 @@ local PDF parsing with consented AI assist.
 - Angular 22.2 (zoneless, standalone, signals, strict templates), Ionic
   9.0, Capacitor 8.6, Firebase JS SDK 13.2, Vitest, angular-eslint.
 - Firebase web config generated at build time
-  (`scripts/write-firebase-config.mjs`); defaults to emulators with
+  (`scripts/write-app-config.mjs`); defaults to emulators with
   `demo-arthapath`. Real values only in GitHub environment variables.
 - Pages: landing, auth (Google popup, email sign-in/up, verification,
   reset with no account enumeration), shell (brand, avatar menu, bottom
   Chat / Today's Updates nav, FAB), dashboard first-run CTA, chat and
-  today empty states, profile, settings (theme), about, privacy/terms
-  (rendered from `docs/product` as plain text).
+  today empty states, profile (name and photo URL editing), settings
+  (theme), about, privacy/terms (markdown rendered to HTML at build time).
+- Links to GitHub (docs, source, license, legal sources) follow the build
+  branch: `development` on UAT, `main` in production.
+- Sign-in profile (name, email, photo URL) saved to `users/{uid}` on every
+  sign-in when changed; Firestore loads lazily. Google requests only the
+  basic profile and email scopes. Date of birth is not collected
+  (decision 2026-11-07, revisit later).
 - Android project added (`io.github.deepakdaneva.arthapath`,
   `https://localhost` scheme).
 - Deploy merged into `ci.yml` behind `needs: [validate, rules]`.

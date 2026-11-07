@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { IonContent } from '@ionic/angular';
 import { version } from '../../../../package.json';
+import { repoRef, repoUrl } from '../../../environments/app-config';
 
 @Component({
   selector: 'app-about',
@@ -21,10 +22,10 @@ import { version } from '../../../../package.json';
             <dd>{{ version }}</dd>
             <dt>License</dt>
             <dd>
-              <a [href]="repo + '/blob/main/LICENSE'" target="_blank" rel="noopener">Apache License 2.0</a>
+              <a [href]="license" target="_blank" rel="noopener">Apache License 2.0</a>
             </dd>
             <dt>Source</dt>
-            <dd><a [href]="repo" target="_blank" rel="noopener">github.com/deepakdaneva/arthapath</a></dd>
+            <dd><a [href]="repo" target="_blank" rel="noopener">github.com/deepakdaneva/arthapath</a> ({{ ref }})</dd>
             <dt>Third-party software</dt>
             <dd><a href="3rdpartylicenses.txt" target="_blank" rel="noopener">Licenses</a></dd>
           </dl>
@@ -62,5 +63,7 @@ import { version } from '../../../../package.json';
 })
 export class AboutPage {
   readonly version = version;
-  readonly repo = 'https://github.com/deepakdaneva/arthapath';
+  readonly ref = repoRef;
+  readonly repo = `${repoUrl}/tree/${repoRef}`;
+  readonly license = `${repoUrl}/blob/${repoRef}/LICENSE`;
 }
