@@ -16,10 +16,10 @@ and tested, not just UI).
 | PIN setup, unlock, change, session lock | 4 | Done |
 | Client-side encryption of all financial data and AI keys | 4 | Done (encryption layer; AI keys use it in Phase 5) |
 | Biometric unlock | Later | Deferred (PIN only in v1) |
-| BYOK AI: Gemini, Groq, OpenRouter, custom OpenAI-compatible | 5 | Planned |
-| Multiple keys, priority, automatic fallback with notices | 5 | Planned |
-| Provider-independent conversation context | 5 | Planned |
-| Finance-only guardrails | 5 | Planned |
+| BYOK AI: Gemini, Groq, OpenRouter, custom OpenAI-compatible | 5 | Done (custom endpoints from an allowlist) |
+| Multiple keys, priority, automatic fallback with notices | 5 | Done |
+| Provider-independent conversation context | 5 | Done (financial snapshot filled in Phase 6) |
+| Finance-only guardrails | 5 | Done |
 | Conversational onboarding | 6 | Planned |
 | Financial engine and goal prioritization | 6 | Planned |
 | Dynamic interactive dashboard with drill-down | 7 | Planned |

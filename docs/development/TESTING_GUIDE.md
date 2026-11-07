@@ -52,6 +52,12 @@ browser-agnostic; CI runs them on Playwright's Chromium.
 | AI indicator | Blinks 5 times when the provider switches |
 | Updates | Toast offers a reload when `/version.json` reports a newer version |
 | Delete account | Wrong password rejected with nothing deleted; then data, profile, and sign-in removed |
+| AI providers | Key checked via model list, stored encrypted and masked, reordered, disabled |
+| AI fallback | Exhausted provider triggers a switch notice and indicator blink; context carried to the next provider; cooling-down key skipped; messages stored encrypted and reloaded |
+| AI limits | All-providers-exhausted message; off-topic question answered locally with no provider call; no-provider guidance |
+
+Provider APIs are mocked in the browser tests (`page.route`), so CI never
+calls a real provider or uses a real key.
 
 Every test uses a fresh account, so tests are independent.
 

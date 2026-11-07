@@ -9,6 +9,7 @@ import {
   getDoc,
   getDocs,
   limit,
+  orderBy,
   query,
   runTransaction,
   serverTimestamp,
@@ -71,20 +72,52 @@ export async function replaceCryptoParams(uid: string, previous: CryptoParams, n
   });
 }
 
+/** Path below users/{uid}: [collection, id] or deeper, e.g. [conversations, c1, messages, m1]. */
+export type DocPath = string[];
+
 export async function putEnvelope(
   uid: string,
-  path: [string, string],
+  path: DocPath,
   env: Envelope,
   plain: Record<string, unknown> = {},
 ): Promise<void> {
   await setDoc(doc(db, 'users', uid, ...path), { ...env, ...plain, updatedAt: serverTimestamp() });
 }
 
-export async function getEnvelope(uid: string, path: [string, string]): Promise<Envelope | null> {
+export async function getEnvelope(uid: string, path: DocPath): Promise<Envelope | null> {
   const snap = await getDoc(doc(db, 'users', uid, ...path));
   if (!snap.exists()) return null;
   const d = snap.data();
   return { v: d['v'], iv: d['iv'], ct: d['ct'] } as Envelope;
+}
+
+export interface EnvelopeRow {
+  id: string;
+  env: Envelope;
+  /** Plaintext query fields stored next to the envelope (for example createdAt). */
+  plain: Record<string, unknown>;
+}
+
+/** Lists encrypted documents of a collection below users/{uid}, optionally ordered and limited. */
+export async function listEnvelopes(
+  uid: string,
+  collectionPath: DocPath,
+  opts: { orderBy?: string; direction?: 'asc' | 'desc'; limit?: number } = {},
+): Promise<EnvelopeRow[]> {
+  const col = collection(db, 'users', uid, ...collectionPath);
+  const constraints = [
+    ...(opts.orderBy ? [orderBy(opts.orderBy, opts.direction ?? 'asc')] : []),
+    ...(opts.limit ? [limit(opts.limit)] : []),
+  ];
+  const snap = await getDocs(query(col, ...constraints));
+  return snap.docs.map((d) => {
+    const { v, iv, ct, ...plain } = d.data();
+    return { id: d.id, env: { v, iv, ct } as Envelope, plain };
+  });
+}
+
+export async function deleteEnvelope(uid: string, path: DocPath): Promise<void> {
+  await deleteDoc(doc(db, 'users', uid, ...path));
 }
 
 /**

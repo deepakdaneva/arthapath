@@ -12,7 +12,6 @@ import { IonIcon } from '@ionic/angular/ion-icon';
 import { IonItem } from '@ionic/angular/ion-item';
 import { IonLabel } from '@ionic/angular/ion-label';
 import { IonList } from '@ionic/angular/ion-list';
-import { IonNote } from '@ionic/angular/ion-note';
 import { IonPopover } from '@ionic/angular/ion-popover';
 import { IonRouterOutlet } from '@ionic/angular/ion-router-outlet';
 import { IonToolbar } from '@ionic/angular/ion-toolbar';
@@ -53,7 +52,6 @@ import { AiStatusComponent } from './ai-status.component';
     IonList,
     IonItem,
     IonLabel,
-    IonNote,
     IonFab,
     IonFabButton,
     IonRouterOutlet,

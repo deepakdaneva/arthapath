@@ -129,16 +129,31 @@ export class VaultService {
   }
 
   /** Encrypts and stores users/{uid}/{collection}/{id}. */
-  async put(path: [string, string], value: unknown, plain: Record<string, unknown> = {}): Promise<void> {
+  async put(path: string[], value: unknown, plain: Record<string, unknown> = {}): Promise<void> {
     const [, store] = await lib();
     await store.putEnvelope(this.uid, path, await this.encrypt(value), plain);
   }
 
   /** Reads and decrypts users/{uid}/{collection}/{id}; null if absent. */
-  async get<T>(path: [string, string]): Promise<T | null> {
+  async get<T>(path: string[]): Promise<T | null> {
     const [, store] = await lib();
     const env = await store.getEnvelope(this.uid, path);
     return env ? this.decrypt<T>(env) : null;
+  }
+
+  /** Lists and decrypts a collection below users/{uid}. */
+  async list<T>(
+    collectionPath: string[],
+    opts: { orderBy?: string; direction?: 'asc' | 'desc'; limit?: number } = {},
+  ): Promise<{ id: string; value: T; plain: Record<string, unknown> }[]> {
+    const [, store] = await lib();
+    const rows = await store.listEnvelopes(this.uid, collectionPath, opts);
+    return Promise.all(rows.map(async (r) => ({ id: r.id, value: await this.decrypt<T>(r.env), plain: r.plain })));
+  }
+
+  async remove(path: string[]): Promise<void> {
+    const [, store] = await lib();
+    await store.deleteEnvelope(this.uid, path);
   }
 
   // --- internals -------------------------------------------------------------

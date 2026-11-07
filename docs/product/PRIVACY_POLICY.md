@@ -38,8 +38,10 @@ Your app preferences, such as the auto-lock time, are stored encrypted too.
 
 ## AI providers (important)
 
-ArthaPath uses AI providers you choose (for example Google Gemini, Groq,
-OpenRouter) with your own API keys. When you use AI features, **your
+ArthaPath uses AI providers you choose (Google Gemini, Groq, OpenRouter,
+or an allowed OpenAI-compatible service such as Mistral, Cerebras, Together
+AI, DeepInfra, Fireworks AI, or a model server on your own computer) with
+your own API keys. When you use AI features, **your
 message and relevant financial context are sent to that provider** for
 processing. That provider may retain or use the data under its own terms;
 some free tiers use submitted data to improve their products. Review each

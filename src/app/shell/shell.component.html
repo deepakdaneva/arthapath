@@ -55,10 +55,9 @@
         <ion-icon slot="start" name="settings-outline" aria-hidden="true" />
         <ion-label>Settings</ion-label>
       </ion-item>
-      <ion-item disabled="true">
+      <ion-item button detail="false" (click)="go('/app/ai-providers')">
         <ion-icon slot="start" name="key-outline" aria-hidden="true" />
         <ion-label>AI Providers / API Keys</ion-label>
-        <ion-note slot="end">Soon</ion-note>
       </ion-item>
       <ion-item button detail="false" (click)="go('/app/about')">
         <ion-icon slot="start" name="information-circle-outline" aria-hidden="true" />
@@ -87,11 +86,14 @@
 
 <div class="outlet-host">
   <ion-router-outlet />
-  <ion-fab vertical="bottom" horizontal="end" slot="fixed">
-    <ion-fab-button routerLink="/app/today" aria-label="Add a transaction or update">
-      <ion-icon name="add" aria-hidden="true" />
-    </ion-fab-button>
-  </ion-fab>
+  <!-- Chat has its own composer; the quick-add button would cover Send there. -->
+  @if (!onChat()) {
+    <ion-fab vertical="bottom" horizontal="end" slot="fixed">
+      <ion-fab-button routerLink="/app/today" aria-label="Add a transaction or update">
+        <ion-icon name="add" aria-hidden="true" />
+      </ion-fab-button>
+    </ion-fab>
+  }
 </div>
 
 <ion-footer class="ion-no-border">
