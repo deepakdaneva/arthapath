@@ -45,9 +45,12 @@ users/{uid}/aiKeys/{keyId}                    // encrypted key + provider; plain
 | `crypto.kdf` | yes | `{ alg: "argon2id", m, t, p, salt }` — non-secret |
 | `crypto.wrappedDek` | yes | `{ iv, ct }` — DEK encrypted by PIN-derived KEK |
 | `crypto.version` | yes | For future key rotation |
-| `prefs` | encrypted | theme, currency, lock timeout, DOB live in the vault |
+| `prefs` | encrypted | theme, currency, lock timeout live in the vault |
 
-DOB is personal data, so it lives encrypted in `vault/main`, not here.
+Profile fields are written by the client on every sign-in, only when they
+changed (`src/app/core/profile-store.ts`): name, email, and photo URL from
+the sign-in provider (Google basic profile and email scopes, or the
+email/password account). Date of birth is not collected.
 
 ### Why plaintext `month` on transactions
 

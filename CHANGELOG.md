@@ -15,6 +15,14 @@ Versioning: [Semantic Versioning](https://semver.org/).
 - Capacitor 8 Android project.
 - ESLint (angular-eslint) and Vitest unit tests.
 - Deploy job moved into `ci.yml` and gated on validation and rules tests.
+- Profile (name, email, photo URL) saved to Firestore on sign-in; profile
+  page edits name and photo URL.
+
+### Fixed
+- Privacy policy and terms pages showed raw markdown; they are now rendered
+  to HTML at build time.
+- In-app GitHub links point to `development` on UAT and `main` in
+  production.
 - Firebase infrastructure: `firebase.json` (Hosting security headers and
   CSP, emulators), `.firebaserc` aliases, Firestore rules enforcing owner-only
   access and encrypted envelopes, indexes, and emulator rules tests.

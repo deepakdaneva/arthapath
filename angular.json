@@ -37,8 +37,8 @@
                 "output": "./svg"
               },
               {
-                "glob": "{PRIVACY_POLICY,TERMS_OF_SERVICE}.md",
-                "input": "docs/product",
+                "glob": "*.html",
+                "input": "src/generated/legal",
                 "output": "legal"
               }
             ],

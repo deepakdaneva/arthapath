@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { IonButton, IonContent, IonIcon } from '@ionic/angular';
 import { addIcons } from 'ionicons';
+import { repoRef, repoUrl } from '../../../environments/app-config';
 import {
   analyticsOutline,
   chatbubblesOutline,
@@ -28,7 +29,9 @@ interface Feature {
   styleUrl: './landing.page.scss',
 })
 export class LandingPage {
-  readonly repo = 'https://github.com/deepakdaneva/arthapath';
+  // Links follow the deployed branch: development on UAT, main in production.
+  readonly repo = `${repoUrl}/tree/${repoRef}`;
+  readonly docs = `${repoUrl}/tree/${repoRef}/docs`;
   readonly year = new Date().getFullYear();
 
   readonly features: Feature[] = [

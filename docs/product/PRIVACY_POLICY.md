@@ -21,8 +21,11 @@ for their own instance and policy.
 | Encryption parameters (salt, wrapped key) | Generated on device | Firestore | Yes, but useless without your PIN |
 | Timestamps and monthly activity buckets | Generated | Firestore | Yes |
 
-Date of birth is optional, requested in-app (Google sign-in does not
-provide it), and stored encrypted.
+Google sign-in shares only your name, email address, and profile picture
+(Google's basic profile and email permissions). ArthaPath does not request
+your date of birth or any other Google data. You can change your name and
+profile picture link on the Profile page; changes are saved to your
+ArthaPath profile.
 
 ## Encryption
 
