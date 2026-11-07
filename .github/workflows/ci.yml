@@ -1,0 +1,49 @@
+name: ci
+
+on:
+  pull_request:
+    branches: [main, development]
+  push:
+    branches: [main, development]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Scan for committed secret patterns
+        run: |
+          # Defense in depth on top of GitHub push protection.
+          if git grep -nE 'AIza[0-9A-Za-z_-]{35}|gsk_[0-9A-Za-z]{40,}|sk-or-v1-[0-9a-f]{40,}|-----BEGIN [A-Z ]*PRIVATE KEY-----|"private_key_id"' -- . ':!*.md' ':!.github/workflows/ci.yml'; then
+            echo "::error::Possible secret committed"; exit 1
+          fi
+
+      - name: Detect app
+        id: app
+        run: echo "present=$([ -f package.json ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        if: steps.app.outputs.present == 'true'
+        with:
+          node-version: 24
+          cache: npm
+
+      - if: steps.app.outputs.present == 'true'
+        run: npm ci
+      - if: steps.app.outputs.present == 'true'
+        run: npm run lint
+      - if: steps.app.outputs.present == 'true'
+        run: npm test -- --watch=false
+      - if: steps.app.outputs.present == 'true'
+        run: npm run build

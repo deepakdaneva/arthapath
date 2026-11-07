@@ -1,0 +1,8 @@
+version: 2
+updates:
+  # npm ecosystem is added in Phase 3 once package.json exists.
+  - package-ecosystem: github-actions
+    directory: /
+    target-branch: development
+    schedule:
+      interval: weekly
