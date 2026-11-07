@@ -7,7 +7,7 @@ _Last updated: 2026-11-07_
 | Phase | Status |
 |---|---|
 | 0 Discovery and architecture | Done |
-| 1 Repository foundation | In progress |
+| 1 Repository foundation | Done |
 | 2 Firebase infrastructure | Not started |
 | 3 Frontend foundation | Not started |
 | 4 Security and encryption | Not started |
@@ -49,6 +49,24 @@ local PDF parsing with consented AI assist.
 - Spark quotas cap daily usage (estimate ~500 DAU per project).
 - Admin bypass on branch rules (single maintainer).
 
+## Phase 1 results
+
+- Public repo `deepakdaneva/arthapath` created; `main` and `development` pushed.
+- Enabled: secret scanning, push protection, Dependabot alerts and security
+  updates, private vulnerability reporting, Discussions.
+- Actions: default token read-only, cannot approve PRs; allowed actions
+  limited to GitHub-owned plus `google-github-actions/*` and
+  `FirebaseExtended/action-hosting-deploy`.
+- Rulesets `protect-main`, `protect-development`: PR required, 1 approval,
+  stale reviews dismissed, conversations resolved, required checks
+  (`validate`, `analyze (javascript-typescript)`, `analyze (actions)`,
+  `dependency-review`), no force push, no deletion. Admin bypass only
+  through pull requests (direct pushes blocked; verified with GH013).
+- Environments: `uat` (deploys from `development` only), `production`
+  (deploys from `main` only).
+- CodeQL JavaScript/TypeScript analysis is skipped until `package.json`
+  exists (no source to scan before Phase 3).
+
 ## Security issues
 
 None open.
@@ -63,7 +81,6 @@ Not deployed.
 
 ## Next tasks
 
-1. Push repository, enable security features and rulesets (Phase 1).
-2. Install Firebase CLI; maintainer runs `firebase login` (Phase 2).
-3. Create projects, Firestore, Auth providers, Hosting; write rules and
+1. Install Firebase CLI; maintainer runs `firebase login` (Phase 2).
+2. Create projects, Firestore, Auth providers, Hosting; write rules and
    rules tests; WIF setup; deploy workflows (Phase 2).
