@@ -107,3 +107,65 @@ planning."
 Whatever context is included in a prompt is sent to the selected provider
 and handled under its terms (possibly retained, possibly used for training
 on free tiers). The UI and privacy policy say this explicitly.
+
+## Implementation (Phase 5)
+
+| Piece | File |
+|---|---|
+| Provider catalog, custom-endpoint allowlist, key masking | `src/app/ai/providers.ts` |
+| Error classification, retry-hint parsing | `src/app/ai/errors.ts` |
+| Gemini and OpenAI-compatible adapters | `src/app/ai/adapters.ts` |
+| Router (priority, fallback, cooldowns, events) | `src/app/ai/router.ts` |
+| Encrypted key storage, health state, status indicator sync | `src/app/ai/ai-keys.service.ts` |
+| Context building and token budget | `src/app/ai/context.ts` |
+| Local guardrail classifier | `src/app/ai/guardrails.ts` |
+| System and summary prompts (versioned) | `src/app/ai/prompts.ts` |
+| Conversation, persistence, summarization, switch notices | `src/app/ai/chat.service.ts` |
+| UI | `src/app/pages/ai-providers/`, `src/app/pages/chat/` |
+
+### Browser access (CORS), verified 2026-11-07
+
+Preflight checks from `https://arthapath-uat.web.app` succeed for Gemini,
+Groq, OpenRouter, Mistral, Cerebras, Together AI, DeepInfra, and Fireworks
+AI, so all of them can be called directly from the app. SambaNova and
+GitHub Models did not allow browser requests and are not offered. Groq does
+not expose its rate-limit headers to browsers, so retry hints are parsed
+from the error body ("Please try again in 1m26.4s"); Gemini's come from
+`RetryInfo.retryDelay`.
+
+### Custom endpoints
+
+Custom OpenAI-compatible providers are limited to an allowlist that matches
+the Content Security Policy `connect-src` in `firebase.json`: Mistral,
+Cerebras, Together AI, DeepInfra, Fireworks AI, and local model servers on
+`http://localhost:11434` (Ollama) and `http://localhost:1234` (LM Studio).
+Self-hosters can extend both lists together.
+
+### Cooldowns
+
+| Error | Key state | Default wait (if the provider gives no hint) |
+|---|---|---|
+| `rate_limited` | cooling down | 1 minute |
+| `quota_exhausted` | cooling down | 60 minutes |
+| `provider_down` | cooling down; other keys of the same provider are skipped for this request | 2 minutes |
+| `auth_invalid` | blocked until the key is replaced | n/a |
+| `model_unavailable` | blocked until the model is changed | n/a |
+
+Key state is written to the encrypted key document only when it changes,
+so a normal successful request costs no extra writes.
+
+### Context and summaries
+
+Each request carries: the system prompt, the financial context snapshot
+(versioned; filled from the encrypted profile in Phase 6), the rolling
+summary, the most recent messages that fit a 6,000-token input budget, and
+the new message. When 10 or more older messages fall outside the window,
+they are summarized (through the same router) into the encrypted
+conversation document.
+
+### Guardrails
+
+Messages with clear finance terms always go to the model. Clearly unrelated
+requests (jokes, poems, sports, politics, programming help without a
+finance term) get the standard off-topic reply locally, with no AI call.
+Ambiguous messages go to the model, whose system prompt restricts scope.

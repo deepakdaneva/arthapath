@@ -73,6 +73,11 @@ export const routes: Routes = [
         title: 'Settings · ArthaPath',
       },
       {
+        path: 'ai-providers',
+        loadComponent: () => import('./pages/ai-providers/ai-providers.page').then((m) => m.AiProvidersPage),
+        title: 'AI Providers · ArthaPath',
+      },
+      {
         path: 'about',
         loadComponent: () => import('./pages/about/about.page').then((m) => m.AboutPage),
         title: 'About · ArthaPath',

@@ -11,7 +11,7 @@ _Last updated: 2026-11-07_
 | 2 Firebase infrastructure | Done |
 | 3 Frontend foundation | Done |
 | 4 Security and encryption | Done (pending UAT verification) |
-| 5 AI integration | Not started |
+| 5 AI integration | Done (pending UAT verification with real keys) |
 | 6 Financial engine and onboarding | Not started |
 | 7 Dashboard | Not started |
 | 8 Today's Updates | Not started |
@@ -170,6 +170,24 @@ local PDF parsing with consented AI assist.
 - Versioning `MAJOR.MINOR.BUILD` and reload toast via `/version.json`.
 - Tests: 29 unit, 27 rules, 16 e2e (4 new shell/delete tests).
 
+## Phase 5 results
+
+- Providers: Gemini (native API), Groq, OpenRouter, and allowlisted
+  OpenAI-compatible services; CORS verified by preflight for each.
+- Keys encrypted per document in `aiKeys/`, decrypted only while unlocked,
+  shown masked; CSP `connect-src` extended to the allowlist.
+- Router: priority order, fallback on rate limit, quota, bad key, missing
+  model, outage; no fallback on network or invalid requests; each key tried
+  at most once; cooldowns from provider hints or defaults.
+- Chat: encrypted messages, context snapshot (stub until Phase 6), 6,000
+  token budget, rolling summaries, switch notices, indicator blink.
+- Guardrails: local classifier; off-topic replies cost no AI call.
+- Tests: 25 new unit tests (errors, router, guardrails, context, adapters,
+  masking, allowlist), 5 new e2e tests with mocked providers. Totals: 54
+  unit, 27 rules, 21 e2e.
+- Vitest uses a threads pool capped at 2 workers (stable on busy machines).
+- Not yet verified: real provider calls with real keys (only mocks so far).
+
 ## Security issues
 
 None open.
@@ -184,6 +202,5 @@ Not deployed.
 
 ## Next tasks
 
-1. Verify Phase 4 on UAT: sign in, set PIN, lock/unlock, change PIN.
-2. Phase 5: AI provider layer (adapters, encrypted keys, routing, fallback,
-   context, guardrails).
+1. Verify on UAT with real free keys (Gemini, Groq, OpenRouter).
+2. Phase 6: financial domain models, engine, conversational onboarding.

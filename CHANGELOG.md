@@ -36,6 +36,14 @@ Versioning: [Semantic Versioning](https://semver.org/).
   newer version is deployed.
 - Top bar: current AI indicator next to the logo (blinks 5 times on a
   provider switch), notifications bell (placeholder).
+- AI providers (Phase 5): bring-your-own keys for Gemini, Groq, OpenRouter,
+  and allowlisted OpenAI-compatible services (Mistral, Cerebras, Together AI,
+  DeepInfra, Fireworks AI, local Ollama/LM Studio). Keys are encrypted,
+  masked, checked by loading the model list, reorderable, and toggleable.
+- Router with error classification, per-key cooldowns, at-most-once
+  attempts per key, and automatic fallback with notices and indicator blink.
+- Chat: encrypted, provider-independent conversation with context snapshot,
+  token budget, rolling summaries, and local finance-only guardrails.
 - Account menu: profile card (photo, name, email) opens the profile; footer
   with a System/Light/Dark theme switcher and Log out.
 
@@ -48,6 +56,7 @@ Versioning: [Semantic Versioning](https://semver.org/).
   bundle reduced from 909 kB to 674 kB.
 
 ### Fixed
+- The quick-add button covered the Chat send button.
 - Unlocking right after a reload could fail with a misleading connection
   error if the PIN was submitted before the encryption settings loaded.
 - Privacy policy and terms pages showed raw markdown; they are now rendered

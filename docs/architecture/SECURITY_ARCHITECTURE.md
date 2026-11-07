@@ -46,9 +46,11 @@ These reveal account existence and activity volume, not financial content.
 
 ## Application hardening
 
-- Strict Content Security Policy on Firebase Hosting (allowlist Firebase
-  and the built-in AI endpoints; custom endpoints need a documented
-  `connect-src` change in a self-hosted deployment).
+- Strict Content Security Policy on Firebase Hosting: `connect-src`
+  allows only Firebase and the supported AI providers (Gemini, Groq,
+  OpenRouter, Mistral, Cerebras, Together AI, DeepInfra, Fireworks AI, and
+  local model servers on localhost:11434 and localhost:1234). The app
+  rejects custom endpoints outside this list.
 - No `innerHTML` with untrusted content; AI output rendered as sanitized
   Markdown.
 - No logging of keys, PINs, or decrypted payloads. A logging wrapper
