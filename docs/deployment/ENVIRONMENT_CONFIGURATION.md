@@ -22,6 +22,20 @@ projects:
 - CI deploys read them from GitHub environment variables (`uat`,
   `production`).
 
+## Version numbers
+
+`MAJOR.MINOR.BUILD`: MAJOR and MINOR come from `package.json`; BUILD is the
+number of commits on the built branch (`git rev-list --count HEAD`). Every
+merge, and so every deploy, increases it, and a given commit always builds
+the same version. CI checks out full history (`fetch-depth: 0`); the build
+fails on a shallow clone rather than producing a wrong number.
+
+The version is compiled into the app (shown in the account menu and on the
+About page with the commit and build date) and written to `/version.json`
+(served with `Cache-Control: no-cache`). Running apps fetch it when they
+regain focus and every 15 minutes; if it is newer, a toast offers a reload.
+Raise MAJOR or MINOR in `package.json` for significant releases.
+
 ## Branch-aware links and legal pages
 
 The same script sets `repoRef`, the branch that in-app GitHub links point

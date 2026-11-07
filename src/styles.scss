@@ -47,6 +47,25 @@ body {
   font-size: 0.875rem;
 }
 
+// Top-bar popovers render outside the shell component, so they are styled here.
+ion-popover.account-menu,
+ion-popover.app-popover {
+  --background: var(--ap-surface);
+  --box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
+}
+
+ion-popover.account-menu {
+  --width: min(320px, calc(100vw - 24px));
+
+  ion-list {
+    background: transparent;
+  }
+
+  ion-item:not(.who) {
+    --background: transparent;
+  }
+}
+
 :focus-visible {
   outline: 2px solid var(--ion-color-secondary);
   outline-offset: 2px;

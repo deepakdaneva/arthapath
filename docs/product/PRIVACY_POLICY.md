@@ -61,9 +61,11 @@ Google Firebase (Cloud Firestore, region asia-south1, India).
 
 ## Retention and deletion
 
-Data is kept until you delete it. You can delete your account and all
-associated data from Settings. Deletion from AI providers must be requested
-from each provider.
+Data is kept until you delete it. You can permanently delete your account
+on the Profile page: this removes your encrypted financial data, your
+profile, and your sign-in. You confirm with your password (or Google) and
+by typing DELETE. Deletion from AI providers must be requested from each
+provider.
 
 ## Backups
 

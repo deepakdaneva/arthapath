@@ -7,11 +7,16 @@
 //      targets the local emulators (project demo-arthapath).
 //    - repoRef: the git branch that GitHub links point to. `main` for
 //      production builds, `development` otherwise (UAT, PRs, local).
+//    - appVersion: MAJOR.MINOR from package.json + BUILD = number of commits
+//      on HEAD. Every merge (and so every deploy) increases it, and any commit
+//      always builds the same version. Also written to version.json, which
+//      running apps poll to offer a reload when a newer version is deployed.
 //
 // 2. src/generated/legal/*.html
 //    - The privacy policy and terms rendered from docs/product/*.md, so the app
 //      always shows the documents of the branch it was built from. Relative
 //      links are rewritten to GitHub URLs on that same branch.
+import { execSync } from 'node:child_process';
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, posix } from 'node:path';
 import { Marked } from 'marked';
@@ -42,6 +47,23 @@ const firebaseConfig = real
 const ref = env.APP_REPO_REF || (env.GITHUB_REF_NAME === 'main' ? 'main' : 'development');
 if (!/^[A-Za-z0-9._/-]+$/.test(ref)) throw new Error(`Invalid repo ref: ${ref}`);
 
+// --- Version ---------------------------------------------------------------
+const git = (cmd) => {
+  try {
+    return execSync(`git ${cmd}`, { stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim();
+  } catch {
+    return '';
+  }
+};
+if (git('rev-parse --is-shallow-repository') === 'true') {
+  throw new Error('Shallow git clone: fetch full history (fetch-depth: 0) so the build number is correct.');
+}
+const [major, minor] = JSON.parse(readFileSync('package.json', 'utf8')).version.split('.');
+const build = Number(git('rev-list --count HEAD')) || 0;
+const appVersion = `${major}.${minor}.${build}`;
+const commit = git('rev-parse --short HEAD') || 'unknown';
+const builtAt = new Date().toISOString();
+
 mkdirSync('src/environments', { recursive: true });
 writeFileSync(
   'src/environments/app-config.ts',
@@ -50,8 +72,14 @@ export const firebaseConfig = ${JSON.stringify(firebaseConfig, null, 2)} as cons
 export const useEmulators = ${!real};
 export const repoUrl = ${JSON.stringify(REPO)};
 export const repoRef = ${JSON.stringify(ref)};
+export const appVersion = ${JSON.stringify(appVersion)};
+export const appCommit = ${JSON.stringify(commit)};
+export const appBuiltAt = ${JSON.stringify(builtAt)};
 `,
 );
+mkdirSync('src/generated', { recursive: true });
+writeFileSync('src/generated/version.json', `${JSON.stringify({ version: appVersion, commit, builtAt })}
+`);
 
 // --- Legal documents -------------------------------------------------------
 /** Rewrites a link found in docs/product/<file>.md to an absolute URL. */
@@ -95,5 +123,5 @@ for (const [source, target] of DOCS) {
 }
 
 console.log(
-  `App config: ${real ? firebaseConfig.projectId : 'local emulators (demo-arthapath)'}, repo ref ${ref}`,
+  `App config: ${real ? firebaseConfig.projectId : 'local emulators (demo-arthapath)'}, repo ref ${ref}, version ${appVersion} (${commit})`,
 );

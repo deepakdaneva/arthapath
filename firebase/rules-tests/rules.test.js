@@ -197,3 +197,19 @@ describe('vault lifecycle', () => {
     await assertSucceeds(deleteDoc(ref));
   });
 });
+
+describe('account deletion', () => {
+  test('owner can delete their profile document; others cannot', async () => {
+    await assertSucceeds(setDoc(doc(db(ALICE), 'users', ALICE), userDoc({ crypto })));
+    await assertFails(deleteDoc(doc(db(BOB), 'users', ALICE)));
+    await assertSucceeds(deleteDoc(doc(db(ALICE), 'users', ALICE)));
+  });
+
+  test('owner can delete encrypted documents in every collection', async () => {
+    for (const coll of ['goals', 'aiKeys', 'analyses', 'contextSnapshots']) {
+      const ref = doc(db(ALICE), 'users', ALICE, coll, 'x');
+      await assertSucceeds(setDoc(ref, envelope()));
+      await assertSucceeds(deleteDoc(ref));
+    }
+  });
+});

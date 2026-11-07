@@ -21,6 +21,12 @@ export class ThemeService {
     });
   }
 
+  /** System → Light → Dark → System. */
+  cycle(): void {
+    const order: ThemeMode[] = ['system', 'light', 'dark'];
+    this.mode.set(order[(order.indexOf(this.mode()) + 1) % order.length]!);
+  }
+
   private load(): ThemeMode {
     try {
       const v = localStorage.getItem(KEY);

@@ -1,8 +1,7 @@
 import { Component } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { IonContent } from '@ionic/angular/ion-content';
-import { version } from '../../../../package.json';
-import { repoRef, repoUrl } from '../../../environments/app-config';
+import { appBuiltAt, appCommit, appVersion, repoRef, repoUrl } from '../../../environments/app-config';
 
 @Component({
   selector: 'app-about',
@@ -19,7 +18,7 @@ import { repoRef, repoUrl } from '../../../environments/app-config';
           </p>
           <dl>
             <dt>Version</dt>
-            <dd>{{ version }}</dd>
+            <dd>{{ version }} <span class="ap-muted">(build {{ commit }}, {{ builtAt }})</span></dd>
             <dt>License</dt>
             <dd>
               <a [href]="license" target="_blank" rel="noopener">Apache License 2.0</a>
@@ -62,7 +61,9 @@ import { repoRef, repoUrl } from '../../../environments/app-config';
   `,
 })
 export class AboutPage {
-  readonly version = version;
+  readonly version = appVersion;
+  readonly commit = appCommit;
+  readonly builtAt = new Date(appBuiltAt).toLocaleDateString();
   readonly ref = repoRef;
   readonly repo = `${repoUrl}/tree/${repoRef}`;
   readonly license = `${repoUrl}/blob/${repoRef}/LICENSE`;

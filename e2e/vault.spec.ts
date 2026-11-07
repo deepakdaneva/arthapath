@@ -59,7 +59,7 @@ test.describe('account, PIN and encryption', () => {
   test('lock now removes app pages from the DOM', async ({ page }) => {
     await signUp(page, uniqueEmail('lock'));
     await setupPin(page);
-    await page.locator('#profile-trigger').click();
+    await page.getByRole('button', { name: 'Open account menu' }).click();
     await page.getByText('Settings', { exact: true }).click();
     await expect(page).toHaveURL(/\/app\/settings$/);
 
@@ -114,8 +114,8 @@ test.describe('account, PIN and encryption', () => {
   test('sign out returns to the landing page and clears the app', async ({ page }) => {
     await signUp(page, uniqueEmail('signout'));
     await setupPin(page);
-    await page.locator('#profile-trigger').click();
-    await page.getByText('Log out', { exact: true }).click();
+    await page.getByRole('button', { name: 'Open account menu' }).click();
+    await page.getByRole('button', { name: 'Log out' }).click();
     await expect(page).toHaveURL('/');
     await expect(page.locator('app-shell')).toHaveCount(0);
     await page.goto('/app');

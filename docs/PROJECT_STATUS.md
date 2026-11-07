@@ -158,6 +158,18 @@ local PDF parsing with consented AI assist.
   the web app first.
 - Not yet verified: unlock time on a real Android device; the flow on UAT.
 
+## Shell and account updates (post Phase 4)
+
+- Account menu redesigned: profile card opens the profile page (separate
+  Profile item and Current AI item removed); footer with theme switcher
+  and Log out; version shown.
+- Current AI indicator next to the logo (`AiStatusService.switchedTo()`
+  triggers a 5x blink; wired to the AI router in Phase 5).
+- Notifications bell placeholder.
+- Delete account (re-auth first; nothing deleted if it fails).
+- Versioning `MAJOR.MINOR.BUILD` and reload toast via `/version.json`.
+- Tests: 29 unit, 27 rules, 16 e2e (4 new shell/delete tests).
+
 ## Security issues
 
 None open.
