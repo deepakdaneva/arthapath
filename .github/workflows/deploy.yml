@@ -41,6 +41,13 @@ jobs:
           workload_identity_provider: ${{ vars.WIF_PROVIDER }}
           service_account: ${{ vars.WIF_SERVICE_ACCOUNT }}
 
+      # Fail fast with a clear error if the federated token exchange or
+      # service-account impersonation is not working (firebase-tools only
+      # reports a generic "Failed to authenticate"). The token is discarded,
+      # never printed. Do not add debug logging to deploy steps: logs are public.
+      - name: Verify Google credentials
+        run: gcloud auth print-access-token --quiet > /dev/null && echo "Federated credentials OK"
+
       - name: Build app
         if: hashFiles('package.json') != ''
         run: |
