@@ -8,7 +8,7 @@ _Last updated: 2026-11-07_
 |---|---|
 | 0 Discovery and architecture | Done |
 | 1 Repository foundation | Done |
-| 2 Firebase infrastructure | Not started |
+| 2 Firebase infrastructure | In progress |
 | 3 Frontend foundation | Not started |
 | 4 Security and encryption | Not started |
 | 5 AI integration | Not started |
@@ -67,6 +67,33 @@ local PDF parsing with consented AI assist.
 - CodeQL JavaScript/TypeScript analysis is skipped until `package.json`
   exists (no source to scan before Phase 3).
 
+## Phase 2 results
+
+- Projects `arthapath-prod` (482215450398) and `arthapath-uat`
+  (853250048130) created on Spark; no billing account linked.
+- Firestore `(default)` databases in `asia-south1` (native mode) in both.
+- Web apps registered; Hosting sites `arthapath-prod.web.app`,
+  `arthapath-uat.web.app`.
+- `firestore.rules`: default deny, owner-only, envelope schema validation,
+  append-only messages, month-bucket validation. 17 emulator tests pass.
+- `deploy.yml`: development to UAT, main to production, keyless WIF.
+  GitHub environment variables set.
+- Auth: Email/Password and Google enabled in both projects (verified via
+  Identity Toolkit admin API; still plain Firebase Auth, not Identity
+  Platform). Authorized domains: localhost, `<id>.web.app`,
+  `<id>.firebaseapp.com`.
+- Rules and indexes deployed manually to UAT; compiled on the server.
+  Live probe: unauthenticated read and write return 403. Production keeps
+  the default deny-all rules until the first `main` deploy.
+- Browser API keys restricted in both projects to Firestore, Identity
+  Toolkit, Secure Token, and Installations APIs, and to the app's
+  referrers (UAT also allows `http://localhost`; both allow
+  `https://localhost` for the Capacitor Android WebView).
+- WIF configured in both projects (provider ACTIVE, repository and owner ID
+  condition, environment-scoped impersonation, 5 deploy roles). Pending:
+  first
+  CI deploy to UAT verified after merge.
+
 ## Security issues
 
 None open.
@@ -81,6 +108,6 @@ Not deployed.
 
 ## Next tasks
 
-1. Install Firebase CLI; maintainer runs `firebase login` (Phase 2).
-2. Create projects, Firestore, Auth providers, Hosting; write rules and
-   rules tests; WIF setup; deploy workflows (Phase 2).
+1. Finish Phase 2: verified CI deploy to UAT, add `rules`
+   to required checks.
+2. Phase 3: scaffold the Ionic/Angular app.
