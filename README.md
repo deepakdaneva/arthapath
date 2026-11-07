@@ -7,8 +7,8 @@ management app. Describe your finances in plain language, and ArthaPath builds
 a private, encrypted financial profile, a live dashboard, and a prioritized
 goal plan. You bring your own AI keys, from any supported provider.
 
-> **Status:** early development. Phase 1 (repository foundation) is in
-> progress. Track progress in [docs/PROJECT_STATUS.md](docs/PROJECT_STATUS.md).
+> **Status:** early development. Phases 0–2 are done; Phase 3 (app shell,
+> landing page, sign-in) is in progress. Track progress in [docs/PROJECT_STATUS.md](docs/PROJECT_STATUS.md).
 > Features below describe the target v1 scope, not shipped functionality.
 
 ## Why ArthaPath
@@ -56,8 +56,11 @@ and the [ADRs](docs/architecture/ADR/).
 
 ## Getting started
 
-The application code lands in Phase 3. Until then, the docs below describe
-the setup that will apply:
+```bash
+npm ci
+npm run emulators   # terminal 1
+npm start           # terminal 2, http://localhost:4200
+```
 
 - Prerequisites and local setup: [docs/development/LOCAL_SETUP.md](docs/development/LOCAL_SETUP.md)
 - Firebase setup (your own projects): [docs/deployment/FIREBASE_SETUP.md](docs/deployment/FIREBASE_SETUP.md)

@@ -8,10 +8,9 @@ comment). Dependabot proposes SHA updates weekly. Workflows default to
 
 | File | Trigger | Purpose |
 |---|---|---|
-| `ci.yml` | PRs and pushes to `main` / `development` | `validate`: secret-pattern scan, lint, unit tests, build (app steps skipped until `package.json` exists). `rules`: Firestore rules tests in the emulator. |
+| `ci.yml` | PRs and pushes to `main` / `development`, manual | `validate`: secret-pattern scan, lint, unit tests, build. `rules`: Firestore rules tests in the emulator. `deploy` (pushes only, after both pass): `development` to the `uat` environment (`arthapath-uat`), `main` to `production` (`arthapath-prod`); deploys Firestore rules, indexes, and Hosting. |
 | `codeql.yml` | PRs, pushes, weekly | CodeQL static analysis (JavaScript/TypeScript, Actions) |
 | `dependency-review.yml` | PRs | Block newly added vulnerable dependencies |
-| `deploy.yml` | push to `development` or `main`, manual | `development` deploys to the `uat` environment (`arthapath-uat`); `main` deploys to `production` (`arthapath-prod`). Deploys Firestore rules and indexes, plus Hosting once the app build output (`www/`) exists. |
 
 ## Required status checks
 
@@ -51,10 +50,12 @@ GitHub environment variables (not secrets; none of these are sensitive):
 | Variable | `uat` | `production` |
 |---|---|---|
 | `FIREBASE_PROJECT_ID` | `arthapath-uat` | `arthapath-prod` |
+| `FIREBASE_API_KEY`, `FIREBASE_APP_ID`, `FIREBASE_MESSAGING_SENDER_ID` | web app config | web app config |
 | `WIF_PROVIDER` | `projects/<number>/locations/global/workloadIdentityPools/github/providers/github-oidc` | same pattern |
 | `WIF_SERVICE_ACCOUNT` | `github-deployer@arthapath-uat.iam.gserviceaccount.com` | `github-deployer@arthapath-prod.iam.gserviceaccount.com` |
 
 ## Fork safety
 
 Workflows triggered by `pull_request` from forks get a read-only token and
-no secrets. Deploy workflows never run on `pull_request`.
+no secrets. The deploy job never runs on `pull_request`, and it runs only
+after `validate` and `rules` pass.

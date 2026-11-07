@@ -1,0 +1,95 @@
+<ion-content>
+  <div class="wrap">
+    <a class="brand" routerLink="/">
+      <img src="favicon.svg" alt="" width="40" height="40" />
+      <span>ArthaPath</span>
+    </a>
+
+    <section class="ap-card panel" aria-labelledby="auth-title">
+      <h1 id="auth-title">
+        @switch (mode()) {
+          @case ('signup') { Create your account }
+          @case ('reset') { Reset your password }
+          @default { Welcome back }
+        }
+      </h1>
+
+      @if (mode() !== 'reset') {
+        <ion-button expand="block" fill="outline" class="google" [disabled]="busy()" (click)="google()">
+          <ion-icon slot="start" name="logo-google" aria-hidden="true" />
+          Continue with Google
+        </ion-button>
+        <div class="divider" role="separator"><span>or</span></div>
+      }
+
+      <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+        @if (mode() === 'signup') {
+          <ion-input
+            formControlName="name"
+            label="Name (optional)"
+            labelPlacement="floating"
+            fill="outline"
+            autocomplete="name"
+          />
+        }
+        <ion-input
+          formControlName="email"
+          type="email"
+          label="Email"
+          labelPlacement="floating"
+          fill="outline"
+          autocomplete="email"
+          inputmode="email"
+          errorText="Enter a valid email address."
+        />
+        @if (mode() !== 'reset') {
+          <ion-input
+            formControlName="password"
+            type="password"
+            label="Password"
+            labelPlacement="floating"
+            fill="outline"
+            [autocomplete]="mode() === 'signup' ? 'new-password' : 'current-password'"
+            errorText="At least 8 characters."
+          />
+        }
+
+        @if (error()) {
+          <p class="ap-error" role="alert">{{ error() }}</p>
+        }
+        @if (info()) {
+          <p class="info" role="status">{{ info() }}</p>
+        }
+
+        <ion-button expand="block" type="submit" [disabled]="busy()">
+          @if (busy()) {
+            <ion-spinner name="crescent" aria-label="Working" />
+          } @else {
+            @switch (mode()) {
+              @case ('signup') { Create account }
+              @case ('reset') { Send reset link }
+              @default { Sign in }
+            }
+          }
+        </ion-button>
+      </form>
+
+      <div class="switch">
+        @switch (mode()) {
+          @case ('signin') {
+            <button type="button" (click)="setMode('reset')">Forgot password?</button>
+            <span>New here? <button type="button" (click)="setMode('signup')">Create an account</button></span>
+          }
+          @default {
+            <span>Have an account? <button type="button" (click)="setMode('signin')">Sign in</button></span>
+          }
+        }
+      </div>
+    </section>
+
+    <p class="legal ap-muted">
+      By continuing you agree to the <a routerLink="/terms">Terms</a> and
+      <a routerLink="/privacy">Privacy Policy</a>.
+    </p>
+  </div>
+</ion-content>
