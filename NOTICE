@@ -1,0 +1,9 @@
+ArthaPath
+Copyright 2026 Deepak Kumar Jangir and ArthaPath contributors
+
+This product is licensed under the Apache License, Version 2.0 (see LICENSE).
+
+This product includes software developed by third parties. Their licenses
+and notices are listed in docs/product/THIRD_PARTY_NOTICES.md and, for
+built artifacts, in the generated 3rdpartylicenses.txt shipped with the
+web build.
