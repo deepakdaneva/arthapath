@@ -29,7 +29,8 @@ No service-account JSON keys are stored in GitHub. Instead:
    Hosting and Firestore rules deploys.
 4. Only jobs running in the matching GitHub environment can impersonate
    the service account (principal
-   `repo:<owner>/<repo>:environment:<env>`), and each environment accepts
+   `repo:<owner>@<owner_id>/<repo>@<repo_id>:environment:<env>`, GitHub's
+   immutable subject format), and each environment accepts
    deployments only from its own branch.
 5. The workflow uses `google-github-actions/auth` with
    `permissions: id-token: write` to get a short-lived token.
