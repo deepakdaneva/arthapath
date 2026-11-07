@@ -1,0 +1,83 @@
+import { Component, inject, signal } from '@angular/core';
+import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Router, RouterLink } from '@angular/router';
+import { IonButton, IonContent, IonIcon, IonInput, IonSpinner } from '@ionic/angular';
+import { addIcons } from 'ionicons';
+import { logoGoogle } from 'ionicons/icons';
+import { AuthService, authErrorMessage } from '../../core/auth.service';
+
+type Mode = 'signin' | 'signup' | 'reset';
+
+@Component({
+  selector: 'app-auth',
+  imports: [IonContent, IonButton, IonInput, IonIcon, IonSpinner, ReactiveFormsModule, RouterLink],
+  templateUrl: './auth.page.html',
+  styleUrl: './auth.page.scss',
+})
+export class AuthPage {
+  private readonly auth = inject(AuthService);
+  private readonly router = inject(Router);
+
+  readonly mode = signal<Mode>('signin');
+  readonly busy = signal(false);
+  readonly error = signal('');
+  readonly info = signal('');
+
+  readonly form = inject(FormBuilder).nonNullable.group({
+    name: ['', [Validators.maxLength(100)]],
+    email: ['', [Validators.required, Validators.email, Validators.maxLength(254)]],
+    password: ['', [Validators.required, Validators.minLength(8), Validators.maxLength(128)]],
+  });
+
+  constructor() {
+    addIcons({ logoGoogle });
+  }
+
+  setMode(m: Mode): void {
+    this.mode.set(m);
+    this.error.set('');
+    this.info.set('');
+  }
+
+  async google(): Promise<void> {
+    await this.run(() => this.auth.signInWithGoogle());
+  }
+
+  async submit(): Promise<void> {
+    const { name, email, password } = this.form.getRawValue();
+    const m = this.mode();
+    if (m === 'reset') {
+      if (this.form.controls.email.invalid) return this.form.controls.email.markAsTouched();
+      await this.run(async () => {
+        await this.auth.resetPassword(email);
+        this.info.set('If an account exists for this email, a reset link is on its way.');
+      }, false);
+      return;
+    }
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
+      return;
+    }
+    await this.run(() =>
+      m === 'signup' ? this.auth.signUpWithEmail(name, email, password) : this.auth.signInWithEmail(email, password),
+    );
+  }
+
+  private async run(fn: () => Promise<void>, navigate = true): Promise<void> {
+    this.busy.set(true);
+    this.error.set('');
+    try {
+      await fn();
+      if (navigate) await this.router.navigateByUrl('/app', { replaceUrl: true });
+    } catch (e) {
+      // Reset flow: never reveal whether an email is registered.
+      if (this.mode() === 'reset') {
+        this.info.set('If an account exists for this email, a reset link is on its way.');
+      } else {
+        this.error.set(authErrorMessage(e));
+      }
+    } finally {
+      this.busy.set(false);
+    }
+  }
+}

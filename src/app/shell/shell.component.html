@@ -1,0 +1,84 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar class="topbar">
+    <a slot="start" class="brand" routerLink="/app" aria-label="ArthaPath dashboard">
+      <img src="favicon.svg" alt="" width="28" height="28" />
+      <span>ArthaPath</span>
+    </a>
+    <ion-button slot="end" fill="clear" id="profile-trigger" class="avatar-btn" aria-label="Open profile menu">
+      <ion-avatar>
+        @if (user()?.photoURL; as photo) {
+          <img [src]="photo" alt="" referrerpolicy="no-referrer" />
+        } @else {
+          <span class="initials">{{ initials() }}</span>
+        }
+      </ion-avatar>
+    </ion-button>
+  </ion-toolbar>
+</ion-header>
+
+<ion-popover trigger="profile-trigger" triggerAction="click" alignment="end" [dismissOnSelect]="false">
+  <ng-template>
+    <ion-list lines="none" class="menu">
+      <ion-item class="who">
+        <ion-label>
+          <h2>{{ user()?.displayName || 'Your account' }}</h2>
+          <p>{{ user()?.email }}</p>
+        </ion-label>
+      </ion-item>
+      <ion-item button detail="false" (click)="go('/app/profile')">
+        <ion-icon slot="start" name="person-outline" aria-hidden="true" />
+        <ion-label>Profile</ion-label>
+      </ion-item>
+      <ion-item button detail="false" (click)="go('/app/settings')">
+        <ion-icon slot="start" name="settings-outline" aria-hidden="true" />
+        <ion-label>Settings</ion-label>
+      </ion-item>
+      <ion-item disabled="true">
+        <ion-icon slot="start" name="key-outline" aria-hidden="true" />
+        <ion-label>AI Providers / API Keys</ion-label>
+        <ion-note slot="end">Soon</ion-note>
+      </ion-item>
+      <ion-item>
+        <ion-icon slot="start" name="sparkles-outline" aria-hidden="true" />
+        <ion-label>
+          <p>Current AI</p>
+          <h3>Not configured</h3>
+        </ion-label>
+      </ion-item>
+      <ion-item button detail="false" (click)="go('/app/about')">
+        <ion-icon slot="start" name="information-circle-outline" aria-hidden="true" />
+        <ion-label>About</ion-label>
+      </ion-item>
+      <ion-item button detail="false" (click)="go('/privacy')">
+        <ion-icon slot="start" name="document-text-outline" aria-hidden="true" />
+        <ion-label>Privacy Policy</ion-label>
+      </ion-item>
+      <ion-item button detail="false" (click)="logout()">
+        <ion-icon slot="start" name="log-out-outline" color="danger" aria-hidden="true" />
+        <ion-label color="danger">Log out</ion-label>
+      </ion-item>
+    </ion-list>
+  </ng-template>
+</ion-popover>
+
+<div class="outlet-host">
+  <ion-router-outlet />
+  <ion-fab vertical="bottom" horizontal="end" slot="fixed">
+    <ion-fab-button routerLink="/app/today" aria-label="Add a transaction or update">
+      <ion-icon name="add" aria-hidden="true" />
+    </ion-fab-button>
+  </ion-fab>
+</div>
+
+<ion-footer class="ion-no-border">
+  <nav class="tabbar" aria-label="Primary">
+    <a routerLink="/app/chat" [class.active]="onChat()" [attr.aria-current]="onChat() ? 'page' : null">
+      <ion-icon [name]="onChat() ? 'chatbubbles' : 'chatbubbles-outline'" aria-hidden="true" />
+      <span>Chat</span>
+    </a>
+    <a routerLink="/app/today" [class.active]="onToday()" [attr.aria-current]="onToday() ? 'page' : null">
+      <ion-icon [name]="onToday() ? 'today' : 'today-outline'" aria-hidden="true" />
+      <span>Today's Updates</span>
+    </a>
+  </nav>
+</ion-footer>

@@ -7,6 +7,14 @@ Versioning: [Semantic Versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Added
+- Ionic 9 + Angular 22 app shell: public landing page, Google and
+  email/password sign-in with verification and password reset, dashboard
+  with first-run call to action, Chat and Today's Updates navigation,
+  profile menu, profile, settings (light/dark/system theme), about, and
+  in-app privacy policy and terms.
+- Capacitor 8 Android project.
+- ESLint (angular-eslint) and Vitest unit tests.
+- Deploy job moved into `ci.yml` and gated on validation and rules tests.
 - Firebase infrastructure: `firebase.json` (Hosting security headers and
   CSP, emulators), `.firebaserc` aliases, Firestore rules enforcing owner-only
   access and encrypted envelopes, indexes, and emulator rules tests.

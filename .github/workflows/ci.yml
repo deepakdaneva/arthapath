@@ -1,17 +1,27 @@
 name: ci
 
+# PRs: validate + rules tests.
+# Pushes to development/main: the same checks, then deploy only if they pass.
+#   development -> UAT (arthapath-uat), main -> production (arthapath-prod).
+# Each GitHub environment only accepts deployments from its own branch and holds
+# non-secret variables: FIREBASE_PROJECT_ID, FIREBASE_API_KEY, FIREBASE_APP_ID,
+# FIREBASE_MESSAGING_SENDER_ID, WIF_PROVIDER, WIF_SERVICE_ACCOUNT.
+# Deploy authentication is keyless (Workload Identity Federation).
+
 on:
   pull_request:
     branches: [main, development]
   push:
     branches: [main, development]
+  workflow_dispatch:
 
 permissions:
   contents: read
 
 concurrency:
   group: ci-${{ github.ref }}
-  cancel-in-progress: true
+  # Never cancel an in-flight deploy on a branch push; PR runs may be cancelled.
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   validate:
@@ -29,24 +39,15 @@ jobs:
             echo "::error::Possible secret committed"; exit 1
           fi
 
-      - name: Detect app
-        id: app
-        run: echo "present=$([ -f package.json ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
-
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
-        if: steps.app.outputs.present == 'true'
         with:
           node-version: 24
           cache: npm
 
-      - if: steps.app.outputs.present == 'true'
-        run: npm ci
-      - if: steps.app.outputs.present == 'true'
-        run: npm run lint
-      - if: steps.app.outputs.present == 'true'
-        run: npm test -- --watch=false
-      - if: steps.app.outputs.present == 'true'
-        run: npm run build
+      - run: npm ci
+      - run: npm run lint
+      - run: npm test -- --watch=false
+      - run: npm run build
 
   rules:
     runs-on: ubuntu-latest
@@ -65,3 +66,51 @@ jobs:
           cache-dependency-path: firebase/rules-tests/package-lock.json
       - run: npm ci
       - run: npm test
+
+  deploy:
+    if: github.event_name != 'pull_request' && (github.ref_name == 'main' || github.ref_name == 'development')
+    needs: [validate, rules]
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment:
+      name: ${{ github.ref_name == 'main' && 'production' || 'uat' }}
+      url: https://${{ vars.FIREBASE_PROJECT_ID }}.web.app
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+          cache: npm
+
+      - uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3.0.0
+        with:
+          workload_identity_provider: ${{ vars.WIF_PROVIDER }}
+          service_account: ${{ vars.WIF_SERVICE_ACCOUNT }}
+
+      # Fail fast with a clear error if the federated token exchange or
+      # service-account impersonation is not working (firebase-tools only
+      # reports a generic "Failed to authenticate"). The token is discarded,
+      # never printed. Do not add debug logging to deploy steps: logs are public.
+      - name: Verify Google credentials
+        run: gcloud auth print-access-token --quiet > /dev/null && echo "Federated credentials OK"
+
+      - name: Build app
+        env:
+          FIREBASE_PROJECT_ID: ${{ vars.FIREBASE_PROJECT_ID }}
+          FIREBASE_API_KEY: ${{ vars.FIREBASE_API_KEY }}
+          FIREBASE_APP_ID: ${{ vars.FIREBASE_APP_ID }}
+          FIREBASE_MESSAGING_SENDER_ID: ${{ vars.FIREBASE_MESSAGING_SENDER_ID }}
+        run: |
+          npm ci
+          npm run build -- --configuration ${{ github.ref_name == 'main' && 'production' || 'uat' }}
+
+      - name: Deploy
+        env:
+          PROJECT: ${{ vars.FIREBASE_PROJECT_ID }}
+        run: npx --yes firebase-tools@15.35.0 deploy --only firestore,hosting --project "$PROJECT" --non-interactive

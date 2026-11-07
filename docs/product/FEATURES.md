@@ -5,10 +5,10 @@ and tested, not just UI).
 
 | Feature | Phase | Status |
 |---|---|---|
-| Public landing page | 3 | Planned |
-| Google and email/password sign-in | 3 | Planned |
-| Profile menu, bottom navigation (Chat, Today's Updates), FAB | 3 | Planned |
-| Light and dark themes (navy + teal) | 3 | Planned |
+| Public landing page | 3 | Done |
+| Google and email/password sign-in | 3 | Done (web); Android Google sign-in pending native plugin |
+| Profile menu, bottom navigation (Chat, Today's Updates), FAB | 3 | Done (Chat, Today's Updates, AI Providers screens arrive in later phases) |
+| Light and dark themes (navy + teal) | 3 | Done |
 | PIN setup, unlock, change, session lock | 4 | Planned |
 | Client-side encryption of all financial data and AI keys | 4 | Planned |
 | Biometric unlock | Later | Deferred (PIN only in v1) |
@@ -22,5 +22,5 @@ and tested, not just UI).
 | Today's Updates: natural-language transaction entry | 8 | Planned |
 | CSV and PDF statement import, duplicate detection | 9 | Planned |
 | Pending questions with Chat badge | 9 | Planned |
-| Android build | 3–10 | Planned |
+| Android build | 3–10 | In progress (Capacitor project added) |
 | iOS build | Later | Deferred |

@@ -1,0 +1,100 @@
+<ion-content>
+  <header class="hero">
+    <nav class="ap-container nav" aria-label="Main">
+      <a class="brand" routerLink="/">
+        <img src="favicon.svg" alt="" width="32" height="32" />
+        <span>ArthaPath</span>
+      </a>
+      <div class="nav-links">
+        <a [href]="repo" target="_blank" rel="noopener">GitHub</a>
+        <ion-button size="small" fill="outline" color="light" routerLink="/auth">Sign in</ion-button>
+      </div>
+    </nav>
+
+    <div class="ap-container hero-body">
+      <p class="pill">Open source · Privacy first · In active development</p>
+      <h1>Your Money. Your Goals.<br />Your Financial Future.</h1>
+      <p class="lead">
+        An AI-assisted personal finance planner that turns a conversation into a clear plan, a live
+        dashboard, and goals you can actually reach. Encrypted on your device. Powered by the AI
+        provider you choose.
+      </p>
+      <div class="cta">
+        <ion-button size="large" class="get-started" routerLink="/auth">Get Started</ion-button>
+        <ion-button size="large" fill="clear" color="light" [href]="repo" target="_blank" rel="noopener">
+          <ion-icon slot="start" name="logo-github" aria-hidden="true" />
+          View source
+        </ion-button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="ap-container section" aria-labelledby="features-title">
+      <p class="ap-eyebrow">What it does</p>
+      <h2 id="features-title">Financial planning that fits how you think</h2>
+      <div class="grid">
+        @for (f of features; track f.title) {
+          <article class="ap-card feature">
+            <ion-icon [name]="f.icon" aria-hidden="true" />
+            <h3>{{ f.title }}</h3>
+            <p class="ap-muted">{{ f.text }}</p>
+          </article>
+        }
+      </div>
+    </section>
+
+    <section class="ap-container section privacy" aria-labelledby="privacy-title">
+      <div class="ap-card privacy-card">
+        <ion-icon name="lock-closed-outline" aria-hidden="true" class="big" />
+        <div>
+          <p class="ap-eyebrow">Privacy and encryption</p>
+          <h2 id="privacy-title">Only you can read your finances</h2>
+          <ul class="ap-muted">
+            <li>
+              Data is encrypted on your device (AES-256-GCM) with a key derived from your private
+              PIN. The database stores only ciphertext.
+            </li>
+            <li>Your PIN never leaves your device. If you forget it, no one can recover your data.</li>
+            <li>
+              When you use AI features, your question and the relevant financial context are sent to
+              the AI provider you configured, under that provider's terms.
+            </li>
+            <li>Every number is calculated by tested code, not guessed by AI.</li>
+          </ul>
+          <a routerLink="/privacy">Read the privacy policy</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="ap-container section" aria-labelledby="platforms-title">
+      <p class="ap-eyebrow">Platforms</p>
+      <h2 id="platforms-title">Web today, Android next, iOS later</h2>
+      <div class="platforms">
+        <span><ion-icon name="globe-outline" aria-hidden="true" /> Web</span>
+        <span><ion-icon name="logo-android" aria-hidden="true" /> Android</span>
+      </div>
+      <p class="ap-muted">
+        ArthaPath is Apache-2.0 licensed and runs on Firebase's free plan. Anyone can deploy their own
+        copy with their own Firebase project and AI keys.
+      </p>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="ap-container footer-row">
+      <span>© {{ year }} ArthaPath contributors · Apache-2.0</span>
+      <nav aria-label="Footer">
+        <a routerLink="/privacy">Privacy</a>
+        <a routerLink="/terms">Terms</a>
+        <a [href]="repo + '/tree/main/docs'" target="_blank" rel="noopener">Docs</a>
+        <a [href]="repo" target="_blank" rel="noopener">GitHub</a>
+      </nav>
+    </div>
+    <p class="ap-container disclaimer">
+      ArthaPath provides informational financial assistance only. It is not a substitute for a
+      qualified financial, tax, or legal professional. Projections are estimates; returns are not
+      guaranteed.
+    </p>
+  </footer>
+</ion-content>

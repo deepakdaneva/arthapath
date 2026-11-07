@@ -9,7 +9,7 @@ _Last updated: 2026-11-07_
 | 0 Discovery and architecture | Done |
 | 1 Repository foundation | Done |
 | 2 Firebase infrastructure | Done |
-| 3 Frontend foundation | Not started |
+| 3 Frontend foundation | In progress |
 | 4 Security and encryption | Not started |
 | 5 AI integration | Not started |
 | 6 Financial engine and onboarding | Not started |
@@ -98,6 +98,26 @@ local PDF parsing with consented AI assist.
 - CI deploy to UAT verified (run 42367571546): federated credentials OK,
   rules and indexes released. Public log scanned: no tokens or keys.
 - `rules` added to required status checks on `main` and `development`.
+
+## Phase 3 progress
+
+- Angular 22.2 (zoneless, standalone, signals, strict templates), Ionic
+  9.0, Capacitor 8.6, Firebase JS SDK 13.2, Vitest, angular-eslint.
+- Firebase web config generated at build time
+  (`scripts/write-firebase-config.mjs`); defaults to emulators with
+  `demo-arthapath`. Real values only in GitHub environment variables.
+- Pages: landing, auth (Google popup, email sign-in/up, verification,
+  reset with no account enumeration), shell (brand, avatar menu, bottom
+  Chat / Today's Updates nav, FAB), dashboard first-run CTA, chat and
+  today empty states, profile, settings (theme), about, privacy/terms
+  (rendered from `docs/product` as plain text).
+- Android project added (`io.github.deepakdaneva.arthapath`,
+  `https://localhost` scheme).
+- Deploy merged into `ci.yml` behind `needs: [validate, rules]`.
+- Checks: lint clean, 5 unit tests pass, production build 902 kB initial
+  (202 kB gzip).
+- Known gaps: Google sign-in on Android needs a native plugin; e2e tests
+  (Playwright) not yet added.
 
 ## Security issues
 

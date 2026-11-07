@@ -1,0 +1,62 @@
+/* Ionic core and utilities */
+@use '@ionic/angular/css/core.css';
+@use '@ionic/angular/css/normalize.css';
+@use '@ionic/angular/css/structure.css';
+@use '@ionic/angular/css/typography.css';
+@use '@ionic/angular/css/padding.css';
+@use '@ionic/angular/css/flex-utils.css';
+@use '@ionic/angular/css/display.css';
+/* Dark palette applied when <html> has .ion-palette-dark (ThemeService) */
+@use '@ionic/angular/css/palettes/dark.class.css';
+
+@use './theme/variables';
+
+html,
+body {
+  font-family: var(--ion-font-family);
+}
+
+.ap-container {
+  width: 100%;
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+.ap-card {
+  background: var(--ap-surface);
+  border: 1px solid var(--ap-border);
+  border-radius: 20px;
+  padding: 20px;
+}
+
+.ap-muted {
+  color: var(--ap-text-muted);
+}
+
+.ap-eyebrow {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ion-color-secondary);
+}
+
+.ap-error {
+  color: var(--ion-color-danger);
+  font-size: 0.875rem;
+}
+
+:focus-visible {
+  outline: 2px solid var(--ion-color-secondary);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
