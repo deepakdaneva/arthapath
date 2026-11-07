@@ -20,7 +20,7 @@
 
 These reveal account existence and activity volume, not financial content.
 
-## Firestore rules principles (implemented in Phase 2)
+## Firestore rules (`firestore.rules`)
 
 - Default deny for every path.
 - `users/{uid}/**` readable and writable only when `request.auth.uid == uid`.

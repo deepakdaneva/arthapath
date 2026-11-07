@@ -1,0 +1,110 @@
+rules_version = '2';
+
+// ArthaPath Firestore rules.
+// - Default deny everywhere.
+// - Every document lives under users/{uid} and only that user can touch it.
+// - Sensitive documents must be client-side encrypted envelopes:
+//   { v: 1, iv: <base64>, ct: <base64>, updatedAt: request.time, ...allowed plaintext query fields }
+// See docs/architecture/DATA_MODEL.md and SECURITY_ARCHITECTURE.md.
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isOwner(uid) {
+      return request.auth != null && request.auth.uid == uid;
+    }
+
+    // Encrypted envelope with an optional list of extra plaintext fields.
+    function isEnvelope(extra) {
+      let d = request.resource.data;
+      return d.keys().hasAll(['v', 'iv', 'ct', 'updatedAt'])
+        && d.keys().hasOnly(['v', 'iv', 'ct', 'updatedAt'].concat(extra))
+        && d.v == 1
+        && d.iv is string && d.iv.size() >= 16 && d.iv.size() <= 24
+        && d.ct is string && d.ct.size() > 0 && d.ct.size() <= 900000
+        && d.updatedAt == request.time;
+    }
+
+    function isCrypto(c) {
+      return c is map
+        && c.keys().hasOnly(['version', 'kdf', 'wrappedDek'])
+        && c.version is int
+        && c.kdf is map
+        && c.kdf.keys().hasOnly(['alg', 'm', 't', 'p', 'salt'])
+        && c.kdf.alg == 'argon2id'
+        && c.kdf.m is int && c.kdf.t is int && c.kdf.p is int
+        && c.kdf.salt is string && c.kdf.salt.size() <= 64
+        && c.wrappedDek is map
+        && c.wrappedDek.keys().hasOnly(['iv', 'ct'])
+        && c.wrappedDek.iv is string && c.wrappedDek.iv.size() <= 24
+        && c.wrappedDek.ct is string && c.wrappedDek.ct.size() <= 128;
+    }
+
+    function isUserDoc() {
+      let d = request.resource.data;
+      return d.keys().hasOnly(['displayName', 'email', 'photoURL', 'createdAt', 'updatedAt', 'crypto'])
+        && (!('displayName' in d) || (d.displayName is string && d.displayName.size() <= 100))
+        && (!('email' in d) || (d.email is string && d.email.size() <= 254))
+        && (!('photoURL' in d) || d.photoURL == null
+            || (d.photoURL is string && d.photoURL.size() <= 2048 && d.photoURL.matches('^https://.*')))
+        && d.createdAt is timestamp
+        && d.updatedAt == request.time
+        && (!('crypto' in d) || isCrypto(d.crypto));
+    }
+
+    match /users/{uid} {
+      allow read, delete: if isOwner(uid);
+      allow create: if isOwner(uid) && isUserDoc()
+        && request.resource.data.createdAt == request.time;
+      allow update: if isOwner(uid) && isUserDoc()
+        && request.resource.data.createdAt == resource.data.createdAt;
+
+      match /vault/{docId} {
+        allow read, delete: if isOwner(uid);
+        allow create, update: if isOwner(uid) && docId == 'main' && isEnvelope([]);
+      }
+
+      match /transactions/{txId} {
+        allow read, delete: if isOwner(uid);
+        allow create, update: if isOwner(uid) && isEnvelope(['month', 'occurredAt'])
+          && request.resource.data.month is string
+          && request.resource.data.month.matches('^[0-9]{4}-(0[1-9]|1[0-2])$')
+          && request.resource.data.occurredAt is timestamp;
+      }
+
+      match /aggregates/{month} {
+        allow read, delete: if isOwner(uid);
+        allow create, update: if isOwner(uid)
+          && month.matches('^[0-9]{4}-(0[1-9]|1[0-2])$')
+          && isEnvelope([]);
+      }
+
+      match /conversations/{convId} {
+        allow read, delete: if isOwner(uid);
+        allow create, update: if isOwner(uid) && isEnvelope(['createdAt'])
+          && request.resource.data.createdAt is timestamp;
+
+        match /messages/{msgId} {
+          allow read, delete: if isOwner(uid);
+          allow create: if isOwner(uid) && isEnvelope(['createdAt'])
+            && request.resource.data.createdAt == request.time;
+        }
+      }
+
+      match /pendingQuestions/{qId} {
+        allow read, delete: if isOwner(uid);
+        allow create, update: if isOwner(uid) && isEnvelope(['status'])
+          && request.resource.data.status in ['open', 'answered', 'dismissed'];
+      }
+
+      match /{coll}/{docId} {
+        // Remaining encrypted collections with no plaintext query fields.
+        allow read, delete: if isOwner(uid)
+          && coll in ['goals', 'contextSnapshots', 'analyses', 'aiKeys'];
+        allow create, update: if isOwner(uid)
+          && coll in ['goals', 'contextSnapshots', 'analyses', 'aiKeys']
+          && isEnvelope([]);
+      }
+    }
+  }
+}

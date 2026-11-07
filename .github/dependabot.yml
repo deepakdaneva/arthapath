@@ -1,6 +1,11 @@
 version: 2
 updates:
-  # npm ecosystem is added in Phase 3 once package.json exists.
+  # Root npm ecosystem is added in Phase 3 once the app's package.json exists.
+  - package-ecosystem: npm
+    directory: /firebase/rules-tests
+    target-branch: development
+    schedule:
+      interval: weekly
   - package-ecosystem: github-actions
     directory: /
     target-branch: development

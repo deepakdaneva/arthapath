@@ -26,17 +26,59 @@ The Firestore region **cannot be changed** after creation.
 | Cloud Functions | **No** | Not used |
 | App Check | To be evaluated (Phase 10) | Abuse protection |
 
-## Step-by-step (filled in during Phase 2)
+## Step-by-step
 
-1. `npm i -g firebase-tools` and `firebase login`.
-2. Create both projects: `firebase projects:create <id>`.
-3. Create a Firestore database in `asia-south1` for each project.
-4. Enable Google and Email/Password providers in Authentication.
-5. Register a web app per project; copy the config into environment files.
-6. Add hosting domains to Auth authorized domains.
-7. Deploy rules and indexes: `firebase deploy --only firestore -P <alias>`.
-8. Configure Workload Identity Federation for CI
-   (see [GITHUB_ACTIONS.md](GITHUB_ACTIONS.md)).
+Run for each project (`<id>` = your project ID). Never link a billing account.
+
+```bash
+npm i -g firebase-tools && firebase login
+firebase projects:create <id> --display-name "ArthaPath"
+gcloud services enable firestore.googleapis.com identitytoolkit.googleapis.com   firebasehosting.googleapis.com firebaserules.googleapis.com --project <id>
+firebase firestore:databases:create "(default)" --location asia-south1 -P <id>
+firebase apps:create web "ArthaPath Web" -P <id>
+firebase apps:sdkconfig web -P <id>      # values for environment config
+```
+
+Authentication must be initialized in the console (doing it through the
+API upgrades the project to Identity Platform, which is avoided here):
+
+1. Firebase console → Authentication → **Get started**.
+2. Sign-in method → enable **Email/Password** (email link off).
+3. Add provider → **Google** → enable, choose a support email.
+4. Settings → Authorized domains: `<id>.web.app` and `<id>.firebaseapp.com`
+   are present by default; add custom domains if any.
+
+Restrict the auto-created browser API key (Google Cloud console → APIs &
+Services → Credentials, or `gcloud services api-keys update`):
+
+- API restrictions: Cloud Firestore API, Identity Toolkit API, Token
+  Service API (`securetoken`), Firebase Installations API.
+- Website restrictions: `https://<id>.web.app/*`,
+  `https://<id>.firebaseapp.com/*`, `https://localhost/*` (Capacitor
+  Android), plus `http://localhost/*` and `http://localhost:*/*` for UAT only.
+
+The key is a public identifier; restrictions limit abuse of your quota, but
+security still rests on Auth and Firestore rules.
+
+Then:
+
+```bash
+firebase deploy --only firestore -P <alias>     # rules + indexes
+scripts/setup-wif.sh <id> <github-environment>  # keyless CI deploys
+```
+
+See [GITHUB_ACTIONS.md](GITHUB_ACTIONS.md) for the CI side.
+
+## Local emulators and rules tests
+
+`.firebaserc` defaults to `demo-arthapath`, a demo project ID that the
+emulators accept and that cannot reach any real project.
+
+```bash
+cd firebase/rules-tests
+npm ci
+npm test        # starts the Firestore emulator and runs the rules tests
+```
 
 ## Quota and usage
 

@@ -8,7 +8,7 @@ Production deploys happen only from `main`, after a release PR from
 1. Confirm UAT is verified with the checklist below.
 2. Update `CHANGELOG.md` (move Unreleased to a version) on `development`.
 3. Open a release PR `development` → `main`. CI must pass.
-4. Merge. `deploy-prod.yml` runs in the `production` environment
+4. Merge. `deploy.yml` runs in the `production` environment
    (restricted to `main`) and deploys to `arthapath-prod`.
 5. Tag the release: `vX.Y.Z`, and publish GitHub release notes.
 6. Smoke-test production.
@@ -30,4 +30,4 @@ Firestore rules: redeploy the previous commit's `firestore.rules`.
 - [ ] No secrets in the diff (`git diff main...development`).
 - [ ] CHANGELOG updated.
 
-Status: the workflow is added in Phase 2.
+Until the app exists (Phase 3), only Firestore rules and indexes deploy.
