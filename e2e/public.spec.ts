@@ -1,11 +1,14 @@
 import { expect, test } from '@playwright/test';
 import { agreeToTerms, field, uniqueEmail } from './helpers';
 
+// GitHub links point to the branch the app was built from (scripts/write-app-config.mjs).
+const REF = process.env['APP_REPO_REF'] || (process.env['GITHUB_REF_NAME'] === 'main' ? 'main' : 'development');
+
 test.describe('public pages', () => {
   test('landing page shows the product and leads to sign-in', async ({ page }) => {
     await page.goto('/');
     await expect(page.getByRole('heading', { level: 1 })).toContainText('Your Money. Your Goals.');
-    await expect(page.getByRole('link', { name: 'Docs' })).toHaveAttribute('href', /\/tree\/development\/docs$/);
+    await expect(page.getByRole('link', { name: 'Docs' })).toHaveAttribute('href', new RegExp(`/tree/${REF}/docs$`));
     // routerLink buttons render as links (navigation semantics).
     await page.getByRole('link', { name: 'Get Started' }).click();
     await expect(page).toHaveURL(/\/auth$/);
@@ -23,7 +26,7 @@ test.describe('public pages', () => {
       expect(await doc.locator('h2, li').count()).toBeGreaterThan(3);
       await expect(doc).not.toContainText('## ');
       await expect(doc).not.toContainText('**');
-      await expect(page.getByRole('link', { name: /docs\/product\// })).toHaveAttribute('href', /\/blob\/development\//);
+      await expect(page.getByRole('link', { name: /docs\/product\// })).toHaveAttribute('href', new RegExp(`/blob/${REF}/`));
     });
   }
 
