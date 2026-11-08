@@ -16,7 +16,7 @@ Open app → signed in automatically → PIN unlock → dashboard.
 
 ## Daily entry
 
-Updates tab (or FAB), whenever the user chooses (daily, weekly, monthly) → type "Spent ₹500 on groceries via UPI" →
+Updates tab (or FAB), whenever the user chooses (daily, weekly, monthly): type a note → review the understood entries (fix any field) → save → see what it means for the month's plan and goals; the dashboard trends update → type "Spent ₹500 on groceries via UPI" →
 local parser (AI only if needed) extracts fields → review card → save →
 aggregates and dashboard update → brief impact note.
 

@@ -25,6 +25,7 @@ async function seed(page: Page) {
 
 test.describe('dashboard charts and drill-down', () => {
   test('shows where income goes, warns, and drills into the items behind a figure', async ({ page }) => {
+    test.slow(); // Long flow across several pages.
     await signUp(page, uniqueEmail('dash'));
     await setupPin(page);
     await seed(page);
@@ -59,7 +60,7 @@ test.describe('dashboard charts and drill-down', () => {
     const px = box.x + box.width / 2 + r * Math.sin(angle);
     const py = box.y + box.height / 2 - r * Math.cos(angle);
     // Wait for the page transition to finish (Ionic blocks pointer events during it).
-    await expect.poll(() => page.evaluate(([x, y]) => document.elementFromPoint(x!, y!)?.tagName, [px, py])).toBe('path');
+    await expect.poll(() => page.evaluate(([x, y]) => document.elementFromPoint(x!, y!)?.tagName, [px, py]), { timeout: 30_000 }).toBe('path');
     await page.mouse.click(px, py);
     await expect(page).toHaveURL(/\/app\/details\/necessary$/);
 
@@ -81,7 +82,7 @@ test.describe('dashboard charts and drill-down', () => {
     await details.getByLabel('To', { exact: true }).fill('2026-10-31');
     await details.getByLabel('To', { exact: true }).blur();
     await expect(page.getByText('1 Oct 2026 – 31 Oct 2026')).toBeVisible();
-    await expect(page.getByText('No transactions in this period yet.')).toBeVisible();
+    await expect(page.locator('app-details').getByText('No entries in this period.')).toBeVisible();
 
     // Health score explains its calculation.
     await page.getByRole('link', { name: '← Dashboard' }).click();

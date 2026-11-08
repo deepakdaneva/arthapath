@@ -7,6 +7,16 @@ Versioning: [Semantic Versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Added
+- Updates (Phase 8): log spending, income, savings, investments, loan
+  repayments, and transfers in one line ("Spent ₹500 on groceries via UPI
+  and ₹200 on parking"). Understood on the device; the AI provider is asked
+  only when no amount is found. Review and correct every field before
+  saving, or add entries without typing.
+- Plan vs actual: this month's spending against your monthly plan, monthly
+  trend chart, over-plan warnings, and the impact of each entry (plan used,
+  overspend, change vs recent months, goal progress).
+- Savings and investments logged for a goal add to that goal.
+- Lifestyle need level and custom expense categories.
 - Dashboard (Phase 7): spending donut (necessary, discretionary,
   unnecessary, loan payments, investments, left to save), net worth bars,
   goal cards with every figure, financial independence progress, and

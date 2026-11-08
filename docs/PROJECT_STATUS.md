@@ -14,7 +14,7 @@ _Last updated: 2026-11-07_
 | 5 AI integration | Done (pending UAT verification with real keys) |
 | 6 Financial engine and onboarding | Done (pending UAT verification with real keys) |
 | 7 Dashboard | Done (trend charts and transaction lists wait for Phase 8 data) |
-| 8 Updates (activity logging) | Not started |
+| 8 Updates (activity logging) | Done |
 | 9 Import and advanced features | Not started |
 | 10 Production readiness | Not started |
 
@@ -221,6 +221,20 @@ local PDF parsing with consented AI assist.
   palette validated for both themes; dashboard chunk is lazy-loaded
   (about 160 kB gzip).
 
+## Phase 8 results
+
+- Updates page: one-line notes understood on the device (amount, type,
+  date, method, category, merchant, goal); AI provider only when no amount
+  is found; every field reviewable; "Add without typing" form.
+- Lifestyle added as a need level (necessary, lifestyle, discretionary,
+  unnecessary); custom categories.
+- Encrypted transactions plus encrypted monthly aggregates; savings and
+  investments linked to a goal update it (reversed on delete).
+- Deterministic impact after saving: plan used, overspend, trend vs recent
+  months, goal progress.
+- Dashboard: this month vs plan, monthly trend line, over-plan warnings;
+  details pages list the period's entries.
+
 ## Security issues
 
 None open.
@@ -235,5 +249,5 @@ Not deployed.
 
 ## Next tasks
 
-1. Verify Phase 7 on UAT.
-2. Phase 8: Updates (activity logging, transactions, trends).
+1. Verify Phase 8 on UAT.
+2. Phase 9: statement imports, pending questions, analysis history.

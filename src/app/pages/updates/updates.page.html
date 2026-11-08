@@ -1,0 +1,189 @@
+<ion-content>
+  <div class="ap-container page">
+    <h1>Updates</h1>
+    <p class="ap-muted intro">
+      Log what you spend, earn, save, or invest, whenever it suits you: daily, weekly, or once a month.
+      Write it the way you would say it; you check every entry before it is saved.
+    </p>
+
+    @if (overdue()) {
+      <p class="ap-card nudge" role="status">
+        <ion-icon name="information-circle-outline" aria-hidden="true" />
+        It has been {{ overdue() }} days since your last update. A quick note keeps your trends and goal forecasts accurate.
+      </p>
+    }
+
+    <form class="ap-card composer" (ngSubmit)="read()">
+      <label for="note" class="sr-only">What happened?</label>
+      <textarea
+        id="note"
+        name="note"
+        rows="2"
+        maxlength="500"
+        placeholder="For example: Spent ₹500 on groceries via UPI and ₹200 on parking"
+        [ngModel]="text()"
+        (ngModelChange)="text.set($event ?? '')"
+        (keydown.enter)="onEnter($event)"
+      ></textarea>
+      <div class="actions">
+        <button type="button" class="link" (click)="addBlank()">Add without typing</button>
+        <ion-button type="submit" [disabled]="!text().trim() || busy()">
+          @if (busy()) {
+            <ion-spinner name="crescent" aria-label="Reading" />
+          } @else {
+            Review
+          }
+        </ion-button>
+      </div>
+      <div class="chips" role="group" aria-label="Examples">
+        @for (e of examples; track e) {
+          <button type="button" class="chip" (click)="text.set(e)">{{ e }}</button>
+        }
+      </div>
+      <p class="ap-muted small">
+        Notes are read on this device. Only when no amount is found is the note sent to your AI provider
+        (under its terms) to understand it. ID numbers and secrets are removed first.
+      </p>
+    </form>
+
+    @if (error()) {
+      <p class="ap-error" role="alert">{{ error() }}</p>
+    }
+
+    @if (rows().length) {
+      <section class="ap-card review" aria-labelledby="review-title">
+        <h2 id="review-title">Check before saving</h2>
+        <ul>
+          @for (r of rows(); track r.key) {
+            <li class="entry">
+              <div class="grid">
+                <label>Type
+                  <select [ngModel]="r.type" (ngModelChange)="patch(r, { type: $event })" [name]="'type' + r.key">
+                    @for (t of types; track t) {
+                      <option [value]="t">{{ typeLabels[t] }}</option>
+                    }
+                  </select>
+                </label>
+                <label>Amount (₹)
+                  <input inputmode="decimal" [ngModel]="r.rupees" (ngModelChange)="patch(r, { rupees: $event })" [name]="'amt' + r.key" />
+                </label>
+                <label>Date
+                  <input type="date" [max]="today" [ngModel]="r.date" (ngModelChange)="patch(r, { date: $event })" [name]="'date' + r.key" />
+                </label>
+                @if (r.type === 'expense') {
+                  <div class="field">
+                    <span>Category</span>
+                    @if (r.customCategory) {
+                      <input aria-label="Category" [ngModel]="r.category" (ngModelChange)="patch(r, { category: $event })" [name]="'cat' + r.key" placeholder="Your category" maxlength="30" />
+                    } @else {
+                      <select aria-label="Category" [ngModel]="r.category" (ngModelChange)="setCategory(r, $event)" [name]="'cat' + r.key">
+                        @for (c of categories; track c) {
+                          <option [value]="c">{{ label(c) }}</option>
+                        }
+                        <option value="__custom">Custom…</option>
+                      </select>
+                    }
+                  </div>
+                  <label>How needed
+                    <select [ngModel]="r.need" (ngModelChange)="patch(r, { need: $event })" [name]="'need' + r.key">
+                      @for (n of needs; track n) {
+                        <option [value]="n">{{ label(n) }}</option>
+                      }
+                    </select>
+                  </label>
+                }
+                <label>Paid by
+                  <select [ngModel]="r.method ?? ''" (ngModelChange)="patch(r, { method: $event || undefined })" [name]="'m' + r.key">
+                    <option value="">Not specified</option>
+                    @for (m of methods; track m) {
+                      <option [value]="m">{{ methodLabels[m] }}</option>
+                    }
+                  </select>
+                </label>
+                @if ((r.type === 'investment' || r.type === 'saving') && goals().length) {
+                  <label>For goal
+                    <select [ngModel]="r.goalId ?? ''" (ngModelChange)="patch(r, { goalId: $event || undefined })" [name]="'g' + r.key">
+                      <option value="">None</option>
+                      @for (g of goals(); track g.id) {
+                        <option [value]="g.id">{{ g.label }}</option>
+                      }
+                    </select>
+                  </label>
+                }
+                <label>Merchant
+                  <input [ngModel]="r.merchant ?? ''" (ngModelChange)="patch(r, { merchant: $event || undefined })" [name]="'mer' + r.key" maxlength="60" />
+                </label>
+                <label class="wide">Note
+                  <input [ngModel]="r.description" (ngModelChange)="patch(r, { description: $event })" [name]="'d' + r.key" maxlength="120" />
+                </label>
+              </div>
+              <div class="entry-foot">
+                @if (r.source === 'ai') {
+                  <span class="tag"><ion-icon name="sparkles-outline" aria-hidden="true" /> Read by your AI provider: please check</span>
+                } @else {
+                  <span></span>
+                }
+                <button type="button" class="icon" (click)="remove(r)" [attr.aria-label]="'Remove entry ' + (r.description || r.category)">
+                  <ion-icon name="close-outline" aria-hidden="true" />
+                </button>
+              </div>
+            </li>
+          }
+        </ul>
+        <div class="row">
+          <ion-button (click)="save()" [disabled]="saving()">
+            @if (saving()) {
+              <ion-spinner name="crescent" aria-label="Saving" />
+            } @else {
+              Save {{ rows().length }} entr{{ rows().length === 1 ? 'y' : 'ies' }}
+            }
+          </ion-button>
+          <ion-button fill="clear" (click)="rows.set([])" [disabled]="saving()">Discard</ion-button>
+        </div>
+      </section>
+    }
+
+    @if (impact().length) {
+      <section class="ap-card impact" aria-labelledby="impact-title">
+        <h2 id="impact-title">What this means</h2>
+        <ul>
+          @for (i of impact(); track $index) {
+            <li class="{{ i.tone }}">
+              <ion-icon [name]="i.tone === 'caution' ? 'alert-circle-outline' : i.tone === 'good' ? 'checkmark-circle-outline' : 'information-circle-outline'" aria-hidden="true" />
+              <span>{{ i.text }}</span>
+            </li>
+          }
+        </ul>
+      </section>
+    }
+
+    <section class="ap-card" aria-labelledby="recent-title">
+      <div class="head">
+        <h2 id="recent-title">This month</h2>
+        <a routerLink="/app/details/spending">All entries</a>
+      </div>
+      @if (recent() === null) {
+        <ion-spinner name="crescent" aria-label="Loading entries" />
+      } @else {
+        <ul class="list" aria-label="This month's entries">
+          @for (t of recent(); track t.id) {
+            <li>
+              <span class="what">
+                <strong>{{ t.description || label(t.category) }}</strong>
+                <span class="ap-muted small">
+                  {{ t.date }} · {{ typeLabels[t.type] }}{{ t.type === 'expense' ? ' · ' + label(t.category) + ' · ' + label(t.need ?? '') : '' }}{{ t.method ? ' · ' + methodLabels[t.method] : '' }}{{ t.goalId && goalName(t.goalId) ? ' · for ' + goalName(t.goalId) : '' }}
+                </span>
+              </span>
+              <span class="amt" [class.in]="t.type === 'income'">{{ t.type === 'income' ? '+' : '' }}{{ fmt(t.amount) }}</span>
+              <button type="button" class="icon" (click)="delete(t)" [attr.aria-label]="'Delete ' + (t.description || t.category)">
+                <ion-icon name="trash-outline" aria-hidden="true" />
+              </button>
+            </li>
+          } @empty {
+            <li class="ap-muted">Nothing logged this month yet.</li>
+          }
+        </ul>
+      }
+    </section>
+  </div>
+</ion-content>

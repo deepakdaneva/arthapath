@@ -144,7 +144,7 @@ export class VaultService {
   /** Lists and decrypts a collection below users/{uid}. */
   async list<T>(
     collectionPath: string[],
-    opts: { orderBy?: string; direction?: 'asc' | 'desc'; limit?: number } = {},
+    opts: import('./vault-store').ListOptions = {},
   ): Promise<{ id: string; value: T; plain: Record<string, unknown> }[]> {
     const [, store] = await lib();
     const rows = await store.listEnvelopes(this.uid, collectionPath, opts);

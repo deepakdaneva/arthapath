@@ -1,11 +1,13 @@
 import { DatePipe, DecimalPipe, PercentPipe } from '@angular/common';
-import { Component, computed, inject } from '@angular/core';
+import { Component, computed, inject, resource } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { IonContent } from '@ionic/angular/ion-content';
 import { SLICE_LABELS, STATUS_LABEL, periodRange, toMonthly, type Period, type SliceKey } from '../../domain/engine';
 import { LIQUID_ASSETS, formatInr, type Need, type Paise } from '../../domain/models';
 import { ProfileService } from '../../domain/profile.service';
+import { METHOD_LABELS, TX_TYPE_LABELS, type Transaction } from '../../domain/transactions';
+import { TransactionsService } from '../../domain/transactions.service';
 
 interface Row {
   label: string;
@@ -14,7 +16,23 @@ interface Row {
 }
 
 /** Topics whose figures come from money moving in and out: they get a transaction list. */
-const FLOW_TOPICS = new Set(['necessary', 'discretionary', 'unnecessary', 'debt', 'investments', 'income']);
+const FLOW_TOPICS = new Set(['spending', 'necessary', 'lifestyle', 'discretionary', 'unnecessary', 'debt', 'investments', 'income']);
+
+/** Which logged entries belong to a topic. */
+function txMatches(topic: string, t: Transaction): boolean {
+  switch (topic) {
+    case 'spending':
+      return t.type === 'expense';
+    case 'debt':
+      return t.type === 'loan_payment';
+    case 'investments':
+      return t.type === 'investment' || t.type === 'saving';
+    case 'income':
+      return t.type === 'income';
+    default:
+      return t.type === 'expense' && t.need === topic;
+  }
+}
 const PERIODS: { key: Period; label: string }[] = [
   { key: 'day', label: 'Day' },
   { key: 'week', label: 'Week' },
@@ -40,6 +58,7 @@ export class DetailsPage {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   readonly svc = inject(ProfileService);
+  private readonly tx = inject(TransactionsService);
   readonly fmt = formatInr;
   readonly periods = PERIODS;
   readonly statusLabel = STATUS_LABEL;
@@ -60,6 +79,7 @@ export class DetailsPage {
     const titles: Record<string, string> = {
       ...SLICE_LABELS,
       savings: 'Savings',
+      spending: 'Spending',
       income: 'Income',
       networth: 'Net worth',
       health: 'Financial health score',
@@ -75,6 +95,8 @@ export class DetailsPage {
     switch (this.topic()) {
       case 'income':
         return m.monthlyIncome;
+      case 'spending':
+        return m.monthlyExpenses;
       case 'debt':
         return m.monthlyDebtPayments;
       case 'investments':
@@ -88,6 +110,7 @@ export class DetailsPage {
       case 'fi':
         return m.investedAssets;
       case 'necessary':
+      case 'lifestyle':
       case 'discretionary':
       case 'unnecessary':
         return this.rows().reduce((s, r) => s + r.amount, 0);
@@ -106,11 +129,14 @@ export class DetailsPage {
         .map((e) => ({ label: e.label, detail: `${human(e.category)} · ${human(e.frequency)}${e.frequency !== 'monthly' ? ` (${formatInr(e.amount)})` : ''}`, amount: toMonthly(e.amount, e.frequency) }));
     switch (t) {
       case 'necessary':
+      case 'lifestyle':
       case 'discretionary':
       case 'unnecessary':
         return expenseRows((need, cat) => cat !== 'investments' && need === t);
       case 'investments':
         return expenseRows((_n, cat) => cat === 'investments');
+      case 'spending':
+        return expenseRows((_n, cat) => cat !== 'investments');
       case 'income':
         return p.incomes.map((i) => ({ label: i.label, detail: `${human(i.kind)} · ${i.earner} · ${human(i.frequency)}`, amount: toMonthly(i.amount, i.frequency) }));
       case 'debt':
@@ -142,6 +168,16 @@ export class DetailsPage {
   readonly customTo = computed(() => this.query().get('to') ?? '');
   readonly range = computed(() => periodRange(this.period(), new Date(), { from: this.customFrom(), to: this.customTo() }));
   /** Last day shown, for display (the range end is exclusive). */
+  /** Logged entries in the chosen period for this topic. */
+  readonly txs = resource({
+    params: () => ({ range: this.hasTransactions() ? this.range() : null, version: this.tx.totals() }),
+    loader: async ({ params }) => (params.range ? this.tx.list(params.range.from, params.range.to) : []),
+  });
+  readonly matching = computed(() => (this.txs.value() ?? []).filter((t) => txMatches(this.topic(), t)));
+  readonly matchingTotal = computed(() => this.matching().reduce((s, t) => s + t.amount, 0));
+  readonly typeLabels = TX_TYPE_LABELS;
+  readonly methodLabels = METHOD_LABELS;
+
   readonly rangeEnd = computed(() => {
     const r = this.range();
     return r ? new Date(r.to.getTime() - 1) : null;

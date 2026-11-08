@@ -21,7 +21,7 @@ export const EXPENSE_CATEGORIES = [
 ] as const;
 
 /** How needed an expense is. "investments" expenses are savings, not spending, whatever their tag. */
-export const NEEDS = ['necessary', 'discretionary', 'unnecessary'] as const;
+export const NEEDS = ['necessary', 'lifestyle', 'discretionary', 'unnecessary'] as const;
 export type Need = (typeof NEEDS)[number];
 export type ExpenseCategory = (typeof EXPENSE_CATEGORIES)[number];
 
