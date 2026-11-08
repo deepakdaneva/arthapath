@@ -133,6 +133,28 @@ not expose its rate-limit headers to browsers, so retry hints are parsed
 from the error body ("Please try again in 1m26.4s"); Gemini's come from
 `RetryInfo.retryDelay`.
 
+### Models (fetched live, never stored as lists)
+
+ArthaPath keeps no model names in code. When a key is entered (or a key is
+opened for editing), the browser fetches that provider's model list directly
+(`GET /models`), filters out models that cannot chat (speech, image, music,
+embedding, safety-filter models; Groq models marked inactive; OpenRouter
+models with non-text output), and suggests one by name pattern:
+
+| Provider | Suggestion |
+|---|---|
+| Gemini | Newest stable `gemini-<version>-flash-lite`. Gemini's list still includes some versions retired for new keys, so the newest is chosen. |
+| OpenRouter | `openrouter/free` (OpenRouter's router across free models), else the first free model. The list endpoint is public. |
+| Groq | `gpt-oss-120b`, else a `70b` model, else the first listed. |
+| Custom | First listed. |
+
+The user can pick any listed model. Only the selected model name is saved,
+inside the encrypted key document. The list itself lives in memory while the
+form is open. If a saved model disappears from the list, editing the key
+shows a replacement; if a request fails because the model was retired, the
+key is blocked as `model_unavailable` and the user is told to choose
+another model (not that a limit was reached).
+
 ### Custom endpoints
 
 Custom OpenAI-compatible providers are limited to an allowlist that matches

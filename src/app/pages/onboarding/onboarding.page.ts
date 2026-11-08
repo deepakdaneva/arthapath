@@ -15,7 +15,7 @@ import { EXTRACTION_PROMPT, extractionIsEmpty, parseExtraction, type Extraction 
 import { AIError } from '../../ai/errors';
 import { OFF_TOPIC_REPLY, classifyIntent } from '../../ai/guardrails';
 import { ONBOARDING_STARTERS } from '../../ai/starters';
-import { AllProvidersExhaustedError, route } from '../../ai/router';
+import { AllProvidersExhaustedError, exhaustedMessage, route } from '../../ai/router';
 import { AiStatusService } from '../../core/ai-status.service';
 import { NoticeService } from '../../core/notice.service';
 import { formatInr, rupees, toRupees, type Provenance } from '../../domain/models';
@@ -217,7 +217,7 @@ export class OnboardingPage {
     if (e instanceof AllProvidersExhaustedError) {
       return e.noneConfigured
         ? 'Add an AI provider first (AI Providers in the account menu), or enter details manually.'
-        : 'All configured AI providers have reached their available limits. Please add another provider or try again later.';
+        : exhaustedMessage(e, (c) => this.keys.nameOf(c));
     }
     if (e instanceof AIError && e.kind === 'network') return "You appear to be offline. Try again when you're connected.";
     return 'I could not understand the response. Please try rephrasing.';

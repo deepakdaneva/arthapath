@@ -69,6 +69,13 @@ Versioning: [Semantic Versioning](https://semver.org/).
   bundle reduced from 909 kB to 674 kB.
 
 ### Fixed
+- Models are fetched live from each provider when a key is entered or
+  edited; no model names are stored in the app, and only the selected model
+  is saved. Non-chat models are filtered out. The old built-in defaults had
+  gone stale (Gemini's was retired for new keys; OpenRouter's no longer
+  existed).
+- A retired model or rejected key is now reported as such (with what to fix)
+  instead of "limit reached", in chat, onboarding, and the top-bar indicator.
 - Sending a message right after unlocking could wrongly report that no AI
   provider was configured (keys still loading).
 - The quick-add button covered Send on the onboarding page.

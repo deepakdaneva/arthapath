@@ -1,10 +1,10 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { geminiAdapter, openAiAdapter, type AIResponse, type Credentials } from './adapters';
+import { geminiAdapter, openAiAdapter, pickModel, type AIResponse, type Credentials } from './adapters';
 import { buildMessages, estimateTokens, type StoredMessage } from './context';
 import { AIError, classifyHttpError, classifyThrown, parseDuration } from './errors';
 import { classifyIntent } from './guardrails';
 import { customBaseUrlError, maskKey } from './providers';
-import { AllProvidersExhaustedError, eligible, route, type RouteCandidate, type RouteEvent } from './router';
+import { AllProvidersExhaustedError, eligible, exhaustedMessage, route, type RouteCandidate, type RouteEvent } from './router';
 
 describe('errors', () => {
   it('parses provider retry hints', () => {
@@ -140,6 +140,69 @@ describe('router', () => {
     const call = vi.fn();
     await expect(route({ messages: [] }, [], { call, now: () => 0 })).rejects.toMatchObject({ noneConfigured: true });
     await expect(route({ messages: [] }, [cand('a', 'groq', 1, { cooldownUntil: 99 })], { call, now: () => 0 })).rejects.toMatchObject({ noneConfigured: false });
+  });
+
+  it('says a retired model needs fixing instead of reporting a limit', async () => {
+    const name = (c: RouteCandidate) => c.label;
+    const retired = classifyHttpError(404, '{"error":{"code":404,"message":"This model models/m-a is no longer available to new users.","status":"NOT_FOUND"}}', 'Google Gemini');
+    expect(retired.kind).toBe('model_unavailable');
+    const call = vi.fn(async () => {
+      throw retired;
+    });
+    const first = await route({ messages: [] }, [cand('a', 'gemini', 1)], { call, now: () => 0 }).catch((e) => e);
+    expect(exhaustedMessage(first, name)).toContain('can no longer use the model "m-a"');
+
+    // Later messages: the key is already blocked, and the same reason is reported.
+    const again = await route({ messages: [] }, [cand('a', 'gemini', 1, { blocked: 'model_unavailable' })], { call, now: () => 0 }).catch((e) => e);
+    expect(again.noneConfigured).toBe(false);
+    expect(exhaustedMessage(again, name)).toContain('Choose another model');
+    expect(exhaustedMessage(new AllProvidersExhaustedError([{ candidate: cand('b', 'groq', 1), error: new AIError('auth_invalid', 'x') }], false), name)).toContain('rejected your API key');
+
+    // Mixed with a limit: waiting may help, so the limit message stays.
+    const limited = await route({ messages: [] }, [cand('a', 'gemini', 1, { blocked: 'model_unavailable' }), cand('b', 'groq', 2, { cooldownUntil: 99 })], { call, now: () => 0 }).catch((e) => e);
+    expect(exhaustedMessage(limited, name)).toContain('reached their available limits');
+  });
+});
+
+describe('pickModel', () => {
+  const ids = (...xs: string[]) => xs.map((id) => ({ id, name: id }));
+  it('prefers the newest stable Gemini Flash-Lite from the live list', () => {
+    const live = ids('gemini-2.5-flash', 'gemini-2.5-flash-lite', 'gemini-3.1-flash-lite-preview', 'gemini-3.1-flash-lite', 'gemini-3.5-flash-lite', 'gemini-flash-lite-latest');
+    expect(pickModel('gemini', live)).toBe('gemini-3.5-flash-lite');
+    expect(pickModel('gemini', ids('gemini-flash-lite-latest', 'gemini-2.5-flash'))).toBe('gemini-flash-lite-latest');
+  });
+  it('suggests by name pattern for Groq and OpenRouter, else the first listed', () => {
+    expect(pickModel('groq', ids('llama-3.1-8b-instant', 'llama-3.3-70b-versatile'))).toBe('llama-3.3-70b-versatile');
+    expect(pickModel('groq', ids('llama-3.3-70b-versatile', 'openai/gpt-oss-120b'))).toBe('openai/gpt-oss-120b');
+    expect(pickModel('openrouter', [{ id: 'paid', name: 'p' }, { id: 'x:free', name: 'f', free: true }])).toBe('x:free');
+    expect(pickModel('openrouter', [{ id: 'x:free', name: 'f', free: true }, { id: 'openrouter/free', name: 'r', free: true }])).toBe('openrouter/free');
+    expect(pickModel('groq', ids('a', 'b'))).toBe('a');
+    expect(pickModel('custom', ids('m1'))).toBe('m1');
+    expect(pickModel('groq', [])).toBeNull();
+  });
+
+  it('lists only models that can chat', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () =>
+        new Response(
+          JSON.stringify({
+            data: [
+              { id: 'llama-3.3-70b-versatile' },
+              { id: 'whisper-large-v3' },
+              { id: 'meta-llama/llama-guard-4-12b' },
+              { id: 'old-model', active: false },
+              { id: 'google/lyria-3-pro-preview', architecture: { output_modalities: ['text', 'audio'] } },
+              { id: 'openrouter/free', pricing: { prompt: '0', completion: '0' }, architecture: { output_modalities: ['text'] } },
+            ],
+          }),
+          { status: 200 },
+        ),
+      ),
+    );
+    const models = await openAiAdapter.listModels({ provider: 'groq', apiKey: 'k' });
+    expect(models.map((m) => m.id)).toEqual(['openrouter/free', 'llama-3.3-70b-versatile']);
+    vi.unstubAllGlobals();
   });
 });
 

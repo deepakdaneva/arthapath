@@ -101,7 +101,7 @@
 
           <ion-input type="password" label="API key" labelPlacement="floating" fill="outline" autocomplete="off"
             [placeholder]="isEdit() ? 'Leave empty to keep the current key' : ''"
-            name="apiKey" [ngModel]="draft().apiKey" (ngModelChange)="patch({ apiKey: $event ?? '' })" />
+            name="apiKey" [ngModel]="draft().apiKey" (ngModelChange)="patch({ apiKey: $event ?? '' })" (ionBlur)="onKeyEntered()" />
 
           <ion-input label="Name (optional)" labelPlacement="floating" fill="outline" name="label" [maxlength]="40"
             [ngModel]="draft().label" (ngModelChange)="patch({ label: $event ?? '' })" />
@@ -116,6 +116,7 @@
               </ion-select>
             } @else {
               <ion-input label="Model" labelPlacement="floating" fill="outline" name="model"
+                [placeholder]="isEdit() ? '' : 'Loaded from the provider after you enter the key'"
                 [ngModel]="draft().model" (ngModelChange)="patch({ model: $event ?? '' })" />
             }
             <ion-button fill="outline" (click)="loadModels()" [disabled]="loadingModels()">

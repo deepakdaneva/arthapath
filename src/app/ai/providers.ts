@@ -1,6 +1,9 @@
 /**
  * Supported AI providers. Users bring their own keys (BYOK). Free-tier limits
  * change often, so none are hardcoded: the router reacts to provider errors.
+ * Model names are not stored here either: each provider's live model list is
+ * fetched in the browser when a key is added or edited, and only the model the
+ * user selects is saved.
  *
  * Every host here must also be allowed by connect-src in firebase.json
  * (Content Security Policy). All of them were checked to allow browser
@@ -17,8 +20,6 @@ export interface ProviderInfo {
   baseUrl: string;
   /** Where users create a key. */
   keyUrl: string;
-  /** Suggested model when the model list cannot be loaded. */
-  defaultModel: string;
 }
 
 export const PROVIDERS: Record<ProviderId, ProviderInfo> = {
@@ -28,7 +29,6 @@ export const PROVIDERS: Record<ProviderId, ProviderInfo> = {
     kind: 'gemini',
     baseUrl: 'https://generativelanguage.googleapis.com/v1beta',
     keyUrl: 'https://aistudio.google.com/app/apikey',
-    defaultModel: 'gemini-2.5-flash-lite',
   },
   groq: {
     id: 'groq',
@@ -36,7 +36,6 @@ export const PROVIDERS: Record<ProviderId, ProviderInfo> = {
     kind: 'openai',
     baseUrl: 'https://api.groq.com/openai/v1',
     keyUrl: 'https://console.groq.com/keys',
-    defaultModel: 'llama-3.3-70b-versatile',
   },
   openrouter: {
     id: 'openrouter',
@@ -44,7 +43,6 @@ export const PROVIDERS: Record<ProviderId, ProviderInfo> = {
     kind: 'openai',
     baseUrl: 'https://openrouter.ai/api/v1',
     keyUrl: 'https://openrouter.ai/keys',
-    defaultModel: 'meta-llama/llama-3.3-70b-instruct:free',
   },
   custom: {
     id: 'custom',
@@ -52,7 +50,6 @@ export const PROVIDERS: Record<ProviderId, ProviderInfo> = {
     kind: 'openai',
     baseUrl: '',
     keyUrl: '',
-    defaultModel: '',
   },
 };
 

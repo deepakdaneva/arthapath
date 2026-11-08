@@ -13,6 +13,8 @@ describe('AiStatusService', () => {
     const ai = TestBed.inject(AiStatusService);
     ai.set({ provider: 'Gemini', model: 'flash', state: 'exhausted' });
     expect(ai.label()).toBe('Gemini limit reached');
+    ai.set({ provider: 'Gemini', model: 'flash', state: 'exhausted', reason: 'model' });
+    expect(ai.label()).toBe('Gemini: model unavailable');
     ai.switchedTo('Groq', 'llama-3.3-70b');
     expect(ai.label()).toBe('Groq · llama-3.3-70b');
     expect(ai.switchCount()).toBe(1);

@@ -46,6 +46,22 @@ export class AllProvidersExhaustedError extends Error {
   }
 }
 
+/**
+ * Explains to the user why no key could answer. Keys that need fixing (bad key,
+ * unavailable model) are named, because waiting will not help them.
+ */
+export function exhaustedMessage(e: AllProvidersExhaustedError, nameOf: (c: RouteCandidate) => string): string {
+  const fixable = e.attempts.filter((a) => a.error.kind === 'auth_invalid' || a.error.kind === 'model_unavailable');
+  if (e.attempts.length > 0 && fixable.length === e.attempts.length) {
+    if (fixable.length > 1) return 'None of your AI providers can be used right now. Check their keys and models under AI Providers.';
+    const { candidate, error } = fixable[0]!;
+    return error.kind === 'model_unavailable'
+      ? `${nameOf(candidate)} can no longer use the model "${candidate.credentials.model}" (it may have been retired). Choose another model under AI Providers.`
+      : `${nameOf(candidate)} rejected your API key. Update the key under AI Providers.`;
+  }
+  return 'All configured AI providers have reached their available limits. Please add another provider or try again later.';
+}
+
 const MINUTE = 60_000;
 /** Cooldown when the provider gives no retry hint. */
 const DEFAULT_COOLDOWN: Partial<Record<AIErrorKind, number>> = {
@@ -76,7 +92,11 @@ export async function route(
 ): Promise<{ response: AIResponse; used: RouteCandidate }> {
   const queue = eligible(candidates, deps.now());
   if (queue.length === 0) {
-    throw new AllProvidersExhaustedError([], !candidates.some((c) => c.enabled));
+    // Report why each enabled key is unusable (blocked, or cooling down after a limit).
+    const skipped = candidates
+      .filter((c) => c.enabled)
+      .map((candidate) => ({ candidate, error: new AIError(candidate.blocked ?? 'rate_limited', 'not usable now') }));
+    throw new AllProvidersExhaustedError(skipped, skipped.length === 0);
   }
   const attempts: { candidate: RouteCandidate; error: AIError }[] = [];
   const downProviders = new Set<string>();
