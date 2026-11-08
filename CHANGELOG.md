@@ -7,6 +7,8 @@ Versioning: [Semantic Versioning](https://semver.org/).
 ## [1.0.0] - first production release
 
 ### Added
+- Sign-up asks you to agree to the Terms of Service and Privacy Policy.
+- README screenshots from a demo account (`npm run screenshots`).
 - Statement import (Phase 9): CSV exports, PDFs (including password-
   protected ones), or pasted text, read on the device. Duplicates are
   flagged and unselected; every row can be corrected before saving. The file
@@ -118,6 +120,7 @@ Versioning: [Semantic Versioning](https://semver.org/).
   prompts.
 
 ### Fixed
+- Dashboard questions card and recommendation count spacing.
 - AI replies render Markdown (bold, lists, tables, code, links) in Chat and
   onboarding instead of showing raw symbols. Raw HTML from the model is shown
   as text, links open in a new tab, and Angular sanitizes the result.

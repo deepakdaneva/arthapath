@@ -244,7 +244,7 @@
           <ion-icon name="chevron-forward" class="go" aria-hidden="true" />
         </div>
         @if (analysis.recommendations()[0]; as r) {
-          <p><strong>{{ r.title }}.</strong> <span class="ap-muted">{{ analysis.recommendations().length - 1 > 0 ? '+' + (analysis.recommendations().length - 1) + ' more' : '' }}</span></p>
+          <p><strong>{{ r.title }}.</strong>&ngsp;<span class="ap-muted">{{ analysis.recommendations().length - 1 > 0 ? '+' + (analysis.recommendations().length - 1) + ' more' : '' }}</span></p>
         }
         @if (analysis.nudge(); as n) {
           <p class="ap-muted small">{{ n }} Ask for a fresh AI analysis.</p>

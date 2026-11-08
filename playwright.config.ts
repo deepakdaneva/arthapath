@@ -13,6 +13,7 @@ const port = 4300;
 
 export default defineConfig({
   testDir: 'e2e',
+  testIgnore: '**/screenshots.spec.ts',
   fullyParallel: false,
   workers: 1,
   forbidOnly: !!process.env['CI'],
