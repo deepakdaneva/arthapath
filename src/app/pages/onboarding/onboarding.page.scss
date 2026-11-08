@@ -53,6 +53,10 @@ ion-content {
   border: 1px solid var(--ap-border);
 }
 
+.bubble.ap-markdown {
+  white-space: normal;
+}
+
 .user .bubble {
   background: var(--ion-color-primary);
   color: var(--ion-color-primary-contrast);

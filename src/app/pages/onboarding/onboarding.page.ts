@@ -2,6 +2,7 @@ import { Component, computed, effect, inject, signal, viewChild } from '@angular
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { IonButton } from '@ionic/angular/ion-button';
+import { MarkdownPipe } from '../../ai/markdown.pipe';
 import { IonContent } from '@ionic/angular/ion-content';
 import { IonIcon } from '@ionic/angular/ion-icon';
 import { IonSpinner } from '@ionic/angular/ion-spinner';
@@ -43,7 +44,7 @@ const INTRO =
 
 @Component({
   selector: 'app-onboarding',
-  imports: [IonContent, IonButton, IonIcon, IonSpinner, IonTextarea, FormsModule, RouterLink],
+  imports: [IonContent, IonButton, IonIcon, IonSpinner, IonTextarea, FormsModule, RouterLink, MarkdownPipe],
   templateUrl: './onboarding.page.html',
   styleUrl: './onboarding.page.scss',
 })

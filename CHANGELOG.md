@@ -69,6 +69,9 @@ Versioning: [Semantic Versioning](https://semver.org/).
   bundle reduced from 909 kB to 674 kB.
 
 ### Fixed
+- AI replies render Markdown (bold, lists, tables, code, links) in Chat and
+  onboarding instead of showing raw symbols. Raw HTML from the model is shown
+  as text, links open in a new tab, and Angular sanitizes the result.
 - Models are fetched live from each provider when a key is entered or
   edited; no model names are stored in the app, and only the selected model
   is saved. Non-chat models are filtered out. The old built-in defaults had
