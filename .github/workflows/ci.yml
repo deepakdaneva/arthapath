@@ -257,7 +257,7 @@ jobs:
         run: |
           EXTRA=()
           if [ "$UAT" = "true" ]; then EXTRA=(-PappIdSuffix=.uat "-PappName=ArthaPath UAT"); fi
-          ./gradlew testReleaseUnitTest lintRelease assembleRelease --no-daemon             -PversionCode=${{ steps.v.outputs.code }} -PversionName=${{ steps.v.outputs.version }} "${EXTRA[@]}"
+          ./gradlew testDebugUnitTest lintRelease assembleRelease --no-daemon             -PversionCode=${{ steps.v.outputs.code }} -PversionName=${{ steps.v.outputs.version }} "${EXTRA[@]}"
 
       - name: Sign and verify
         env:
