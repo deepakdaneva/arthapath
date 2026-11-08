@@ -13,6 +13,7 @@ import { arrowDownOutline, arrowUpOutline, createOutline, openOutline, trashOutl
 import { adapterFor, type AIModel } from '../../ai/adapters';
 import { AiKeysService, type AiKeyView } from '../../ai/ai-keys.service';
 import { AIError } from '../../ai/errors';
+import { keyGuideFor } from '../../ai/key-guides';
 import { CUSTOM_PRESETS, PROVIDERS, customBaseUrlError, type ProviderId } from '../../ai/providers';
 
 interface Draft {
@@ -46,6 +47,7 @@ export class AiProvidersPage {
   readonly info = signal('');
 
   readonly providerInfo = computed(() => PROVIDERS[this.draft().provider]);
+  readonly guide = computed(() => keyGuideFor(this.draft().provider, this.draft().baseUrl));
   readonly isEdit = computed(() => this.editing() !== null && this.editing() !== 'new');
   readonly baseUrlError = computed(() =>
     this.draft().provider === 'custom' && this.draft().baseUrl ? customBaseUrlError(this.draft().baseUrl) : null,

@@ -32,7 +32,7 @@ goal plan. You bring your own AI keys, from any supported provider.
 - Conversational onboarding: income, expenses, loans, family, assets, goals.
 - Dynamic dashboard: health score, cash flow, net worth, goal progress,
   financial-independence estimate, interactive drill-down charts.
-- *Today's Updates*: log transactions in natural language ("Spent ₹500 on
+- *Updates*: log transactions whenever you like (daily, weekly, monthly) in natural language ("Spent ₹500 on
   groceries via UPI") and review before saving.
 - Statement import: CSV and PDF parsed on your device; review before import.
 - Pending questions: the assistant asks only for what it is missing.

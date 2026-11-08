@@ -62,3 +62,52 @@ The UI marks assumptions and estimates and lets the user correct them.
 Monthly aggregate documents hold totals per type and category. A new
 transaction updates one aggregate; dashboards never rescan full history.
 A rebuild routine can regenerate aggregates from transactions if needed.
+
+## Implementation (Phase 6)
+
+| Piece | File |
+|---|---|
+| Domain types, money helpers (paise, `formatInr`) | `src/app/domain/models.ts` |
+| Metrics, goal planning, health score, suggestions | `src/app/domain/engine.ts` (tests: `engine.spec.ts`) |
+| Encrypted persistence, derived signals, AI context snapshot | `src/app/domain/profile.service.ts` |
+| AI extraction prompt and validator | `src/app/ai/extraction.ts` |
+
+### Scoring details
+
+- Savings rate: 0 at 0% or less, full at 20% or more (linear).
+- Emergency fund: liquid assets (savings, fixed deposits) ÷ (essential
+  expenses + loan payments); 0 at 0 months, full at 6.
+- Debt payments: full at 30% of income or less, 0 at 60% or more.
+- Goals: share of dated goals whose required monthly saving is fully
+  covered by the surplus allocated in priority order.
+- Insurance: half for health cover; half for term cover, or automatically
+  when nobody depends on the user's income.
+
+### Goal planning
+
+- Required monthly saving solves the future-value annuity with monthly
+  compounding at the user's assumed return (default 0%).
+- Score = category weight (emergency fund 100, debt payoff 85, insurance
+  80, education 60, retirement 55, home/wedding 45, vehicle 35, travel 25,
+  wealth/other 20) + urgency (30 within a year, 20 within 3, 10 within 7) +
+  10 if the surplus alone can fund it. User order (priority override)
+  always comes first.
+- The surplus is allocated down the ranked list; each goal is on track
+  (fully funded), at risk (at least half), or behind.
+- Reasons shown with each goal are generated deterministically.
+
+### Suggestions
+
+Emergency fund (when under 6 months), high-interest debt payoff (credit
+cards, personal loans, or 12%+ interest), insurance (when the user said
+they lack it), and retirement. Shown as optional; never added
+automatically.
+
+### AI extraction
+
+The model returns JSON. `parseExtraction` validates every field: amounts
+must be non-negative numbers up to ₹10,000 crore (converted to paise),
+types must be known values (otherwise "other"), dates must be `YYYY-MM`,
+at most 20 items per section and 4 questions. Rough figures are tagged
+`ai_estimate`. The user reviews and can correct every amount before saving;
+a corrected amount becomes `user`.

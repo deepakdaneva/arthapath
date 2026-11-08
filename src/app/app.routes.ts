@@ -58,10 +58,13 @@ export const routes: Routes = [
         title: 'Chat · ArthaPath',
       },
       {
-        path: 'today',
-        loadComponent: () => import('./pages/today/today.page').then((m) => m.TodayPage),
-        title: "Today's Updates · ArthaPath",
+        path: 'updates',
+        loadComponent: () => import('./pages/updates/updates.page').then((m) => m.UpdatesPage),
+        title: 'Updates · ArthaPath',
       },
+      // Old name of the Updates tab.
+      { path: 'today', redirectTo: 'updates', pathMatch: 'full' },
+
       {
         path: 'profile',
         loadComponent: () => import('./pages/profile/profile.page').then((m) => m.ProfilePage),
@@ -71,6 +74,16 @@ export const routes: Routes = [
         path: 'settings',
         loadComponent: () => import('./pages/settings/settings.page').then((m) => m.SettingsPage),
         title: 'Settings · ArthaPath',
+      },
+      {
+        path: 'onboarding',
+        loadComponent: () => import('./pages/onboarding/onboarding.page').then((m) => m.OnboardingPage),
+        title: 'Your financial goals · ArthaPath',
+      },
+      {
+        path: 'finances',
+        loadComponent: () => import('./pages/finances/finances.page').then((m) => m.FinancesPage),
+        title: 'Your finances · ArthaPath',
       },
       {
         path: 'ai-providers',

@@ -10,7 +10,7 @@
 | 5 | AI layer: adapters, keys, router, fallback, context, guardrails |
 | 6 | Financial engine, conversational onboarding, goals |
 | 7 | Dashboard, charts, drill-down |
-| 8 | Today's Updates |
+| 8 | Updates (log activity daily, weekly, or monthly) |
 | 9 | Imports, pending questions, analysis history |
 | 10 | Production readiness: full testing, legal review, release |
 

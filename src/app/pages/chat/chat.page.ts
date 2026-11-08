@@ -10,6 +10,8 @@ import { addIcons } from 'ionicons';
 import { chatbubblesOutline, send } from 'ionicons/icons';
 import { AiKeysService } from '../../ai/ai-keys.service';
 import { ChatService } from '../../ai/chat.service';
+import { CHAT_STARTERS, ONBOARDING_STARTERS } from '../../ai/starters';
+import { ProfileService } from '../../domain/profile.service';
 
 @Component({
   selector: 'app-chat',
@@ -22,11 +24,24 @@ import { ChatService } from '../../ai/chat.service';
         } @else if (chat.messages().length === 0) {
           <div class="empty">
             <ion-icon name="chatbubbles-outline" aria-hidden="true" />
-            <h1>Chat</h1>
-            <p class="ap-muted">
-              Ask about budgeting, saving, loans, investments, insurance, taxes, or your goals. Your
-              conversation is encrypted and works with whichever AI provider you configure.
-            </p>
+            @if (!profile.hasData()) {
+              <h1>First, tell ArthaPath about your finances</h1>
+              <p class="ap-muted">
+                Share your income, regular expenses, loans, savings, family, and goals in your own words.
+                Pick a starting point below; you can fill in the blanks.
+              </p>
+              <div class="starters" role="group" aria-label="Start with a template">
+                @for (s of onboardingStarters; track s.label) {
+                  <a class="chip" routerLink="/app/onboarding" [queryParams]="{ prefill: s.text }">{{ s.label }}</a>
+                }
+              </div>
+            } @else {
+              <h1>Chat</h1>
+              <p class="ap-muted">
+                Ask about your plan, budgeting, loans, investments, insurance, or taxes. ArthaPath already
+                knows the details you shared, and your conversation is encrypted.
+              </p>
+            }
             @if (keys.loaded() && keys.keys().length === 0) {
               <ion-button routerLink="/app/ai-providers">Add an AI provider</ion-button>
             }
@@ -45,10 +60,17 @@ import { ChatService } from '../../ai/chat.service';
         }
       </div>
     </ion-content>
+    @if (profile.hasData() && chat.messages().length === 0) {
+      <div class="starters bar" role="group" aria-label="Suggested questions">
+        @for (s of chatStarters; track s.label) {
+          <button type="button" class="chip" (click)="text.set(s.text)">{{ s.label }}</button>
+        }
+      </div>
+    }
     <form class="composer" (ngSubmit)="submit()">
       <ion-textarea
         aria-label="Message"
-        placeholder="Ask about your finances…"
+        [placeholder]="profile.hasData() ? 'Ask about your finances…' : 'Start with your income, expenses, loans, savings, and goals…'"
         [autoGrow]="true"
         [rows]="1"
         [maxlength]="4000"
@@ -128,6 +150,33 @@ import { ChatService } from '../../ai/chat.service';
       font-size: 0.72rem;
       color: var(--ap-text-muted);
     }
+    .starters {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+    .starters.bar {
+      flex-wrap: nowrap;
+      justify-content: flex-start;
+      overflow-x: auto;
+      margin: 0;
+      padding: 8px 12px 0;
+      background: var(--ap-surface);
+    }
+    .chip {
+      flex: none;
+      padding: 6px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(var(--ion-color-secondary-rgb), 0.4);
+      background: rgba(var(--ion-color-secondary-rgb), 0.08);
+      color: var(--ion-color-secondary);
+      font: inherit;
+      font-size: 0.85rem;
+      text-decoration: none;
+      cursor: pointer;
+    }
     .composer {
       display: flex;
       align-items: flex-end;
@@ -149,6 +198,9 @@ import { ChatService } from '../../ai/chat.service';
 export class ChatPage {
   readonly chat = inject(ChatService);
   readonly keys = inject(AiKeysService);
+  readonly profile = inject(ProfileService);
+  readonly onboardingStarters = ONBOARDING_STARTERS;
+  readonly chatStarters = CHAT_STARTERS;
   readonly text = signal('');
   private readonly content = viewChild.required<IonContent>('content');
 

@@ -98,7 +98,19 @@ export class AiKeysService {
     return c.credentials.provider === 'custom' ? c.label || 'Custom' : PROVIDERS[c.credentials.provider].name;
   }
 
-  async load(): Promise<void> {
+  private loading: Promise<void> | null = null;
+
+  /** Resolves once data for the unlocked account is loaded (starts loading if needed). */
+  whenLoaded(): Promise<void> {
+    return this.loaded() ? Promise.resolve() : this.load();
+  }
+
+  load(): Promise<void> {
+    this.loading ??= this.fetch().finally(() => (this.loading = null));
+    return this.loading;
+  }
+
+  private async fetch(): Promise<void> {
     try {
       const rows = await this.vault.list<AiKeyRecord>([COLLECTION]);
       this.records.set(rows.map((r) => ({ ...r.value, id: r.id })));

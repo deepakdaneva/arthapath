@@ -54,8 +54,8 @@ export class LandingPage {
     },
     {
       icon: 'receipt-outline',
-      title: "Today's Updates",
-      text: '"Spent ₹500 on groceries via UPI." Log activity in one line, review, and save. Import CSV and PDF statements too.',
+      title: 'Updates, on your schedule',
+      text: '"Spent ₹500 on groceries via UPI." Log activity daily, weekly, or monthly in one line, review, and save. Import CSV and PDF statements too.',
     },
     {
       icon: 'swap-horizontal-outline',

@@ -2,6 +2,7 @@ import { Injectable, effect, inject, signal } from '@angular/core';
 import { AiStatusService } from '../core/ai-status.service';
 import { VaultService } from '../core/crypto/vault.service';
 import { NoticeService } from '../core/notice.service';
+import { ProfileService } from '../domain/profile.service';
 import { adapterFor } from './adapters';
 import { AiKeysService } from './ai-keys.service';
 import { buildMessages, type ContextSnapshot, type StoredMessage } from './context';
@@ -45,6 +46,7 @@ export class ChatService {
   private readonly keys = inject(AiKeysService);
   private readonly status = inject(AiStatusService);
   private readonly notices = inject(NoticeService);
+  private readonly profile = inject(ProfileService);
 
   readonly messages = signal<ChatItem[]>([]);
   readonly loaded = signal(false);
@@ -62,9 +64,9 @@ export class ChatService {
     });
   }
 
-  /** Financial context for prompts. Phase 6 fills it from the encrypted profile. */
+  /** Financial context for prompts, built from the encrypted profile by the engine. */
   snapshot(): ContextSnapshot {
-    return { version: 0, data: { currency: 'INR', profile: 'not collected yet' } };
+    return this.profile.snapshot();
   }
 
   async load(): Promise<void> {
@@ -93,6 +95,8 @@ export class ChatService {
         await this.append({ role: 'assistant', content: OFF_TOPIC_REPLY, createdAt: Date.now(), provider: 'ArthaPath' });
         return;
       }
+      // Right after unlock, keys and profile may still be loading.
+      await Promise.all([this.keys.whenLoaded(), this.profile.whenLoaded()]);
       const built = buildMessages({
         snapshot: this.snapshot(),
         summary: this.conversation.summary,

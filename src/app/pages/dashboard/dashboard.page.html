@@ -1,0 +1,137 @@
+<ion-content>
+  <div class="ap-container page">
+    <app-verify-banner />
+    <p class="ap-muted greeting">Hello{{ firstName() ? ', ' + firstName() : '' }}</p>
+
+    @if (!svc.loaded()) {
+      <ion-spinner name="crescent" aria-label="Loading your plan" />
+    } @else if (!svc.hasData()) {
+      <!-- No financial profile yet: onboarding call to action instead of an empty dashboard. -->
+      <section class="empty" aria-labelledby="start-title">
+        <a class="orb" routerLink="/app/onboarding" aria-describedby="start-sub">
+          <span class="ring" aria-hidden="true"></span>
+          <span class="ring two" aria-hidden="true"></span>
+          <span id="start-title" class="orb-text">Let's start with your financial goals.</span>
+        </a>
+        <p id="start-sub" class="ap-muted sub">
+          Tell ArthaPath about your income, expenses, family, and goals in your own words. Your dashboard
+          builds itself from the conversation.
+        </p>
+        <a class="manual" routerLink="/app/finances">Prefer a form? Enter details manually</a>
+      </section>
+    } @else {
+      @if (svc.openQuestions().length) {
+        <a class="ap-card questions" routerLink="/app/onboarding">
+          <strong>{{ svc.openQuestions().length }} question{{ svc.openQuestions().length === 1 ? '' : 's' }} to improve your plan</strong>
+          <span class="ap-muted">{{ svc.openQuestions()[0]!.question }}</span>
+        </a>
+      }
+
+      <div class="grid">
+        <section class="ap-card health" aria-labelledby="h-health">
+          <h2 id="h-health">Financial health</h2>
+          @if (health().score !== null) {
+            <p class="score"><strong>{{ health().score }}</strong><span class="ap-muted">/100</span></p>
+          } @else {
+            <p class="ap-muted">Add income and expenses to calculate your score.</p>
+          }
+          <ul class="components">
+            @for (c of health().components; track c.key) {
+              <li [title]="c.explanation">
+                <span>{{ c.label }}</span>
+                @if (c.value !== null) {
+                  <span class="bar" role="meter" [attr.aria-valuenow]="(c.value * 100) | number: '1.0-0'" aria-valuemin="0" aria-valuemax="100" [attr.aria-label]="c.label">
+                    <span [style.width.%]="c.value * 100"></span>
+                  </span>
+                } @else {
+                  <span class="ap-muted small">Not enough data</span>
+                }
+              </li>
+            }
+          </ul>
+          <p class="ap-muted small">Weighted: savings rate 25, emergency fund 25, debt payments 25, goals 15, insurance 10. Missing parts are left out.</p>
+        </section>
+
+        <section class="ap-card" aria-labelledby="h-cash">
+          <h2 id="h-cash">This month</h2>
+          <dl>
+            <dt>Income</dt><dd>{{ fmt(m().monthlyIncome) }}</dd>
+            <dt>Expenses</dt><dd>{{ fmt(m().monthlyExpenses) }}</dd>
+            <dt>Loan payments</dt><dd>{{ fmt(m().monthlyDebtPayments) }}</dd>
+            <dt>Surplus</dt><dd [class.neg]="m().monthlySurplus < 0"><strong>{{ fmt(m().monthlySurplus) }}</strong></dd>
+            @if (m().savingsRate !== null) {
+              <dt>Savings rate</dt><dd>{{ m().savingsRate | percent: '1.0-1' }}</dd>
+            }
+          </dl>
+        </section>
+
+        <section class="ap-card" aria-labelledby="h-safety">
+          <h2 id="h-safety">Safety and wealth</h2>
+          <dl>
+            <dt>Emergency fund</dt>
+            <dd>{{ m().emergencyMonths !== null ? (m().emergencyMonths! | number: '1.0-1') + ' months' : '—' }}</dd>
+            <dt>Debt-to-income</dt>
+            <dd>{{ m().debtToIncome !== null ? (m().debtToIncome | percent: '1.0-1') : '—' }}</dd>
+            <dt>Net worth</dt>
+            <dd>{{ m().netWorth !== null ? fmt(m().netWorth!) : '—' }}</dd>
+            <dt>Financial independence</dt>
+            <dd>{{ m().fiProgress !== null ? (m().fiProgress | percent: '1.0-1') : '—' }}</dd>
+          </dl>
+          @if (m().fiTarget !== null) {
+            <p class="ap-muted small">Estimate: invested assets vs {{ fmt(m().fiTarget!) }} ({{ svc.profile().assumptions.fiMultiple }}× yearly spending). An assumption, not a promise.</p>
+          }
+        </section>
+      </div>
+
+      <section class="ap-card" aria-labelledby="h-goals">
+        <div class="head">
+          <h2 id="h-goals">Goals</h2>
+          <a routerLink="/app/finances">Manage</a>
+        </div>
+        @if (topGoals().length === 0) {
+          <p class="ap-muted">No goals yet.</p>
+        }
+        <ul class="goals">
+          @for (g of topGoals(); track g.goal.id) {
+            <li>
+              <div class="goal-top">
+                <strong>{{ g.rank }}. {{ g.goal.label }}</strong>
+                <span class="status {{ g.status }}">{{ statusLabel(g.status) }}</span>
+              </div>
+              <span class="bar" role="progressbar" [attr.aria-valuenow]="(g.progress * 100) | number: '1.0-0'" aria-valuemin="0" aria-valuemax="100" [attr.aria-label]="g.goal.label + ' progress'">
+                <span [style.width.%]="g.progress * 100"></span>
+              </span>
+              <span class="ap-muted small">
+                {{ fmt(g.goal.saved) }} of {{ fmt(g.goal.target) }}{{ g.goal.targetDate ? ' · by ' + g.goal.targetDate : '' }}
+                @if (g.requiredMonthly !== null && g.status !== 'achieved') {
+                  · {{ fmt(g.requiredMonthly) }}/month needed
+                }
+              </span>
+            </li>
+          }
+        </ul>
+      </section>
+
+      @if (svc.suggestions().length) {
+        <section class="ap-card" aria-labelledby="h-sugg">
+          <h2 id="h-sugg">Worth considering</h2>
+          <ul class="suggestions">
+            @for (s of svc.suggestions(); track s.category) {
+              <li>
+                <div>
+                  <strong>{{ s.label }}</strong>
+                  <span class="ap-muted small">{{ s.reason }}</span>
+                </div>
+                <ion-button size="small" fill="outline" (click)="addSuggestion(s)">Add goal</ion-button>
+              </li>
+            }
+          </ul>
+        </section>
+      }
+
+      <p class="ap-muted disclaimer">
+        Figures are calculated from what you entered. Recommendations are informational, not professional financial advice.
+      </p>
+    }
+  </div>
+</ion-content>

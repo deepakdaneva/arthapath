@@ -161,7 +161,7 @@ test.describe('AI providers and chat', () => {
     await setupPin(page);
     await page.getByRole('link', { name: 'Chat' }).click();
     await expect(page.getByRole('link', { name: 'Add an AI provider' })).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Add a transaction or update' })).toHaveCount(0);
+    await expect(page.getByRole('button', { name: 'Add an update' })).toHaveCount(0);
     await page.getByRole('textbox', { name: 'Message' }).fill('Help me plan my savings');
     await page.getByRole('button', { name: 'Send', exact: true }).click();
     await expect(page.getByText('No AI provider is set up yet.')).toBeVisible();

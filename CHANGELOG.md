@@ -36,6 +36,17 @@ Versioning: [Semantic Versioning](https://semver.org/).
   newer version is deployed.
 - Top bar: current AI indicator next to the logo (blinks 5 times on a
   provider switch), notifications bell (placeholder).
+- Financial engine (Phase 6): deterministic metrics (cash flow, savings
+  rate, debt-to-income, emergency fund, net worth, financial independence),
+  goal planning with required monthly savings, transparent health score,
+  prioritization with reasons, and optional goal suggestions.
+- Conversational onboarding: starter templates, AI extraction validated
+  field by field, review and correct before saving, pending questions with
+  a Chat badge. Manual "Your finances" editor for every section,
+  insurance, assumptions, and goal order.
+- Dashboard summary from saved data (charts follow in Phase 7).
+- Chat context now uses the encrypted profile and calculated figures.
+- Step-by-step key creation guides for every AI provider.
 - AI providers (Phase 5): bring-your-own keys for Gemini, Groq, OpenRouter,
   and allowlisted OpenAI-compatible services (Mistral, Cerebras, Together AI,
   DeepInfra, Fireworks AI, local Ollama/LM Studio). Keys are encrypted,
@@ -48,6 +59,8 @@ Versioning: [Semantic Versioning](https://semver.org/).
   with a System/Light/Dark theme switcher and Log out.
 
 ### Changed
+- "Today's Updates" renamed to "Updates": activity can be logged at any
+  cadence (daily, weekly, monthly); `/app/today` redirects.
 - Android toolchain: Gradle 9.9.0, Android Gradle Plugin 9.5.1, JDK 25
   Gradle daemon; app module on the new AGP DSL; CI builds a debug APK.
 - Locking and signing out reset the navigation stack, so no app page (and
@@ -56,6 +69,9 @@ Versioning: [Semantic Versioning](https://semver.org/).
   bundle reduced from 909 kB to 674 kB.
 
 ### Fixed
+- Sending a message right after unlocking could wrongly report that no AI
+  provider was configured (keys still loading).
+- The quick-add button covered Send on the onboarding page.
 - The quick-add button covered the Chat send button.
 - Unlocking right after a reload could fail with a misleading connection
   error if the PIN was submitted before the encryption settings loaded.

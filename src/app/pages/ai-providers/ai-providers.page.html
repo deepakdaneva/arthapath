@@ -80,10 +80,23 @@
             @if (baseUrlError()) {
               <p class="ap-error">{{ baseUrlError() }}</p>
             }
-          } @else if (providerInfo().keyUrl) {
-            <a class="get-key" [href]="providerInfo().keyUrl" target="_blank" rel="noopener noreferrer">
-              Get a {{ providerInfo().name }} API key <ion-icon name="open-outline" aria-hidden="true" />
-            </a>
+          }
+
+          @if (guide(); as g) {
+            <details class="guide" [open]="!isEdit()">
+              <summary>How to get a {{ g.name }} key</summary>
+              <ol>
+                @for (step of g.steps; track $index) {
+                  <li>{{ step }}</li>
+                }
+              </ol>
+              @if (g.note) {
+                <p class="ap-muted small">{{ g.note }}</p>
+              }
+              <a class="get-key" [href]="g.url" target="_blank" rel="noopener noreferrer">
+                Open {{ g.name }} <ion-icon name="open-outline" aria-hidden="true" />
+              </a>
+            </details>
           }
 
           <ion-input type="password" label="API key" labelPlacement="floating" fill="outline" autocomplete="off"

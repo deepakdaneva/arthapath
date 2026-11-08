@@ -7,7 +7,7 @@ and tested, not just UI).
 |---|---|---|
 | Public landing page | 3 | Done |
 | Google and email/password sign-in | 3 | Done (web); Android Google sign-in pending native plugin |
-| Profile menu, bottom navigation (Chat, Today's Updates), FAB | 3 | Done (Chat, Today's Updates, AI Providers screens arrive in later phases) |
+| Profile menu, bottom navigation (Chat, Updates), FAB | 3 | Done (Updates arrive in later phases) |
 | Light and dark themes (navy + teal) | 3 | Done (also a one-tap switcher in the account menu) |
 | Delete account (data, profile, sign-in) | 4 | Done |
 | Build version shown in app; reload prompt on new deploy | 4 | Done |
@@ -20,11 +20,11 @@ and tested, not just UI).
 | Multiple keys, priority, automatic fallback with notices | 5 | Done |
 | Provider-independent conversation context | 5 | Done (financial snapshot filled in Phase 6) |
 | Finance-only guardrails | 5 | Done |
-| Conversational onboarding | 6 | Planned |
-| Financial engine and goal prioritization | 6 | Planned |
+| Conversational onboarding (extract, review and correct, save) with starter templates | 6 | Done |
+| Financial engine and goal prioritization | 6 | Done |
 | Dynamic interactive dashboard with drill-down | 7 | Planned |
-| Today's Updates: natural-language transaction entry | 8 | Planned |
+| Updates: natural-language transaction entry, at any cadence (daily, weekly, monthly) | 8 | Planned |
 | CSV and PDF statement import, duplicate detection | 9 | Planned |
-| Pending questions with Chat badge | 9 | Planned |
+| Pending questions with Chat badge | 6–9 | Done (basic: from onboarding, dismissable); more in Phase 9 |
 | Android build | 3–10 | In progress (Capacitor project added) |
 | iOS build | Later | Deferred |
