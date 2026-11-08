@@ -11,6 +11,7 @@ import { IonSpinner } from '@ionic/angular/ion-spinner';
 import { addIcons } from 'ionicons';
 import { logoGoogle } from 'ionicons/icons';
 import { AuthService, authErrorMessage } from '../../core/auth.service';
+import { googleWebClientId } from '../../../environments/app-config';
 
 type Mode = 'signin' | 'signup' | 'reset';
 
@@ -30,8 +31,8 @@ export class AuthPage {
   readonly info = signal('');
   /** Sign-up requires agreeing to the Terms and Privacy Policy. */
   readonly agreed = signal(false);
-  /** Google sign-in needs a browser popup; the Android WebView blocks it (native sign-in is planned). */
-  readonly googleAvailable = !Capacitor.isNativePlatform();
+  /** Browsers use a popup; Android uses the native account picker when the build has a Google client ID. */
+  readonly googleAvailable = !Capacitor.isNativePlatform() || !!googleWebClientId;
 
   readonly form = inject(FormBuilder).nonNullable.group({
     name: ['', [Validators.maxLength(100)]],

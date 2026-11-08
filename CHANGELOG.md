@@ -95,7 +95,7 @@ Versioning: [Semantic Versioning](https://semver.org/).
   with a System/Light/Dark theme switcher and Log out.
 
 ### Changed
-- Google sign-in is hidden in the Android app (blocked inside a WebView).
+- Google sign-in on Android uses the native account picker (Credential Manager).
 - Each AI provider shows how it says it handles data, with a link to its
   terms, plus a notice that handling depends on the provider and the key's
   plan. Groq is offered first. Privacy policy and terms updated to match.
@@ -111,7 +111,7 @@ Versioning: [Semantic Versioning](https://semver.org/).
 ### Security
 - PINs that are quick to guess offline are refused at setup and on change.
 - Signing out and deleting the account clear the local Firestore cache.
-- App Check with reCAPTCHA v3 (enabled once a site key is configured).
+- App Check with reCAPTCHA Enterprise (enabled once a site key is configured).
 - AI replies show images as links instead of loading them.
 - Local AI server URLs limited to the origins the security policy allows.
 - Production deploy: credentials obtained only after installs and build;

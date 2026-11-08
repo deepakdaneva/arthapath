@@ -138,7 +138,7 @@ You can view, correct, export (planned), and delete your data in the app.
 ## Bot protection (reCAPTCHA)
 
 To stop automated abuse of the shared free service quota, the app uses
-Firebase App Check with Google reCAPTCHA v3, which runs invisibly in your
+Firebase App Check with Google reCAPTCHA, which runs invisibly in your
 browser. reCAPTCHA collects hardware and software information (such as
 device and application data) and sends it to Google for analysis. Its use
 is subject to the [Google Privacy Policy](https://policies.google.com/privacy)

@@ -44,21 +44,22 @@ Firestore rules: redeploy the previous commit's `firestore.rules`.
 | Authorized domains | `arthapath-prod.web.app`, `arthapath-prod.firebaseapp.com` (no localhost) |
 | Password policy | Enforced: at least 8 characters with a lowercase letter and a number |
 | Email enumeration protection | On |
-| App Check | reCAPTCHA v3 (site key in the `RECAPTCHA_SITE_KEY` environment variable); enforce for Firestore after metrics show verified traffic |
+| App Check | reCAPTCHA Enterprise (site key in the `RECAPTCHA_SITE_KEY` environment variable); enforce for Firestore after metrics show verified traffic |
 | GitHub environment | `production`: branch `main` only, maintainer approval required |
 
-## Enabling App Check (reCAPTCHA v3)
+## Enabling App Check (reCAPTCHA Enterprise)
 
-1. In the reCAPTCHA admin console, create a **v3** key with the domains
-   `arthapath-uat.web.app`, `arthapath-uat.firebaseapp.com`,
-   `arthapath-prod.web.app`, and `arthapath-prod.firebaseapp.com` (or one
-   key per environment).
-2. In the Firebase console for each project: App Check → Apps → the web app
-   → register **reCAPTCHA** with that key's **secret** key.
-3. Add the public **site** key as the `RECAPTCHA_SITE_KEY` variable in the
-   GitHub `uat` and `production` environments; the next deploy starts App
-   Check in the app.
-4. Watch App Check → APIs → Cloud Firestore metrics. When nearly all
+1. In Google Cloud console → Security → reCAPTCHA, create a **website**
+   key per project with the domains `<project>.web.app`,
+   `<project>.firebaseapp.com`, and `localhost` (the Android app runs at
+   `https://localhost`).
+2. In the Firebase console: App Check → Apps → the web app → register
+   **reCAPTCHA Enterprise** with that site key.
+3. In Google Cloud console → APIs & Services → Credentials → the browser
+   key, add **Firebase App Check API** to its allowed APIs.
+4. Add the site key as the `RECAPTCHA_SITE_KEY` variable in the GitHub
+   `uat` and `production` environments; the next deploy starts App Check.
+5. Watch App Check → APIs → Cloud Firestore metrics. When nearly all
    requests are verified, choose **Enforce** for Firestore (and Auth).
    Unverified requests are then rejected.
 

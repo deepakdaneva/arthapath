@@ -10,13 +10,16 @@ import {
   sendEmailVerification,
   sendPasswordResetEmail,
   signInWithEmailAndPassword,
+  signInWithCredential,
   signInWithPopup,
   signOut,
   updateProfile,
   type User,
 } from 'firebase/auth';
 import { FirebaseError } from 'firebase/app';
+import { Capacitor } from '@capacitor/core';
 import { auth } from './firebase';
+import { googleWebClientId } from '../../environments/app-config';
 import { isSafePhotoUrl } from './profile-fields';
 
 export { authErrorMessage } from './auth-errors';
@@ -65,9 +68,11 @@ export class AuthService {
   }
 
   async signInWithGoogle(): Promise<void> {
-    // Popup works in browsers. Native Android sign-in needs a platform plugin
-    // (planned); the WebView blocks third-party auth popups.
-    // Default scopes only: name, email, profile picture. No sensitive scopes.
+    if (Capacitor.isNativePlatform()) {
+      await signInWithCredential(auth, await nativeGoogleCredential());
+      return;
+    }
+    // Browsers: Firebase popup. Default scopes only: name, email, profile picture.
     const provider = new GoogleAuthProvider();
     provider.addScope('profile');
     provider.addScope('email');
@@ -135,7 +140,8 @@ export class AuthService {
     const u = auth.currentUser;
     if (!u) throw new Error('Not signed in');
     if (u.providerData.some((p) => p.providerId === GoogleAuthProvider.PROVIDER_ID)) {
-      await reauthenticateWithPopup(u, new GoogleAuthProvider());
+      if (Capacitor.isNativePlatform()) await reauthenticateWithCredential(u, await nativeGoogleCredential());
+      else await reauthenticateWithPopup(u, new GoogleAuthProvider());
     } else {
       if (!password || !u.email) throw new FirebaseError('auth/missing-password', 'Password required');
       await reauthenticateWithCredential(u, EmailAuthProvider.credential(u.email, password));
@@ -171,4 +177,21 @@ export class AuthService {
     }
     location.assign('/');
   }
+}
+
+/** Google sign-in on Android: system account picker (Credential Manager), then a Firebase credential. No redirects or Dynamic Links. */
+let socialLoginReady: Promise<void> | null = null;
+async function nativeGoogleCredential() {
+  const { SocialLogin } = await import('@capgo/capacitor-social-login');
+  socialLoginReady ??= SocialLogin.initialize({ google: { webClientId: googleWebClientId } });
+  await socialLoginReady;
+  // No custom scopes: the ID token already carries name, email, and picture.
+  const { result } = await SocialLogin.login({ provider: 'google', options: {} }).catch((e: unknown) => {
+    // Closing the account picker is a cancel, not an error.
+    if (/cancel/i.test(String((e as Error)?.message ?? e))) throw new FirebaseError('auth/popup-closed-by-user', 'Google sign-in was cancelled');
+    throw e;
+  });
+  const idToken = 'idToken' in result ? result.idToken : null;
+  if (!idToken) throw new FirebaseError('auth/popup-closed-by-user', 'Google sign-in was cancelled');
+  return GoogleAuthProvider.credential(idToken);
 }
