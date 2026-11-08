@@ -16,7 +16,13 @@
     }
 
     @for (t of turns(); track $index) {
-      <div class="msg {{ t.role }}"><div class="bubble">{{ t.content }}</div></div>
+      <div class="msg {{ t.role }}">
+        @if (t.role === 'assistant') {
+          <div class="bubble ap-markdown" [innerHTML]="t.content | markdown"></div>
+        } @else {
+          <div class="bubble">{{ t.content }}</div>
+        }
+      </div>
     }
 
     @if (busy()) {

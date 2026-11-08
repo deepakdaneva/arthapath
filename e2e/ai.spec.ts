@@ -170,6 +170,25 @@ test.describe('AI providers and chat', () => {
     await expect(page.locator('ol.keys').getByText('Google Gemini · gemini-9.1-flash-lite')).toBeVisible();
   });
 
+  test('assistant replies render markdown safely', async ({ page }) => {
+    const reply = '**Top tips**\n\n- Track spending\n- Cut subscriptions\n\n| Tip | Saves |\n|---|---|\n| Groceries | ₹2,000 |\n\n<img src=x onerror="window.__xss=1">';
+    await mockProvider(page, 'https://api.groq.com/**', { chat: groqOk(reply) });
+    await ready(page, 'markdown');
+    await addKey(page, 'Groq', FAKE_GROQ_KEY, 'llama-test');
+    await page.getByRole('link', { name: 'Chat' }).click();
+    await page.getByRole('textbox', { name: 'Message' }).fill('How can I cut my expenses?');
+    await page.getByRole('button', { name: 'Send', exact: true }).click();
+    const bubble = page.locator('.msg.assistant .ap-markdown').last();
+    await expect(bubble.locator('strong')).toHaveText('Top tips');
+    await expect(bubble.locator('li')).toHaveCount(2);
+    await expect(bubble.getByRole('cell', { name: '₹2,000' })).toBeVisible();
+    await expect(bubble).not.toContainText('**');
+    await expect(bubble.locator('img')).toHaveCount(0);
+    expect(await page.evaluate(() => (window as unknown as { __xss?: number }).__xss)).toBeUndefined();
+    // The user's own message stays plain text.
+    await expect(page.locator('.msg.user .bubble').last()).toHaveText('How can I cut my expenses?');
+  });
+
   test('a retired model is reported as needing a new model, not as a limit', async ({ page }) => {
     const retired: Handler = () => ({
       status: 404,

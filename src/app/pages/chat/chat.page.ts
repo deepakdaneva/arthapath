@@ -2,6 +2,7 @@ import { Component, effect, inject, signal, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { IonButton } from '@ionic/angular/ion-button';
+import { MarkdownPipe } from '../../ai/markdown.pipe';
 import { IonContent } from '@ionic/angular/ion-content';
 import { IonIcon } from '@ionic/angular/ion-icon';
 import { IonSpinner } from '@ionic/angular/ion-spinner';
@@ -15,7 +16,7 @@ import { ProfileService } from '../../domain/profile.service';
 
 @Component({
   selector: 'app-chat',
-  imports: [IonContent, IonButton, IonIcon, IonSpinner, IonTextarea, FormsModule, RouterLink],
+  imports: [IonContent, IonButton, IonIcon, IonSpinner, IonTextarea, FormsModule, RouterLink, MarkdownPipe],
   template: `
     <ion-content #content>
       <div class="ap-container thread" aria-live="polite">
@@ -49,7 +50,11 @@ import { ProfileService } from '../../domain/profile.service';
         }
         @for (m of chat.messages(); track m.id) {
           <div class="msg {{ m.role }}" [class.local]="m.local">
-            <div class="bubble">{{ m.content }}</div>
+            @if (m.role === 'assistant' && !m.local) {
+              <div class="bubble ap-markdown" [innerHTML]="m.content | markdown"></div>
+            } @else {
+              <div class="bubble">{{ m.content }}</div>
+            }
             @if (m.role === 'assistant' && m.provider) {
               <span class="meta">{{ m.provider }}{{ m.model ? ' · ' + m.model : '' }}</span>
             }
@@ -131,6 +136,9 @@ import { ProfileService } from '../../domain/profile.service';
       overflow-wrap: anywhere;
       background: var(--ap-surface);
       border: 1px solid var(--ap-border);
+    }
+    .bubble.ap-markdown {
+      white-space: normal;
     }
     .user .bubble {
       background: var(--ion-color-primary);

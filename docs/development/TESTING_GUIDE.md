@@ -59,6 +59,7 @@ browser-agnostic; CI runs them on Playwright's Chromium.
 | Finances | Manual entry computes surplus and goal order; user reordering; dashboard figures; profile and goals stored encrypted |
 | Onboarding | Chat starters open onboarding prefilled; extraction review with estimates; corrected amount saved; pending question badge; plan shown |
 | Context | Chat request carries calculated profile figures |
+| Markdown | Assistant replies render bold, lists, and tables; raw HTML from the model is not executed; user messages stay plain text |
 | Unlock race | A message sent right after unlocking waits for keys and profile |
 | Navigation | Updates tab (renamed from Today's Updates) and redirect; key-creation guides per provider |
 
