@@ -16,6 +16,8 @@ import { AppPrefsService } from '../../core/app-prefs.service';
 import { weakPinReason } from '../../core/crypto/crypto';
 import { LOCK_OPTIONS, SessionLockService } from '../../core/crypto/session-lock.service';
 import { VaultService } from '../../core/crypto/vault.service';
+import { BiometricService } from '../../core/crypto/biometric.service';
+import { AuthService } from '../../core/auth.service';
 import { ThemeService, type ThemeMode } from '../../core/theme.service';
 
 @Component({
@@ -88,6 +90,27 @@ import { ThemeService, type ThemeMode } from '../../core/theme.service';
           </p>
           <ion-button fill="outline" (click)="lock.lockNow()">Lock now</ion-button>
 
+          @if (bio.native && bio.available()) {
+            <h3>Fingerprint unlock</h3>
+            <ion-list lines="none">
+              <ion-item>
+                <ion-toggle [checked]="bio.enabled() || bioSetup()" (ionChange)="toggleBio($event.detail.checked)">
+                  Unlock with fingerprint or face
+                </ion-toggle>
+              </ion-item>
+            </ion-list>
+            @if (bioSetup()) {
+              <form (ngSubmit)="enableBio()" novalidate class="pin-form">
+                <ion-input type="password" label="Your PIN" labelPlacement="floating" fill="outline"
+                  autocomplete="current-password" name="bioPin" [ngModel]="bioPin()" (ngModelChange)="bioPin.set($event ?? '')" />
+                <ion-button type="submit" [disabled]="busy() || !bioPin()">Turn on</ion-button>
+              </form>
+            }
+            <p class="ap-muted small" [class.ap-error]="bioError()" role="status">
+              {{ bioMessage() || bioInfo }}
+            </p>
+          }
+
           <h3>Change PIN</h3>
           <form (ngSubmit)="changePin()" novalidate class="pin-form">
             <ion-input type="password" label="Current PIN" labelPlacement="floating" fill="outline"
@@ -142,6 +165,13 @@ export class SettingsPage {
   readonly lock = inject(SessionLockService);
   readonly app = inject(AppPrefsService);
   private readonly vault = inject(VaultService);
+  private readonly auth = inject(AuthService);
+  readonly bio = inject(BiometricService);
+  readonly bioSetup = signal(false);
+  readonly bioPin = signal('');
+  readonly bioMessage = signal('');
+  readonly bioError = signal(false);
+  readonly bioInfo = "Your PIN is kept in the phone's secure hardware and released only after your fingerprint or face is recognised.";
 
   readonly lockOptions = LOCK_OPTIONS;
   readonly current = signal('');
@@ -150,6 +180,39 @@ export class SettingsPage {
   readonly busy = signal(false);
   readonly pinMessage = signal('');
   readonly pinError = signal(false);
+
+  constructor() {
+    void this.bio.refresh(this.auth.user()?.uid ?? '');
+  }
+
+  async toggleBio(on: boolean): Promise<void> {
+    this.bioMessage.set('');
+    if (on) {
+      if (!this.bio.enabled()) this.bioSetup.set(true);
+      return;
+    }
+    this.bioSetup.set(false);
+    await this.bio.disable();
+    this.bio.setDeclined(true);
+    this.bioMessage.set('Fingerprint unlock is off.');
+  }
+
+  async enableBio(): Promise<void> {
+    this.busy.set(true);
+    this.bioError.set(false);
+    try {
+      await this.vault.verifyPin(this.bioPin());
+      await this.bio.enable(this.auth.user()?.uid ?? '', this.bioPin());
+      this.bioSetup.set(false);
+      this.bioMessage.set('Fingerprint unlock is on.');
+    } catch (e) {
+      this.bioError.set(true);
+      this.bioMessage.set(e instanceof Error && e.name === 'WrongPinError' ? 'That PIN is incorrect.' : 'Could not turn on fingerprint unlock.');
+    } finally {
+      this.bioPin.set('');
+      this.busy.set(false);
+    }
+  }
 
   setMode(v: unknown): void {
     if (v === 'system' || v === 'light' || v === 'dark') this.theme.mode.set(v as ThemeMode);
@@ -172,6 +235,8 @@ export class SettingsPage {
     this.busy.set(true);
     try {
       await this.vault.changePin(this.current(), this.next());
+      // Keep fingerprint unlock working with the new PIN.
+      if (this.bio.enabled()) await this.bio.enable(this.auth.user()?.uid ?? '', this.next()).catch(() => this.bio.disable());
       this.current.set('');
       this.next.set('');
       this.confirm.set('');

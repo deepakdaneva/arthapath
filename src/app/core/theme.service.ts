@@ -1,4 +1,5 @@
 import { Injectable, effect, signal } from '@angular/core';
+import { Capacitor, SystemBars, SystemBarsStyle } from '@capacitor/core';
 
 export type ThemeMode = 'system' | 'light' | 'dark';
 const KEY = 'arthapath.theme';
@@ -42,5 +43,7 @@ export class ThemeService {
     const dark = m === 'dark' || (m === 'system' && this.media.matches);
     document.documentElement.classList.toggle('ion-palette-dark', dark);
     this.dark.set(dark);
+    // Android: status bar icons follow the app theme, not the phone's.
+    if (Capacitor.isNativePlatform()) void SystemBars.setStyle({ style: dark ? SystemBarsStyle.Dark : SystemBarsStyle.Light }).catch(() => undefined);
   }
 }

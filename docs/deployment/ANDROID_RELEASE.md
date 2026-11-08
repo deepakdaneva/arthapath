@@ -50,6 +50,23 @@ Download the APK from the GitHub release (or the UAT run artifact), allow
 installs from that source when Android asks, and open it. Compare the
 SHA-256 with the `.sha256` file if you want to confirm the download.
 
+## The Android experience
+
+- **Launch:** navy launch screen where the ArthaPath trend line draws itself
+  (Android 12+; older versions show the finished mark). Adaptive and themed
+  (Android 13 Material You) icons.
+- **First launch:** story-style welcome slides (tap to move, hold to pause,
+  Skip), ending in Create account or Sign in. Later launches open sign-in
+  directly. The website keeps its landing page.
+- **Edge to edge:** content sits below the status bar and above the gesture
+  bar; status bar icons follow the app theme.
+- **Fingerprint or face unlock:** offered after a PIN unlock and in
+  Settings. The PIN is stored in the Android Keystore under a key that needs
+  biometric authentication and is invalidated when a new fingerprint or face
+  is enrolled; unlocking releases it only after a successful prompt. It is
+  removed on sign-out, account deletion, PIN reset, or when it stops working
+  (PIN changed on another device), and updated when the PIN is changed here.
+
 ## Sign-in on Android
 
 - **Google sign-in** uses the system account picker (Android Credential
