@@ -48,6 +48,12 @@ const firebaseConfig = real
 const recaptchaSiteKey = real ? (env.RECAPTCHA_SITE_KEY || '') : '';
 if (!/^[A-Za-z0-9_-]*$/.test(recaptchaSiteKey)) throw new Error('Invalid RECAPTCHA_SITE_KEY');
 
+// --- Google sign-in on Android ------------------------------------------------
+// The project's OAuth web client ID (GOOGLE_WEB_CLIENT_ID, public). The Android
+// app gets a Google ID token natively and signs in to Firebase with it.
+const googleWebClientId = real ? (env.GOOGLE_WEB_CLIENT_ID || '') : '';
+if (!/^[\w.-]*$/.test(googleWebClientId)) throw new Error('Invalid GOOGLE_WEB_CLIENT_ID');
+
 // --- Repository ref --------------------------------------------------------
 // APP_REPO_REF overrides; on GitHub Actions pushes GITHUB_REF_NAME is the branch.
 const ref = env.APP_REPO_REF || (env.GITHUB_REF_NAME === 'main' ? 'main' : 'development');
@@ -77,6 +83,7 @@ writeFileSync(
 export const firebaseConfig = ${JSON.stringify(firebaseConfig, null, 2)} as const;
 export const useEmulators = ${!real};
 export const recaptchaSiteKey = ${JSON.stringify(recaptchaSiteKey)};
+export const googleWebClientId = ${JSON.stringify(googleWebClientId)};
 export const repoUrl = ${JSON.stringify(REPO)};
 export const repoRef = ${JSON.stringify(ref)};
 export const appVersion = ${JSON.stringify(appVersion)};

@@ -50,16 +50,25 @@ Download the APK from the GitHub release (or the UAT run artifact), allow
 installs from that source when Android asks, and open it. Compare the
 SHA-256 with the `.sha256` file if you want to confirm the download.
 
-## Limits
+## Sign-in on Android
 
-- **Google sign-in** is hidden in the app: Google blocks sign-in inside a
-  WebView. Use email and password; native Google sign-in is planned (it will
-  use a native plugin and `signInWithCredential`, not redirects).
-- **No Firebase Dynamic Links dependency:** the app does not use email-link
-  sign-in or redirect-based OAuth. Verification and password-reset emails open
-  Firebase's hosted page in the browser.
-- **App Check:** the app runs at `https://localhost` inside the WebView. Add
-  `localhost` to each reCAPTCHA key's domains before enforcing App Check, or
-  Android requests will be rejected.
-- Automatic in-app update prompts do not apply to the APK; new versions are
-  installed from GitHub releases.
+- **Google sign-in** uses the system account picker (Android Credential
+  Manager, `@capgo/capacitor-social-login`). The app gets a Google ID token and
+  signs in to Firebase with `signInWithCredential`: no browser redirect and no
+  Firebase Dynamic Links.
+  - Each Firebase project has an Android app registered with the signing
+    key's SHA-1 and SHA-256 (`io.github.deepakdaneva.arthapath` in
+    production, `.uat` in UAT). A new signing key must be added there too.
+  - The build reads the project's OAuth web client ID from the
+    `GOOGLE_WEB_CLIENT_ID` environment variable; without it the Google
+    button is hidden on Android.
+- **Email and password**, verification, and password reset work as on the
+  web; emails open Firebase's hosted page in the browser.
+- **App Check:** each reCAPTCHA key lists `localhost`, because the app runs at
+  `https://localhost` inside the WebView.
+- New versions are installed from GitHub releases (no in-app update prompt).
+
+Signing key fingerprints (public):
+
+- SHA-1 `53:8E:C4:E6:C9:36:9C:98:EE:2D:74:EE:09:68:30:DA:28:22:1E:63`
+- SHA-256 `CA:93:BF:4F:CD:88:50:D9:BF:3B:63:DC:77:D7:90:1D:08:C1:D4:A2:05:88:BF:70:DF:EB:FD:95:6B:4B:C6:46`

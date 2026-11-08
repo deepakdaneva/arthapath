@@ -256,7 +256,7 @@ local PDF parsing with consented AI assist.
   CSP origins; redaction input capped.
 - Production: localhost removed from authorized domains; password policy
   enforced (prod and UAT); production deployments need maintainer approval.
-- App Check (reCAPTCHA v3) wired and off until a site key is configured.
+- App Check (reCAPTCHA) wired and off until a site key is configured.
 - Privacy policy and terms published (no longer drafts); contact through
   GitHub; reCAPTCHA disclosure. Version 1.0.
 - Dependency audit: no known vulnerabilities in runtime dependencies;
