@@ -1,4 +1,4 @@
-import { DecimalPipe, PercentPipe } from '@angular/common';
+import { DatePipe, DecimalPipe, PercentPipe } from '@angular/common';
 import { Component, computed, inject, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { IonButton } from '@ionic/angular/ion-button';
@@ -15,6 +15,7 @@ import { STATUS_LABEL, type GoalSuggestion, type Severity, type SliceKey } from 
 import { LIQUID_ASSETS, formatInr, type Paise } from '../../domain/models';
 import { ProfileService } from '../../domain/profile.service';
 import { TransactionsService } from '../../domain/transactions.service';
+import { AnalysisService } from '../../domain/analysis.service';
 import { plannedByCategory } from '../../domain/transactions';
 import { VerifyBannerComponent } from '../../shell/verify-banner.component';
 
@@ -24,7 +25,7 @@ const SLICE_SLOT: Record<SliceKey, number> = { necessary: 0, lifestyle: 1, discr
 
 @Component({
   selector: 'app-dashboard',
-  imports: [IonContent, IonButton, IonIcon, IonSpinner, RouterLink, VerifyBannerComponent, PercentPipe, DecimalPipe, ChartComponent],
+  imports: [IonContent, IonButton, IonIcon, IonSpinner, RouterLink, VerifyBannerComponent, PercentPipe, DecimalPipe, DatePipe, ChartComponent],
   templateUrl: './dashboard.page.html',
   styleUrl: './dashboard.page.scss',
 })
@@ -34,6 +35,7 @@ export class DashboardPage {
   private readonly router = inject(Router);
   readonly svc = inject(ProfileService);
   readonly tx = inject(TransactionsService);
+  readonly analysis = inject(AnalysisService);
   readonly fmt = formatInr;
   readonly statusLabel = STATUS_LABEL;
   readonly firstName = computed(() => this.auth.user()?.displayName?.split(' ')[0] ?? '');

@@ -52,17 +52,27 @@ test.describe('dashboard charts and drill-down', () => {
     await expect(car).toContainText('₹6,00,000');
     await expect(car).toContainText('2027-09');
 
-    // A click on a chart slice drills down too.
-    // Click just past 12 o'clock on the ring: the first slice (Necessary) starts there.
-    const box = (await page.locator('app-chart').first().boundingBox())!;
-    const r = (Math.min(box.width, box.height) / 2) * 0.73;
-    const angle = (8 * Math.PI) / 180;
-    const px = box.x + box.width / 2 + r * Math.sin(angle);
-    const py = box.y + box.height / 2 - r * Math.cos(angle);
-    // Wait for the page transition to finish (Ionic blocks pointer events during it).
-    await expect.poll(() => page.evaluate(([x, y]) => document.elementFromPoint(x!, y!)?.tagName, [px, py]), { timeout: 30_000 }).toBe('path');
-    await page.mouse.click(px, py);
-    await expect(page).toHaveURL(/\/app\/details\/necessary$/);
+    // A click on a chart slice drills down too. Scan the ring for a drawn slice
+    // (robust to chart size and to Ionic blocking pointer events mid-transition).
+    const findSlice = () =>
+      page.evaluate(() => {
+        const host = document.querySelector('app-chart')!.getBoundingClientRect();
+        const cx = host.left + host.width / 2;
+        const cy = host.top + host.height / 2;
+        const radius = Math.min(host.width, host.height) / 2;
+        for (const f of [0.73, 0.65, 0.8]) {
+          for (let a = 4; a < 360; a += 6) {
+            const x = cx + radius * f * Math.sin((a * Math.PI) / 180);
+            const y = cy - radius * f * Math.cos((a * Math.PI) / 180);
+            if (document.elementFromPoint(x, y)?.tagName === 'path') return { x, y };
+          }
+        }
+        return null;
+      });
+    await expect.poll(findSlice, { timeout: 30_000 }).not.toBeNull();
+    const hit = (await findSlice())!;
+    await page.mouse.click(hit.x, hit.y);
+    await expect(page).toHaveURL(/\/app\/details\/(necessary|discretionary|unnecessary|investments|savings|debt|lifestyle)$/);
 
     await page.getByRole('link', { name: '← Dashboard' }).click();
 

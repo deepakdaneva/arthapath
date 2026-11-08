@@ -100,11 +100,13 @@ export class TransactionsService {
    * Saves reviewed entries, updates the month totals, and adds linked
    * savings and investments to their goal. Returns the deterministic impact.
    */
-  async add(drafts: TxDraft[]): Promise<{ saved: Transaction[]; impact: Impact[] }> {
+  async add(drafts: TxDraft[], onProgress?: (done: number) => void): Promise<{ saved: Transaction[]; impact: Impact[] }> {
     await Promise.all([this.whenLoaded(), this.profile.whenLoaded()]);
     const now = Date.now();
     const saved: Transaction[] = [];
     const impact: Impact[] = [];
+    // Month totals are updated in memory and written once per month at the end (fewer writes for imports).
+    const touched = new Map<string, MonthTotals>();
     for (const d of drafts) {
       const tx: Transaction = {
         ...d,
@@ -114,10 +116,18 @@ export class TransactionsService {
         createdAt: now,
       };
       await this.vault.put([...TX, tx.id], tx, { month: monthOf(tx.date), occurredAt: new Date(`${tx.date}T12:00:00`) });
-      const month = await this.bump(tx, 1, now);
+      const m = monthOf(tx.date);
+      const month = applyToTotals(touched.get(m) ?? this.totals().find((t) => t.month === m) ?? emptyTotals(m), tx, 1, now);
+      touched.set(m, month);
       const goal = await this.moveGoal(tx, 1);
       saved.push(tx);
-      impact.push(...impactOf(tx, month, this.totals(), this.profile.profile(), goal, new Date()));
+      // Detailed impact only for a few typed entries; an import gets a summary instead.
+      if (drafts.length <= 5) impact.push(...impactOf(tx, month, this.totals(), this.profile.profile(), goal, new Date()));
+      onProgress?.(saved.length);
+    }
+    for (const [m, totals] of touched) {
+      await this.vault.put([...AGG, m], totals);
+      this.totals.update((ts) => [...ts.filter((t) => t.month !== m), totals].sort((a, b) => a.month.localeCompare(b.month)));
     }
     return { saved, impact };
   }

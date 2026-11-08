@@ -33,7 +33,7 @@ users/{uid}/conversations/{convId}            // encrypted summary + metadata
 users/{uid}/conversations/{convId}/messages/{msgId}   // encrypted; plaintext: createdAt
 users/{uid}/pendingQuestions/{qId}            // encrypted; plaintext: status (open|answered|dismissed)
 users/{uid}/contextSnapshots/{version}        // encrypted compact AI context, versioned
-users/{uid}/analyses/{analysisId}             // encrypted AI analysis history
+users/{uid}/analyses/{analysisId}             // encrypted AI analysis: text, provider, model, context version, figures at the time
 users/{uid}/aiKeys/{keyId}                    // encrypted key + provider; plaintext: none beyond updatedAt
 ```
 

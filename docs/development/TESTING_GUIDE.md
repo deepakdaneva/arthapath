@@ -59,6 +59,8 @@ browser-agnostic; CI runs them on Playwright's Chromium.
 | Finances | Manual entry computes surplus and goal order; user reordering; dashboard figures; profile and goals stored encrypted |
 | Onboarding | Chat starters open onboarding prefilled; extraction review with estimates; corrected amount saved; pending question badge; plan shown |
 | Context | Chat request carries calculated profile figures |
+| Import | CSV with preamble, duplicate against a typed entry, correction, save without any AI request; generated text PDF; pasted text; AI categorization only with the Settings switch, sending only unknown rows without dates or balances |
+| Questions and analysis | Gap questions with why and what depends on them, yes/no insurance, skip, answer opens onboarding prefilled; recommendations, analysis on request, history |
 | Updates | Note to reviewed entries (split, category, method), corrections, impact vs plan, encrypted storage (only month and date readable), dashboard month summary, trend chart, over-plan warning, details list with period filter, delete; goal contribution and reversal; AI fallback without an amount (and the hint without a provider) |
 | Dashboard | Spending split with shares, warnings, goal cards, legend and chart-slice drill-down, period filters, health calculation, 7-day update reminder (clock fast-forward) |
 | Privacy | Identity numbers removed before saving, showing, and sending (unit cases for each pattern and for amounts that must stay); provider data notices with links; OpenRouter requests deny data collection |

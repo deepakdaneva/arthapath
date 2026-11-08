@@ -46,7 +46,7 @@
       }
 
       @if (svc.openQuestions().length) {
-        <a class="ap-card questions" routerLink="/app/onboarding">
+        <a class="ap-card questions" routerLink="/app/questions">
           <strong>{{ svc.openQuestions().length }} question{{ svc.openQuestions().length === 1 ? '' : 's' }} to improve your plan</strong>
           <span class="ap-muted">{{ svc.openQuestions()[0]!.question }}</span>
         </a>
@@ -237,6 +237,21 @@
           </div>
         }
       </section>
+
+      <a class="ap-card analysis-card" routerLink="/app/analysis" aria-labelledby="h-analysis">
+        <div class="head">
+          <h2 id="h-analysis">Analysis and recommendations</h2>
+          <ion-icon name="chevron-forward" class="go" aria-hidden="true" />
+        </div>
+        @if (analysis.recommendations()[0]; as r) {
+          <p><strong>{{ r.title }}.</strong> <span class="ap-muted">{{ analysis.recommendations().length - 1 > 0 ? '+' + (analysis.recommendations().length - 1) + ' more' : '' }}</span></p>
+        }
+        @if (analysis.nudge(); as n) {
+          <p class="ap-muted small">{{ n }} Ask for a fresh AI analysis.</p>
+        } @else if (analysis.history()[0]; as last) {
+          <p class="ap-muted small">Last AI analysis: {{ last.createdAt | date: 'd MMM y' }}.</p>
+        }
+      </a>
 
       @if (svc.suggestions().length) {
         <section class="ap-card" aria-labelledby="h-sugg">

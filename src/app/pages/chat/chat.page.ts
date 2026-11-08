@@ -20,6 +20,11 @@ import { ProfileService } from '../../domain/profile.service';
   template: `
     <ion-content #content>
       <div class="ap-container thread" aria-live="polite">
+        @if (profile.openQuestions().length) {
+          <a class="questions-link" routerLink="/app/questions">
+            {{ profile.openQuestions().length }} question{{ profile.openQuestions().length === 1 ? '' : 's' }} to improve your plan →
+          </a>
+        }
         @if (!chat.loaded()) {
           <ion-spinner name="crescent" aria-label="Loading conversation" />
         } @else if (chat.messages().length === 0) {
@@ -153,6 +158,15 @@ import { ProfileService } from '../../domain/profile.service';
     .typing {
       letter-spacing: 3px;
       color: var(--ap-text-muted);
+    }
+    .questions-link {
+      align-self: center;
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-size: 0.85rem;
+      color: var(--ion-color-secondary);
+      background: rgba(var(--ion-color-secondary-rgb), 0.1);
+      text-decoration: none;
     }
     .safety {
       font-size: 0.8rem;

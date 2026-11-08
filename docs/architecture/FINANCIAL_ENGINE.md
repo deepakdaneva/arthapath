@@ -212,3 +212,41 @@ The last activity is the later of the last saved profile change and the
 last logged entry. After 7 days without either, the dashboard and the
 Updates page show a reminder and the Updates tab shows a badge.
 
+## Imports, questions, and recommendations (Phase 9)
+
+### Statement import (`src/app/domain/import.ts`)
+
+- CSV: RFC 4180 parsing (comma, semicolon, or tab); the header row is found
+  in the first 30 rows by column names (date; narration/description/
+  particulars; withdrawal/debit and deposit/credit, or one amount with a
+  Dr/Cr column). Dates are read day first (Indian banks).
+- PDF and pasted text: a line that starts with a date and contains an
+  amount is a transaction; with two or more amounts the last is taken as the
+  running balance. "Cr" marks money in. PDFs are read with pdf.js in the
+  browser (text PDFs only; no OCR).
+- Classification reuses the Updates rules; the statement's direction (in or
+  out) always wins over words.
+- Duplicates: same date, amount, and normalized description as a saved
+  entry, the same date and amount as a typed entry, or a repeat within the
+  import. Duplicates start unselected.
+- Saving writes each entry and then each touched month's aggregate once.
+
+### Questions from gaps (`src/app/domain/questions.ts`)
+
+Asked only once some data exists: income, regular expenses, savings and
+deposits, health insurance (yes/no), term insurance (yes/no; optional
+without dependents), dependents (optional), loan interest rates (optional),
+and goal dates. Each says why it is needed and what depends on it. A gap
+closes when the data exists; skipping stores the dismissal.
+
+### Recommendations (`src/app/domain/recommendations.ts`)
+
+In order: clear high-interest debt (credit cards or 12% a year or more);
+build the emergency fund to 6 months of necessary spending and loan
+payments; consider term cover of 10 to 15 times yearly income when someone
+depends on the user; get health insurance when the user said they have none;
+redirect spending marked unnecessary (with the share of a lagging goal's
+gap it would cover); close a lagging goal's gap (higher monthly amount, a
+later date, or a lower target); put surplus not set aside for any goal into
+a regular investment. AI analyses explain these; they do not compute them.
+

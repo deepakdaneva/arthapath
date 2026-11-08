@@ -11,6 +11,8 @@ import { IonSegmentButton } from '@ionic/angular/ion-segment-button';
 import { IonSelect } from '@ionic/angular/ion-select';
 import { IonSelectOption } from '@ionic/angular/ion-select-option';
 import { IonSpinner } from '@ionic/angular/ion-spinner';
+import { IonToggle } from '@ionic/angular/ion-toggle';
+import { AppPrefsService } from '../../core/app-prefs.service';
 import { MIN_PIN_LENGTH } from '../../core/crypto/crypto';
 import { LOCK_OPTIONS, SessionLockService } from '../../core/crypto/session-lock.service';
 import { VaultService } from '../../core/crypto/vault.service';
@@ -30,6 +32,7 @@ import { ThemeService, type ThemeMode } from '../../core/theme.service';
     IonInput,
     IonButton,
     IonSpinner,
+    IonToggle,
     FormsModule,
   ],
   template: `
@@ -44,6 +47,23 @@ import { ThemeService, type ThemeMode } from '../../core/theme.service';
             <ion-segment-button value="light"><ion-label>Light</ion-label></ion-segment-button>
             <ion-segment-button value="dark"><ion-label>Dark</ion-label></ion-segment-button>
           </ion-segment>
+        </section>
+
+        <section class="ap-card" aria-labelledby="ai-privacy">
+          <h2 id="ai-privacy">AI and imports</h2>
+          <ion-list lines="none">
+            <ion-item>
+              <ion-toggle
+                [checked]="app.prefs().aiCategorizeImports"
+                (ionChange)="app.set({ aiCategorizeImports: $event.detail.checked })"
+              >Let AI categorize imported rows</ion-toggle>
+            </ion-item>
+          </ion-list>
+          <p class="ap-muted small">
+            When on, statement rows that ArthaPath cannot categorize on this device are sent to your AI provider
+            (direction, amount, and a short description with account numbers removed; no dates or balances), under
+            the provider's terms. When off, imports are categorized only on this device and you fix the rest.
+          </p>
         </section>
 
         <section class="ap-card" aria-labelledby="security">
@@ -120,6 +140,7 @@ import { ThemeService, type ThemeMode } from '../../core/theme.service';
 export class SettingsPage {
   readonly theme = inject(ThemeService);
   readonly lock = inject(SessionLockService);
+  readonly app = inject(AppPrefsService);
   private readonly vault = inject(VaultService);
 
   readonly lockOptions = LOCK_OPTIONS;

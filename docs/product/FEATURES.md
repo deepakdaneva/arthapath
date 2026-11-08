@@ -24,7 +24,8 @@ and tested, not just UI).
 | Financial engine and goal prioritization | 6 | Done |
 | Dynamic interactive dashboard with drill-down | 7 | Done (spending donut, net worth bars, goal cards, FI progress, warnings, details pages with period filters; trend charts and transaction lists fill in with Phase 8) |
 | Updates: natural-language transaction entry, at any cadence (daily, weekly, monthly) | 8 | Done (on-device parser, AI fallback without an amount, review, plan vs actual, impact, trends, goal contributions) |
-| CSV and PDF statement import, duplicate detection | 9 | Planned |
-| Pending questions with Chat badge | 6–9 | Done (basic: from onboarding, dismissable); more in Phase 9 |
+| CSV and PDF statement import, duplicate detection | 9 | Done (CSV in common bank layouts, text PDFs incl. password-protected, pasted text; review; optional AI categorization switch in Settings) |
+| Pending questions with Chat badge | 6–9 | Done (AI questions plus gaps found in the data; why and what depends on each; answer, yes/no for insurance, or skip) |
+| AI analysis history and calculated recommendations | 9 | Done (on request, nudged when due; saved encrypted with the figures at the time) |
 | Android build | 3–10 | In progress (Capacitor project added) |
 | iOS build | Later | Deferred |
