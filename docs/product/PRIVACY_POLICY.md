@@ -1,9 +1,8 @@
-# Privacy Policy (DRAFT)
+# Privacy Policy
 
-> **Draft, not in effect.** This describes the planned architecture. It
-> will be revised to match the implementation and reviewed before the first
-> production release (Phase 10). It makes no claim of compliance with any
-> specific regulation.
+Effective: version 1.0. This policy describes how the app actually works.
+It has not been reviewed by a lawyer and makes no claim of compliance with
+any specific regulation.
 
 ## Who runs this service
 
@@ -136,6 +135,16 @@ is no recovery of deleted data or lost PINs.
 
 You can view, correct, export (planned), and delete your data in the app.
 
+## Bot protection (reCAPTCHA)
+
+To stop automated abuse of the shared free service quota, the app uses
+Firebase App Check with Google reCAPTCHA v3, which runs invisibly in your
+browser. reCAPTCHA collects hardware and software information (such as
+device and application data) and sends it to Google for analysis. Its use
+is subject to the [Google Privacy Policy](https://policies.google.com/privacy)
+and [Terms of Service](https://policies.google.com/terms). It receives no
+financial data from ArthaPath.
+
 ## Security limitations
 
 No system is perfectly secure. See [SECURITY.md](../../SECURITY.md) for
@@ -143,4 +152,13 @@ known limitations.
 
 ## Contact
 
-Through the project's GitHub repository.
+Privacy questions and data requests: open an issue in the project's
+[GitHub repository](https://github.com/deepakdaneva/arthapath/issues) (do not include personal or financial details
+in a public issue; say you would like to be contacted privately). Security
+problems: report them privately through
+[GitHub private vulnerability reporting](https://github.com/deepakdaneva/arthapath/security/advisories/new).
+
+## Changes
+
+Material changes to this policy are announced in the app and recorded in
+the repository history.

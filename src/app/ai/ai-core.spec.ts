@@ -264,6 +264,10 @@ describe('providers', () => {
   it('allows only listed custom endpoints', () => {
     expect(customBaseUrlError('https://api.mistral.ai/v1')).toBeNull();
     expect(customBaseUrlError('http://localhost:11434/v1')).toBeNull();
+    expect(customBaseUrlError('http://localhost:1234/v1')).toBeNull();
+    // Only the local origins the Content Security Policy allows.
+    expect(customBaseUrlError('http://localhost:8080/v1')).toMatch(/11434/);
+    expect(customBaseUrlError('http://127.0.0.1:11434/v1')).toMatch(/11434/);
     expect(customBaseUrlError('https://evil.example.com/v1')).toMatch(/not on the allowed list/);
     expect(customBaseUrlError('http://api.mistral.ai/v1')).toMatch(/https/);
     expect(customBaseUrlError('not a url')).toMatch(/full URL/);

@@ -12,6 +12,8 @@ const escapeHtml = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;')
 const md = new Marked({ gfm: true, breaks: true, async: false }).use({
   renderer: {
     html: ({ text }) => escapeHtml(text),
+    // Images from model output could send data to another site when loaded: show a link instead.
+    image: ({ href, text }) => `<a href="${escapeHtml(href)}" target="_blank" rel="noopener noreferrer">${escapeHtml(text || 'image')}</a>`,
     link({ href, tokens }) {
       return `<a href="${escapeHtml(href)}" target="_blank" rel="noopener noreferrer">${this.parser.parseInline(tokens)}</a>`;
     },

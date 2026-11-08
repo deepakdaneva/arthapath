@@ -13,7 +13,7 @@ import { IonSelectOption } from '@ionic/angular/ion-select-option';
 import { IonSpinner } from '@ionic/angular/ion-spinner';
 import { IonToggle } from '@ionic/angular/ion-toggle';
 import { AppPrefsService } from '../../core/app-prefs.service';
-import { MIN_PIN_LENGTH } from '../../core/crypto/crypto';
+import { weakPinReason } from '../../core/crypto/crypto';
 import { LOCK_OPTIONS, SessionLockService } from '../../core/crypto/session-lock.service';
 import { VaultService } from '../../core/crypto/vault.service';
 import { ThemeService, type ThemeMode } from '../../core/theme.service';
@@ -166,7 +166,8 @@ export class SettingsPage {
       this.pinError.set(true);
       this.pinMessage.set(m);
     };
-    if (this.next().length < MIN_PIN_LENGTH) return fail(`Use at least ${MIN_PIN_LENGTH} characters.`);
+    const weak = weakPinReason(this.next());
+    if (weak) return fail(weak);
     if (this.next() !== this.confirm()) return fail('The new PINs do not match.');
     this.busy.set(true);
     try {

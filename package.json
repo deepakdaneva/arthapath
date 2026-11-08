@@ -1,6 +1,6 @@
 {
   "name": "arthapath",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "scripts": {
     "config": "node scripts/write-app-config.mjs",
     "prestart": "npm run config",

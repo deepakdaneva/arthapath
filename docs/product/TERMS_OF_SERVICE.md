@@ -1,7 +1,6 @@
-# Terms of Service (DRAFT)
+# Terms of Service
 
-> **Draft, not in effect.** To be finalized and reviewed before the first
-> production release (Phase 10).
+Effective: version 1.0. These terms have not been reviewed by a lawyer.
 
 1. **Informational only.** ArthaPath provides informational financial
    assistance. It is not a licensed financial, investment, tax, insurance,
@@ -35,3 +34,6 @@
    of any kind.
 9. **Changes.** These terms may change; material changes will be announced
    in the app.
+10. **Contact.** Through the project's
+    [GitHub repository](https://github.com/deepakdaneva/arthapath/issues); security problems through
+    [private vulnerability reporting](https://github.com/deepakdaneva/arthapath/security/advisories/new).

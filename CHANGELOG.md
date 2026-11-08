@@ -4,7 +4,7 @@ All notable changes to this project are documented here.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versioning: [Semantic Versioning](https://semver.org/).
 
-## [Unreleased]
+## [1.0.0] - first production release
 
 ### Added
 - Statement import (Phase 9): CSV exports, PDFs (including password-
@@ -103,6 +103,13 @@ Versioning: [Semantic Versioning](https://semver.org/).
   bundle reduced from 909 kB to 674 kB.
 
 ### Security
+- PINs that are quick to guess offline are refused at setup and on change.
+- Signing out and deleting the account clear the local Firestore cache.
+- App Check with reCAPTCHA v3 (enabled once a site key is configured).
+- AI replies show images as links instead of loading them.
+- Local AI server URLs limited to the origins the security policy allows.
+- Production deploy: credentials obtained only after installs and build;
+  maintainer approval required.
 - Identity numbers and secrets (PAN, Aadhaar, card and account numbers,
   passport, phone, email, UPI ID, OTP/PIN/CVV/password) are removed on the
   device before messages, labels, and AI replies are saved, shown, or sent

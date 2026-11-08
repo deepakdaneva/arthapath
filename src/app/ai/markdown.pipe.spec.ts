@@ -17,6 +17,12 @@ describe('renderMarkdown', () => {
     expect(html).toContain('&lt;img');
   });
 
+  it('never loads images from a reply (shown as a link instead)', () => {
+    const html = renderMarkdown('![chart](https://x.example/?d=secret)');
+    expect(html).not.toContain('<img');
+    expect(html).toContain('<a href="https://x.example/?d=secret" target="_blank" rel="noopener noreferrer">chart</a>');
+  });
+
   it('opens links in a new tab', () => {
     expect(renderMarkdown('[RBI](https://rbi.org.in)')).toContain('<a href="https://rbi.org.in" target="_blank" rel="noopener noreferrer">RBI</a>');
   });

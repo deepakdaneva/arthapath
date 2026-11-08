@@ -122,8 +122,11 @@ const RULES: { kind: RedactionKind; re: RegExp; replace: (m: string, ...g: strin
   },
 ];
 
+/** Longest text redacted at once; longer input is cut first (bounds regex work). */
+const MAX_INPUT = 20_000;
+
 export function redact(input: string): RedactionResult {
-  let text = input;
+  let text = input.slice(0, MAX_INPUT);
   const found: RedactionKind[] = [];
   for (const rule of RULES) {
     text = text.replace(rule.re, (m: string, ...rest: unknown[]) => {

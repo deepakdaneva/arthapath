@@ -167,6 +167,22 @@ jobs:
           node-version: 24
           cache: npm
 
+      - name: Build app
+        env:
+          FIREBASE_PROJECT_ID: ${{ vars.FIREBASE_PROJECT_ID }}
+          FIREBASE_API_KEY: ${{ vars.FIREBASE_API_KEY }}
+          FIREBASE_APP_ID: ${{ vars.FIREBASE_APP_ID }}
+          FIREBASE_MESSAGING_SENDER_ID: ${{ vars.FIREBASE_MESSAGING_SENDER_ID }}
+          RECAPTCHA_SITE_KEY: ${{ vars.RECAPTCHA_SITE_KEY }}
+        run: |
+          npm ci
+          npm run build -- --configuration ${{ github.ref_name == 'main' && 'production' || 'uat' }}
+
+      # Install everything before credentials exist, so no package install
+      # script can read them.
+      - name: Install Firebase CLI
+        run: npm install --no-save --no-audit --no-fund --prefix "$RUNNER_TEMP/fbt" firebase-tools@15.35.0
+
       - uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3.0.0
         with:
           workload_identity_provider: ${{ vars.WIF_PROVIDER }}
@@ -179,17 +195,7 @@ jobs:
       - name: Verify Google credentials
         run: gcloud auth print-access-token --quiet > /dev/null && echo "Federated credentials OK"
 
-      - name: Build app
-        env:
-          FIREBASE_PROJECT_ID: ${{ vars.FIREBASE_PROJECT_ID }}
-          FIREBASE_API_KEY: ${{ vars.FIREBASE_API_KEY }}
-          FIREBASE_APP_ID: ${{ vars.FIREBASE_APP_ID }}
-          FIREBASE_MESSAGING_SENDER_ID: ${{ vars.FIREBASE_MESSAGING_SENDER_ID }}
-        run: |
-          npm ci
-          npm run build -- --configuration ${{ github.ref_name == 'main' && 'production' || 'uat' }}
-
       - name: Deploy
         env:
           PROJECT: ${{ vars.FIREBASE_PROJECT_ID }}
-        run: npx --yes firebase-tools@15.35.0 deploy --only firestore,hosting --project "$PROJECT" --non-interactive
+        run: '"$RUNNER_TEMP/fbt/node_modules/.bin/firebase" deploy --only firestore,hosting --project "$PROJECT" --non-interactive'
