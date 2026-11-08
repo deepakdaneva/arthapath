@@ -5,6 +5,8 @@ export interface AiStatus {
   provider: string | null;
   model: string | null;
   state: 'none' | 'active' | 'exhausted';
+  /** Why the provider is unusable when exhausted; defaults to a limit. */
+  reason?: 'limit' | 'model' | 'key';
 }
 
 /**
@@ -21,7 +23,11 @@ export class AiStatusService {
   readonly label = computed(() => {
     const s = this.status();
     if (s.state === 'none' || !s.provider) return 'AI not configured';
-    if (s.state === 'exhausted') return `${s.provider} limit reached`;
+    if (s.state === 'exhausted') {
+      if (s.reason === 'model') return `${s.provider}: model unavailable`;
+      if (s.reason === 'key') return `${s.provider}: key rejected`;
+      return `${s.provider} limit reached`;
+    }
     return s.model ? `${s.provider} · ${s.model}` : s.provider;
   });
 

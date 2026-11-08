@@ -10,7 +10,7 @@ import { IonSpinner } from '@ionic/angular/ion-spinner';
 import { IonToggle } from '@ionic/angular/ion-toggle';
 import { addIcons } from 'ionicons';
 import { arrowDownOutline, arrowUpOutline, createOutline, openOutline, trashOutline } from 'ionicons/icons';
-import { adapterFor, type AIModel } from '../../ai/adapters';
+import { adapterFor, pickModel, type AIModel } from '../../ai/adapters';
 import { AiKeysService, type AiKeyView } from '../../ai/ai-keys.service';
 import { AIError } from '../../ai/errors';
 import { keyGuideFor } from '../../ai/key-guides';
@@ -24,7 +24,8 @@ interface Draft {
   model: string;
 }
 
-const EMPTY: Draft = { provider: 'gemini', label: '', apiKey: '', baseUrl: '', model: PROVIDERS.gemini.defaultModel };
+// No model until the provider's live list is fetched.
+const EMPTY: Draft = { provider: 'gemini', label: '', apiKey: '', baseUrl: '', model: '' };
 
 @Component({
   selector: 'app-ai-providers',
@@ -56,7 +57,9 @@ export class AiProvidersPage {
     const d = this.draft();
     const keyOk = this.isEdit() || d.apiKey.trim().length >= 8 || (d.provider === 'custom' && /localhost|127\.0\.0\.1/.test(d.baseUrl));
     const urlOk = d.provider !== 'custom' || (!!d.baseUrl && !this.baseUrlError());
-    return keyOk && urlOk && !!d.model.trim() && !this.busy();
+    // A new key may be saved before its models are fetched: save() fetches them first.
+    const modelOk = !!d.model.trim() || (!this.isEdit() && !this.models().length);
+    return keyOk && urlOk && modelOk && !this.busy() && !this.loadingModels();
   });
 
   constructor() {
@@ -69,7 +72,15 @@ export class AiProvidersPage {
 
   setProvider(provider: ProviderId): void {
     this.models.set([]);
-    this.patch({ provider, model: PROVIDERS[provider].defaultModel, baseUrl: provider === 'custom' ? CUSTOM_PRESETS[0]!.baseUrl : '' });
+    this.info.set('');
+    this.error.set('');
+    this.patch({ provider, model: '', baseUrl: provider === 'custom' ? CUSTOM_PRESETS[0]!.baseUrl : '' });
+    if (this.draft().apiKey.trim()) void this.loadModels();
+  }
+
+  /** Fetches the live model list once a key has been entered. */
+  onKeyEntered(): void {
+    if (this.draft().apiKey.trim().length >= 8 && !this.loadingModels()) void this.loadModels();
   }
 
   startAdd(): void {
@@ -81,6 +92,7 @@ export class AiProvidersPage {
     this.reset();
     this.editing.set(k.id);
     this.draft.set({ provider: k.provider, label: k.label, apiKey: '', baseUrl: k.baseUrl ?? '', model: k.model });
+    void this.loadModels();
   }
 
   cancel(): void {
@@ -98,12 +110,21 @@ export class AiProvidersPage {
     this.loadingModels.set(true);
     this.error.set('');
     this.info.set('');
+    this.overLimit = false;
     try {
       const apiKey = d.apiKey.trim() || this.existingKey();
       const models = await adapterFor(d.provider).listModels({ provider: d.provider, apiKey, baseUrl: d.baseUrl || undefined });
       this.models.set(models);
-      if (models.length && !models.some((m) => m.id === d.model)) this.patch({ model: models[0]!.id });
-      this.info.set(`Key works. ${models.length} models available.`);
+      // Keep the user's model while the provider still offers it; otherwise suggest one from the live list.
+      const kept = models.some((m) => m.id === d.model);
+      if (models.length && !kept) this.patch({ model: pickModel(d.provider, models)! });
+      if (!models.length) {
+        this.info.set('Key works, but the provider listed no models. Type the model name.');
+      } else if (this.isEdit() && d.model && !kept) {
+        this.info.set(`Key works. "${d.model}" is no longer offered; ${this.draft().model} is selected instead. Save to apply.`);
+      } else {
+        this.info.set(`Key works. ${models.length} models available.`);
+      }
     } catch (e) {
       this.error.set(this.describe(e));
     } finally {
@@ -113,6 +134,15 @@ export class AiProvidersPage {
 
   async save(): Promise<void> {
     if (!this.canSave()) return;
+    // A new key is always checked against the provider and given a real model name.
+    if (!this.isEdit() && !this.models().length) {
+      await this.loadModels();
+      if (this.error() && !this.overLimit) return;
+    }
+    if (!this.draft().model.trim()) {
+      this.error.set('Choose or type a model.');
+      return;
+    }
     const d = this.draft();
     this.busy.set(true);
     this.error.set('');
@@ -174,7 +204,11 @@ export class AiProvidersPage {
     return this.svc.candidates().find((c) => c.id === this.editing())?.credentials.apiKey ?? '';
   }
 
+  /** True when the last check failed only because the key is over its limit. */
+  private overLimit = false;
+
   private describe(e: unknown): string {
+    this.overLimit = e instanceof AIError && (e.kind === 'quota_exhausted' || e.kind === 'rate_limited');
     if (e instanceof AIError) {
       switch (e.kind) {
         case 'auth_invalid':

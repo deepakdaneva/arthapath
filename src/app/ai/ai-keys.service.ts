@@ -82,12 +82,13 @@ export class AiKeysService {
       if (ready[0]) {
         const r = ready[0];
         const s = this.status.status();
-        if (s.state !== 'active' || s.provider !== this.nameOf(r)) {
+        if (s.state !== 'active' || s.provider !== this.nameOf(r) || s.model !== r.credentials.model) {
           this.status.set({ provider: this.nameOf(r), model: r.credentials.model, state: 'active' });
         }
       } else if (all.some((c) => c.enabled)) {
         const first = all.filter((c) => c.enabled).sort((a, b) => a.priority - b.priority)[0]!;
-        this.status.set({ provider: this.nameOf(first), model: first.credentials.model, state: 'exhausted' });
+        const reason = first.blocked === 'model_unavailable' ? 'model' : first.blocked === 'auth_invalid' ? 'key' : 'limit';
+        this.status.set({ provider: this.nameOf(first), model: first.credentials.model, state: 'exhausted', reason });
       } else {
         this.status.set({ provider: null, model: null, state: 'none' });
       }

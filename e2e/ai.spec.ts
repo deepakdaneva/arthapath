@@ -54,6 +54,8 @@ async function ready(page: Page, tag: string) {
 test.describe('AI providers and chat', () => {
   test('keys are validated, stored encrypted, masked, reordered, and toggled', async ({ page }) => {
     await mockProvider(page, 'https://api.groq.com/**', { models: { data: [{ id: 'llama-test' }, { id: 'other-model' }] }, chat: groqOk('ok') });
+    // New keys are checked against the provider on save.
+    await mockProvider(page, 'https://generativelanguage.googleapis.com/**', { models: { models: [] }, chat: groqOk('ok') });
     await ready(page, 'keys');
 
     await page.getByRole('button', { name: 'Add an AI provider' }).click();
@@ -143,6 +145,49 @@ test.describe('AI providers and chat', () => {
     await page.getByRole('button', { name: 'Send', exact: true }).click();
     await expect(page.getByText('All configured AI providers have reached their available limits.')).toBeVisible();
     await expect(page.locator('app-ai-status .chip')).toContainText('limit reached');
+  });
+
+  test('models are fetched live from the provider when the key is entered', async ({ page }) => {
+    const gen = ['generateContent'];
+    await mockProvider(page, 'https://generativelanguage.googleapis.com/**', {
+      models: {
+        models: [
+          { name: 'models/gemini-2.5-flash', supportedGenerationMethods: gen },
+          { name: 'models/gemini-2.5-flash-lite', supportedGenerationMethods: gen },
+          { name: 'models/gemini-9.1-flash-lite', supportedGenerationMethods: gen },
+          { name: 'models/gemini-9.1-flash-tts', supportedGenerationMethods: gen },
+        ],
+      },
+      chat: groqOk('ok'),
+    });
+    await ready(page, 'live');
+    await page.getByRole('button', { name: 'Add an AI provider' }).click();
+    await field(page, 'API key').fill(FAKE_GEMINI_KEY);
+    await field(page, 'API key').blur();
+    await expect(page.getByText('Key works. 3 models available.')).toBeVisible();
+    await expect(page.locator('ion-select[label="Model"]')).toHaveJSProperty('value', 'gemini-9.1-flash-lite');
+    await page.getByRole('button', { name: 'Save key' }).click();
+    await expect(page.locator('ol.keys').getByText('Google Gemini · gemini-9.1-flash-lite')).toBeVisible();
+  });
+
+  test('a retired model is reported as needing a new model, not as a limit', async ({ page }) => {
+    const retired: Handler = () => ({
+      status: 404,
+      json: { error: { code: 404, status: 'NOT_FOUND', message: 'This model models/gemini-old is no longer available to new users.' } },
+    });
+    const gemini = await mockProvider(page, 'https://generativelanguage.googleapis.com/**', { chat: retired });
+    await ready(page, 'retired');
+    await addKey(page, 'Google Gemini', FAKE_GEMINI_KEY, 'gemini-old');
+    await page.getByRole('link', { name: 'Chat' }).click();
+    for (const q of ['How do I budget my salary?', 'Should I prepay my loan?']) {
+      await page.getByRole('textbox', { name: 'Message' }).fill(q);
+      await page.getByRole('button', { name: 'Send', exact: true }).click();
+    }
+    // The second message reuses the blocked state: same guidance, no new request.
+    await expect(page.getByText('can no longer use the model "gemini-old"')).toHaveCount(2);
+    expect(gemini.chat).toBe(1);
+    await expect(page.getByText('reached their available limits')).toHaveCount(0);
+    await expect(page.locator('app-ai-status .chip')).toContainText('model unavailable');
   });
 
   test('off-topic questions are answered locally without calling a provider', async ({ page }) => {

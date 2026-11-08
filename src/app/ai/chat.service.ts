@@ -9,7 +9,7 @@ import { buildMessages, type ContextSnapshot, type StoredMessage } from './conte
 import { AIError, type AIErrorKind } from './errors';
 import { OFF_TOPIC_REPLY, classifyIntent } from './guardrails';
 import { SUMMARY_PROMPT } from './prompts';
-import { AllProvidersExhaustedError, route, type RouteEvent } from './router';
+import { AllProvidersExhaustedError, exhaustedMessage, route, type RouteEvent } from './router';
 
 export interface ChatItem extends StoredMessage {
   id: string;
@@ -144,7 +144,7 @@ export class ChatService {
     if (e instanceof AllProvidersExhaustedError) {
       return e.noneConfigured
         ? 'No AI provider is set up yet. Add your own API key under AI Providers to start chatting.'
-        : 'All configured AI providers have reached their available limits. Please add another provider or try again later.';
+        : exhaustedMessage(e, (c) => this.keys.nameOf(c));
     }
     if (e instanceof AIError) {
       if (e.kind === 'network') return "You appear to be offline. Your message is saved; try again when you're connected.";

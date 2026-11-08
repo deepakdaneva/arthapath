@@ -37,6 +37,37 @@ export interface AIModel {
   free?: boolean;
 }
 
+/** Models that cannot answer a text chat (speech, images, music, safety filters, embeddings). */
+const NON_CHAT = /(tts|whisper|transcribe|speech|audio|image|imagen|veo|lyria|banana|embed|guard|orpheus|playai|robotics|computer-use|aqa|moderation)/i;
+
+/**
+ * Suggests a model from the provider's live list; the user can choose another.
+ * Preferences are name patterns, not stored model names, so new models are
+ * picked up as providers release them.
+ * - Gemini: newest stable Flash-Lite (fast, generous free tier). Gemini still
+ *   lists some retired versions, and the newest is the safe choice.
+ * - OpenRouter: its free-model router, else the first free model.
+ * - Groq: its largest open model, else the first listed.
+ */
+export function pickModel(provider: ProviderId, models: AIModel[]): string | null {
+  if (!models.length) return null;
+  const newest = (re: RegExp) =>
+    models
+      .map((m) => ({ id: m.id, v: re.exec(m.id)?.[1] }))
+      .filter((m) => m.v)
+      .sort((a, b) => Number(b.v) - Number(a.v))[0]?.id;
+  const first = (...res: RegExp[]) => res.map((re) => models.find((m) => re.test(m.id))?.id).find(Boolean);
+  const pick =
+    provider === 'gemini'
+      ? (newest(/^gemini-(\d+(?:\.\d+)?)-flash-lite$/) ?? first(/^gemini-flash-lite-latest$/, /flash/))
+      : provider === 'openrouter'
+        ? (first(/^openrouter\/free$/) ?? models.find((m) => m.free)?.id)
+        : provider === 'groq'
+          ? first(/gpt-oss-120b/, /70b/, /gpt-oss/)
+          : undefined;
+  return pick ?? models[0]!.id;
+}
+
 export interface AIProviderAdapter {
   readonly kind: ApiKind;
   complete(req: AIRequest, c: Credentials, signal?: AbortSignal): Promise<AIResponse>;
@@ -118,7 +149,7 @@ export const geminiAdapter: AIProviderAdapter = {
       signal,
     )) as { models?: { name: string; displayName?: string; supportedGenerationMethods?: string[] }[] };
     return (data.models ?? [])
-      .filter((m) => m.supportedGenerationMethods?.includes('generateContent'))
+      .filter((m) => m.supportedGenerationMethods?.includes('generateContent') && !NON_CHAT.test(m.name))
       .map((m) => ({ id: m.name.replace(/^models\//, ''), name: m.displayName ?? m.name }));
   },
 };
@@ -171,9 +202,19 @@ export const openAiAdapter: AIProviderAdapter = {
   },
   async listModels(c, signal) {
     const data = (await send(`${baseUrl(c)}/models`, { headers: headers(c) }, providerName(c), signal)) as {
-      data?: { id: string; name?: string; pricing?: { prompt?: string; completion?: string } }[];
+      data?: {
+        id: string;
+        name?: string;
+        /** Groq: false for models being retired. */
+        active?: boolean;
+        pricing?: { prompt?: string; completion?: string };
+        /** OpenRouter: what the model produces. */
+        architecture?: { output_modalities?: string[] };
+      }[];
     };
     return (data.data ?? [])
+      .filter((m) => m.active !== false && !NON_CHAT.test(m.id))
+      .filter((m) => !m.architecture?.output_modalities || m.architecture.output_modalities.every((o) => o === 'text'))
       .map((m) => ({
         id: m.id,
         name: m.name ?? m.id,
