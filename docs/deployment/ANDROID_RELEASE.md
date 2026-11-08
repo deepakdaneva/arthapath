@@ -26,13 +26,13 @@ uninstall and reinstall to get new versions.
    keytool -genkeypair -v -keystore arthapath-release.jks -alias arthapath -keyalg RSA -keysize 4096 -validity 10000 -dname "CN=ArthaPath, O=ArthaPath"
    ```
 
-2. Store it as repository secrets (Settings > Secrets and variables >
+2. Store it as repository secrets (the key alias `arthapath` is not secret;
+   set the `ANDROID_KEY_ALIAS` variable only if you use another one) (Settings > Secrets and variables >
    Actions > Repository secrets), or with the GitHub CLI:
 
    ```bash
    base64 -w0 arthapath-release.jks | gh secret set ANDROID_KEYSTORE_BASE64
    gh secret set ANDROID_KEYSTORE_PASSWORD
-   gh secret set ANDROID_KEY_ALIAS --body arthapath
    ```
 
    On Windows PowerShell, encode with
