@@ -7,6 +7,17 @@ Versioning: [Semantic Versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Added
+- Dashboard (Phase 7): spending donut (necessary, discretionary,
+  unnecessary, loan payments, investments, left to save), net worth bars,
+  goal cards with every figure, financial independence progress, and
+  warnings (overspending, low savings, high loan payments, emergency fund,
+  goals behind or coming up).
+- Details pages behind every card and chart slice: items, calculation, and
+  a transaction list with Day, Week, Month, Year, and Custom filters
+  (transactions arrive with Updates).
+- Reminder to log updates after 7 days without changes.
+- Expenses can be tagged necessary, discretionary, or unnecessary; regular
+  investments (SIP, RD, PPF) are tracked as saving.
 - Ionic 9 + Angular 22 app shell: public landing page, Google and
   email/password sign-in with verification and password reset, dashboard
   with first-run call to action, Chat and Today's Updates navigation,

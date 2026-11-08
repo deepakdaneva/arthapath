@@ -19,6 +19,8 @@ import {
   type Frequency,
   type Goal,
   type Provenance,
+  NEEDS,
+  type Need,
 } from '../../domain/models';
 import { ProfileService } from '../../domain/profile.service';
 
@@ -29,7 +31,7 @@ interface Draft {
   type: string;
   amount: string;
   frequency: Frequency;
-  essential: boolean;
+  need: Need;
   payment: string;
   rate: string;
   saved: string;
@@ -38,7 +40,7 @@ interface Draft {
   dependent: boolean;
 }
 
-const BLANK: Draft = { label: '', type: '', amount: '', frequency: 'monthly', essential: true, payment: '', rate: '', saved: '', date: '', age: '', dependent: true };
+const BLANK: Draft = { label: '', type: '', amount: '', frequency: 'monthly', need: 'necessary', payment: '', rate: '', saved: '', date: '', age: '', dependent: true };
 
 const TYPES: Record<Exclude<Section, 'family'>, readonly string[]> = {
   incomes: INCOME_KINDS,
@@ -69,6 +71,7 @@ export class FinancesPage {
     return s && s !== 'family' ? TYPES[s] : [];
   });
   readonly frequencies: Frequency[] = ['monthly', 'yearly', 'quarterly', 'half_yearly', 'weekly'];
+  readonly needs = NEEDS;
 
   readonly adding = signal<Section | null>(null);
   readonly draft = signal<Draft>({ ...BLANK });
@@ -129,7 +132,7 @@ export class FinancesPage {
         if (Number.isNaN(amount) || (s !== 'liabilities' && amount === 0)) throw new Error('Enter an amount in rupees.');
         await this.svc.updateProfile((p) => {
           if (s === 'incomes') p.incomes.push({ ...base, kind: d.type as never, amount: rupees(amount), frequency: d.frequency, earner: 'self' });
-          if (s === 'expenses') p.expenses.push({ ...base, category: d.type as never, amount: rupees(amount), frequency: d.frequency, essential: d.essential });
+          if (s === 'expenses') p.expenses.push({ ...base, category: d.type as never, amount: rupees(amount), frequency: d.frequency, need: d.need });
           if (s === 'assets') p.assets.push({ ...base, kind: d.type as never, value: rupees(amount) });
           if (s === 'liabilities') {
             const pay = num(d.payment || '0');

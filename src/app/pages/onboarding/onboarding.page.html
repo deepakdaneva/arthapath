@@ -44,6 +44,13 @@
                 @if (r.estimated) {
                   <span class="tag">Estimate: please confirm</span>
                 }
+                @if (r.need) {
+                  <select class="need" [value]="r.need" (change)="setNeed(r, $any($event.target).value)" [disabled]="!r.keep" [attr.aria-label]="'How needed is ' + r.label">
+                    @for (n of needs; track n) {
+                      <option [value]="n" [selected]="n === r.need">{{ n[0]!.toUpperCase() + n.slice(1) }}</option>
+                    }
+                  </select>
+                }
               </div>
               @if (r.amount !== null) {
                 <label class="amount">

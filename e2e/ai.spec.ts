@@ -84,6 +84,7 @@ test.describe('AI providers and chat', () => {
   });
 
   test('falls back from an exhausted provider, notifies, blinks, and keeps context', async ({ page }) => {
+    test.slow(); // Long flow: two keys, two chats, reload, unlock.
     const gemini = await mockProvider(page, 'https://generativelanguage.googleapis.com/**', { chat: geminiQuota });
     let lastGroqBody: Record<string, unknown> | null = null;
     let groqCalls = 0;

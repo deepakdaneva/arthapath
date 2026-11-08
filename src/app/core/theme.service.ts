@@ -6,6 +6,8 @@ const KEY = 'arthapath.theme';
 @Injectable({ providedIn: 'root' })
 export class ThemeService {
   readonly mode = signal<ThemeMode>(this.load());
+  /** The theme in effect (system resolved); charts pick their palette from it. */
+  readonly dark = signal(false);
   private readonly media = window.matchMedia('(prefers-color-scheme: dark)');
 
   constructor() {
@@ -39,5 +41,6 @@ export class ThemeService {
   private apply(m: ThemeMode): void {
     const dark = m === 'dark' || (m === 'system' && this.media.matches);
     document.documentElement.classList.toggle('ion-palette-dark', dark);
+    this.dark.set(dark);
   }
 }

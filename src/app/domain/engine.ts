@@ -5,6 +5,8 @@
 import {
   INVESTED_ASSETS,
   LIQUID_ASSETS,
+  formatInr,
+  type Need,
   type Assumptions,
   type FinancialProfile,
   type Frequency,
@@ -29,13 +31,15 @@ const sum = (xs: number[]) => xs.reduce((a, b) => a + b, 0);
 
 export interface Metrics {
   monthlyIncome: Paise;
-  /** Living expenses, excluding loan payments. */
+  /** Living expenses, excluding loan payments and regular investments. */
   monthlyExpenses: Paise;
   monthlyDebtPayments: Paise;
-  /** Income minus expenses minus loan payments. */
+  /** Regular investments (SIPs, RDs, PPF contributions): saving, not spending. */
+  monthlyInvesting: Paise;
+  /** Left over each month: income minus expenses, loan payments, and investments. */
   monthlySurplus: Paise;
   essentialMonthly: Paise;
-  /** Fraction (0.2 = 20%); null when income is unknown. */
+  /** Share of income saved or invested (0.2 = 20%); null when income is unknown. */
   savingsRate: number | null;
   debtToIncome: number | null;
   liquidAssets: Paise;
@@ -53,8 +57,10 @@ export interface Metrics {
 
 export function computeMetrics(p: FinancialProfile): Metrics {
   const monthlyIncome = sum(p.incomes.map((i) => toMonthly(i.amount, i.frequency)));
-  const monthlyExpenses = sum(p.expenses.map((e) => toMonthly(e.amount, e.frequency)));
-  const essentialLiving = sum(p.expenses.filter((e) => e.essential).map((e) => toMonthly(e.amount, e.frequency)));
+  const spending = p.expenses.filter((e) => e.category !== 'investments');
+  const monthlyExpenses = sum(spending.map((e) => toMonthly(e.amount, e.frequency)));
+  const monthlyInvesting = sum(p.expenses.filter((e) => e.category === 'investments').map((e) => toMonthly(e.amount, e.frequency)));
+  const essentialLiving = sum(spending.filter((e) => e.need === 'necessary').map((e) => toMonthly(e.amount, e.frequency)));
   const monthlyDebtPayments = sum(p.liabilities.map((l) => l.monthlyPayment));
   const liquidAssets = sum(p.assets.filter((a) => LIQUID_ASSETS.has(a.kind)).map((a) => a.value));
   const investedAssets = sum(p.assets.filter((a) => INVESTED_ASSETS.has(a.kind)).map((a) => a.value));
@@ -69,7 +75,8 @@ export function computeMetrics(p: FinancialProfile): Metrics {
     monthlyIncome,
     monthlyExpenses,
     monthlyDebtPayments,
-    monthlySurplus: monthlyIncome - monthlyExpenses - monthlyDebtPayments,
+    monthlyInvesting,
+    monthlySurplus: monthlyIncome - monthlyExpenses - monthlyDebtPayments - monthlyInvesting,
     essentialMonthly,
     savingsRate: hasIncome ? (monthlyIncome - monthlyExpenses - monthlyDebtPayments) / monthlyIncome : null,
     debtToIncome: hasIncome ? monthlyDebtPayments / monthlyIncome : null,
@@ -107,6 +114,14 @@ export function requiredMonthly(target: Paise, saved: Paise, months: number, ann
 }
 
 export type GoalStatus = 'achieved' | 'on_track' | 'at_risk' | 'behind' | 'no_date';
+
+export const STATUS_LABEL: Record<GoalStatus, string> = {
+  achieved: 'Achieved',
+  on_track: 'On track',
+  at_risk: 'At risk',
+  behind: 'Behind',
+  no_date: 'No date',
+};
 
 export interface GoalPlan {
   goal: Goal;
@@ -217,14 +232,14 @@ export function healthScore(p: FinancialProfile, m: Metrics, plans: GoalPlan[]):
       label: 'Savings rate',
       weight: 25,
       value: m.savingsRate === null ? null : clamp01(m.savingsRate / 0.2),
-      explanation: 'Full marks at 20% or more of income saved each month.',
+      explanation: 'Full marks at 20% or more of income saved or invested each month.',
     },
     {
       key: 'emergency',
       label: 'Emergency fund',
       weight: 25,
       value: m.emergencyMonths === null ? null : clamp01(m.emergencyMonths / 6),
-      explanation: 'Full marks at 6 months of essential spending and loan payments in savings or deposits.',
+      explanation: 'Full marks at 6 months of necessary spending and loan payments in savings or deposits.',
     },
     {
       key: 'debt',
@@ -274,7 +289,7 @@ export function suggestGoals(p: FinancialProfile, m: Metrics, goals: Goal[]): Go
       category: 'emergency_fund',
       label: 'Emergency fund',
       target: m.essentialMonthly * 6,
-      reason: `Six months of essential spending and loan payments (${Math.round((m.emergencyMonths ?? 0) * 10) / 10} months covered now).`,
+      reason: `Six months of necessary spending and loan payments (${Math.round((m.emergencyMonths ?? 0) * 10) / 10} months covered now).`,
     });
   }
   const costly = p.liabilities.filter((l) => l.kind === 'credit_card' || l.kind === 'personal_loan' || (l.interestRate ?? 0) >= 12);
@@ -293,4 +308,190 @@ export function suggestGoals(p: FinancialProfile, m: Metrics, goals: Goal[]): Go
     out.push({ category: 'retirement', label: 'Retirement', target: m.fiTarget ?? 0, reason: 'Long-term goals benefit most from starting early.' });
   }
   return out;
+}
+
+// --- spending breakdown --------------------------------------------------------
+export type SliceKey = 'necessary' | 'discretionary' | 'unnecessary' | 'debt' | 'investments' | 'savings';
+
+export interface Slice {
+  key: SliceKey;
+  label: string;
+  /** Monthly amount. */
+  amount: Paise;
+}
+
+export const SLICE_LABELS: Record<SliceKey, string> = {
+  necessary: 'Necessary',
+  discretionary: 'Discretionary',
+  unnecessary: 'Unnecessary',
+  debt: 'Loan payments',
+  investments: 'Investments',
+  savings: 'Left to save',
+};
+
+/**
+ * Where each month's income goes. Slices with no amount are left out. When
+ * spending exceeds income there is nothing left to save (warnings cover it).
+ */
+export function spendingBreakdown(p: FinancialProfile, m: Metrics): Slice[] {
+  const byNeed = (need: Need) =>
+    sum(p.expenses.filter((e) => e.category !== 'investments' && e.need === need).map((e) => toMonthly(e.amount, e.frequency)));
+  const amounts: Record<SliceKey, Paise> = {
+    necessary: byNeed('necessary'),
+    discretionary: byNeed('discretionary'),
+    unnecessary: byNeed('unnecessary'),
+    debt: m.monthlyDebtPayments,
+    investments: m.monthlyInvesting,
+    savings: Math.max(0, m.monthlySurplus),
+  };
+  return (Object.keys(amounts) as SliceKey[]).filter((k) => amounts[k] > 0).map((key) => ({ key, label: SLICE_LABELS[key], amount: amounts[key] }));
+}
+
+// --- warnings -----------------------------------------------------------------
+export type Severity = 'critical' | 'serious' | 'warning';
+
+export interface Warning {
+  key: string;
+  severity: Severity;
+  title: string;
+  detail: string;
+  /** In-app route for the details or the fix. */
+  link: string;
+}
+
+/** Days without a saved update after which the user is reminded. */
+export const UPDATE_REMINDER_DAYS = 7;
+
+export function daysSince(epochMs: number | undefined, now: Date): number | null {
+  return epochMs ? Math.floor((now.getTime() - epochMs) / 86_400_000) : null;
+}
+
+const pct = (x: number) => `${Math.round(x * 100)}%`;
+
+/**
+ * Deterministic warnings, most severe first. Thresholds are common planning
+ * rules of thumb, stated in each message so the user can judge them.
+ */
+export function financialWarnings(p: FinancialProfile, m: Metrics, plans: GoalPlan[], now: Date): Warning[] {
+  const out: Warning[] = [];
+  const inr = (x: Paise) => formatInr(x);
+  const idle = daysSince(p.updatedAt, now);
+  if (idle !== null && idle > UPDATE_REMINDER_DAYS) {
+    out.push({
+      key: 'stale',
+      severity: 'serious',
+      title: `No updates for ${idle} days`,
+      detail: 'Log what changed (spending, income, savings) so ArthaPath can track trends and warn you early if a goal slips.',
+      link: '/app/updates',
+    });
+  }
+  if (m.monthlyIncome > 0) {
+    if (m.monthlySurplus < 0) {
+      out.push({
+        key: 'overspending',
+        severity: 'critical',
+        title: 'Spending more than you earn',
+        detail: `Expenses, loan payments, and investments exceed income by ${inr(-m.monthlySurplus)} a month.`,
+        link: '/app/details/savings',
+      });
+    } else if (m.savingsRate !== null && m.savingsRate < 0.1) {
+      out.push({
+        key: 'low_savings',
+        severity: 'warning',
+        title: 'Low savings',
+        detail: `You save or invest ${pct(m.savingsRate)} of income. Many plans aim for at least 20%.`,
+        link: '/app/details/savings',
+      });
+    }
+    const spent = (m.monthlyExpenses + m.monthlyDebtPayments) / m.monthlyIncome;
+    if (spent > 0.8 && m.monthlySurplus >= 0) {
+      out.push({
+        key: 'high_spending',
+        severity: 'serious',
+        title: 'Most of your income is spent',
+        detail: `Expenses and loan payments take ${pct(spent)} of income.`,
+        link: '/app/details/necessary',
+      });
+    }
+    const unnecessary = sum(p.expenses.filter((e) => e.category !== 'investments' && e.need === 'unnecessary').map((e) => toMonthly(e.amount, e.frequency)));
+    if (unnecessary / m.monthlyIncome > 0.1) {
+      out.push({
+        key: 'unnecessary',
+        severity: 'warning',
+        title: 'Spending you marked unnecessary',
+        detail: `${inr(unnecessary)} a month (${pct(unnecessary / m.monthlyIncome)} of income) goes to spending you marked unnecessary.`,
+        link: '/app/details/unnecessary',
+      });
+    }
+    if (m.debtToIncome !== null && m.debtToIncome > 0.4) {
+      out.push({
+        key: 'debt',
+        severity: 'serious',
+        title: 'High loan payments',
+        detail: `Loan payments take ${pct(m.debtToIncome)} of income. Lenders often treat more than 40% as stretched.`,
+        link: '/app/details/debt',
+      });
+    }
+  }
+  if (m.essentialMonthly > 0 && (m.emergencyMonths ?? 0) < 3) {
+    const months = m.emergencyMonths ?? 0;
+    out.push({
+      key: 'emergency',
+      severity: months < 1 ? 'serious' : 'warning',
+      title: months < 1 ? 'No emergency fund' : 'Small emergency fund',
+      detail: `Savings and deposits cover ${Math.round(months * 10) / 10} months of necessary spending and loan payments. Aim for 3 to 6.`,
+      link: '/app/details/emergency',
+    });
+  }
+  for (const g of plans) {
+    if (g.status === 'behind' || g.status === 'at_risk') {
+      out.push({
+        key: `goal:${g.goal.id}`,
+        severity: g.status === 'behind' ? 'serious' : 'warning',
+        title: `${g.goal.label} is ${g.status === 'behind' ? 'behind schedule' : 'at risk'}`,
+        detail: `Needs ${inr(g.requiredMonthly ?? 0)} a month; your plan can set aside ${inr(g.allocated)}.`,
+        link: `/app/details/goal/${g.goal.id}`,
+      });
+    } else if (g.status !== 'achieved' && g.monthsLeft !== null && g.monthsLeft <= 12) {
+      out.push({
+        key: `upcoming:${g.goal.id}`,
+        severity: 'warning',
+        title: `${g.goal.label} is coming up`,
+        detail: `Due in ${g.monthsLeft} month${g.monthsLeft === 1 ? '' : 's'}; ${inr(g.remaining)} still needed.`,
+        link: `/app/details/goal/${g.goal.id}`,
+      });
+    }
+  }
+  const rank: Record<Severity, number> = { critical: 0, serious: 1, warning: 2 };
+  return out.sort((a, b) => rank[a.severity] - rank[b.severity]);
+}
+
+// --- date ranges for detail filters -------------------------------------------------
+export type Period = 'day' | 'week' | 'month' | 'year' | 'custom';
+
+/** Inclusive start and exclusive end (local time) for a filter period. Weeks start on Monday. */
+export function periodRange(period: Period, now: Date, custom?: { from: string; to: string }): { from: Date; to: Date } | null {
+  const y = now.getFullYear();
+  const mo = now.getMonth();
+  const d = now.getDate();
+  switch (period) {
+    case 'day':
+      return { from: new Date(y, mo, d), to: new Date(y, mo, d + 1) };
+    case 'week': {
+      const offset = (now.getDay() + 6) % 7;
+      return { from: new Date(y, mo, d - offset), to: new Date(y, mo, d - offset + 7) };
+    }
+    case 'month':
+      return { from: new Date(y, mo, 1), to: new Date(y, mo + 1, 1) };
+    case 'year':
+      return { from: new Date(y, 0, 1), to: new Date(y + 1, 0, 1) };
+    case 'custom': {
+      if (!custom?.from || !custom.to) return null;
+      const [fy, fm, fd] = custom.from.split('-').map(Number);
+      const [ty, tm, td] = custom.to.split('-').map(Number);
+      const from = new Date(fy!, fm! - 1, fd!);
+      const to = new Date(ty!, tm! - 1, td! + 1);
+      return from < to ? { from, to } : null;
+    }
+  }
 }

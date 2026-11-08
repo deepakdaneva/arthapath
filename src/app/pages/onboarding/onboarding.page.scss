@@ -210,3 +210,15 @@ input[type='checkbox'] {
 .safety {
   margin: 0 0 4px;
 }
+
+.need {
+  align-self: flex-start;
+  margin-top: 4px;
+  padding: 3px 6px;
+  border-radius: 8px;
+  border: 1px solid var(--ap-border);
+  background: var(--ap-surface);
+  color: var(--ion-text-color);
+  font: inherit;
+  font-size: 0.8rem;
+}
