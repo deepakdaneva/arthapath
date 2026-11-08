@@ -1,0 +1,212 @@
+<ion-content>
+  <div class="ap-container page">
+    <h1>Your finances</h1>
+    <p class="ap-muted intro">
+      Everything here is encrypted on your device. Numbers below come from ArthaPath's calculations, not
+      from AI. Items marked <span class="tag est">Estimate</span> were guessed from what you said; correct
+      them if needed.
+    </p>
+
+    @if (!svc.loaded()) {
+      <ion-spinner name="crescent" aria-label="Loading" />
+    } @else {
+      <section class="ap-card summary" aria-label="Monthly summary">
+        <div><span class="ap-muted">Income</span><strong>{{ fmt(m().monthlyIncome) }}</strong></div>
+        <div><span class="ap-muted">Expenses</span><strong>{{ fmt(m().monthlyExpenses) }}</strong></div>
+        <div><span class="ap-muted">Loan payments</span><strong>{{ fmt(m().monthlyDebtPayments) }}</strong></div>
+        <div><span class="ap-muted">Surplus</span><strong [class.neg]="m().monthlySurplus < 0">{{ fmt(m().monthlySurplus) }}</strong></div>
+      </section>
+
+      <!-- Income, expenses, loans, assets -->
+      @for (sec of [
+        { key: 'incomes', title: 'Income', items: p().incomes },
+        { key: 'expenses', title: 'Expenses', items: p().expenses },
+        { key: 'liabilities', title: 'Loans and credit cards', items: p().liabilities },
+        { key: 'assets', title: 'Savings and investments', items: p().assets }
+      ]; track sec.key) {
+        <section class="ap-card section" [attr.aria-labelledby]="'h-' + sec.key">
+          <div class="head">
+            <h2 [id]="'h-' + sec.key">{{ sec.title }}</h2>
+            <ion-button fill="clear" size="small" (click)="open($any(sec.key))">Add</ion-button>
+          </div>
+          @if (sec.items.length === 0) {
+            <p class="ap-muted small">Nothing added yet.</p>
+          }
+          <ul>
+            @for (it of $any(sec.items); track it.id) {
+              <li>
+                <div class="what">
+                  <strong>{{ it.label }}</strong>
+                  <span class="ap-muted small">
+                    @switch (sec.key) {
+                      @case ('incomes') { {{ label(it.kind) }} · {{ label(it.frequency) }} }
+                      @case ('expenses') { {{ label(it.category) }} · {{ label(it.frequency) }} · {{ label(it.need) }} }
+                      @case ('liabilities') { {{ label(it.kind) }} · EMI {{ fmt(it.monthlyPayment) }}{{ it.interestRate !== undefined ? ' · ' + it.interestRate + '%' : '' }} }
+                      @case ('assets') { {{ label(it.kind) }} }
+                    }
+                  </span>
+                </div>
+                <span class="tag" [class.est]="it.provenance === 'ai_estimate'">{{ provLabel(it.provenance) }}</span>
+                <strong class="amt">{{ fmt(it.amount ?? it.outstanding ?? it.value) }}</strong>
+                <ion-button fill="clear" size="small" color="danger" (click)="svc.removeItem($any(sec.key), it.id)" [attr.aria-label]="'Remove ' + it.label">
+                  <ion-icon slot="icon-only" name="trash-outline" aria-hidden="true" />
+                </ion-button>
+              </li>
+            }
+          </ul>
+          @if (adding() === sec.key) {
+            <ng-container *ngTemplateOutlet="addForm" />
+          }
+        </section>
+      }
+
+      <!-- Family and insurance -->
+      <section class="ap-card section" aria-labelledby="h-family">
+        <div class="head">
+          <h2 id="h-family">Family</h2>
+          <ion-button fill="clear" size="small" (click)="open('family')">Add</ion-button>
+        </div>
+        <ul>
+          @for (f of p().family; track f.id) {
+            <li>
+              <div class="what">
+                <strong>{{ f.relation }}</strong>
+                <span class="ap-muted small">{{ f.age !== undefined ? 'Age ' + f.age + ' · ' : '' }}{{ f.dependent ? 'Dependent' : 'Not dependent' }}</span>
+              </div>
+              <ion-button fill="clear" size="small" color="danger" (click)="svc.removeItem('family', f.id)" [attr.aria-label]="'Remove ' + f.relation">
+                <ion-icon slot="icon-only" name="trash-outline" aria-hidden="true" />
+              </ion-button>
+            </li>
+          }
+        </ul>
+        @if (adding() === 'family') {
+          <ng-container *ngTemplateOutlet="addForm" />
+        }
+        <div class="insurance">
+          <label><input type="checkbox" [checked]="!!p().insurance.health" (change)="setInsurance('health', $any($event.target).checked)" /> I have health insurance</label>
+          <label><input type="checkbox" [checked]="!!p().insurance.term" (change)="setInsurance('term', $any($event.target).checked)" /> I have term life insurance</label>
+        </div>
+      </section>
+
+      <!-- Goals -->
+      <section class="ap-card section" aria-labelledby="h-goals">
+        <div class="head">
+          <h2 id="h-goals">Goals, in priority order</h2>
+          <ion-button fill="clear" size="small" (click)="open('goals')">Add</ion-button>
+        </div>
+        <p class="ap-muted small">
+          ArthaPath orders goals by importance, urgency, and what your surplus can fund. Move a goal to set
+          your own order.
+        </p>
+        <ol class="goals">
+          @for (g of orderedGoals(); track g.goal.id; let first = $first, last = $last) {
+            <li>
+              <div class="what">
+                <strong>{{ g.rank }}. {{ g.goal.label }}</strong>
+                <span class="ap-muted small">
+                  {{ fmt(g.goal.saved) }} of {{ fmt(g.goal.target) }}{{ g.goal.targetDate ? ' by ' + g.goal.targetDate : '' }}
+                  @if (g.requiredMonthly !== null && g.status !== 'achieved') {
+                    · needs {{ fmt(g.requiredMonthly) }}/month
+                  }
+                </span>
+                <span class="status {{ g.status }}">{{ statusLabel(g.status) }}</span>
+                @for (r of g.reasons; track r) {
+                  <span class="reason small">{{ r }}</span>
+                }
+              </div>
+              <div class="goal-actions">
+                <ion-button fill="clear" size="small" [disabled]="first" (click)="moveGoal(g.goal.id, -1)" [attr.aria-label]="'Move ' + g.goal.label + ' up'">
+                  <ion-icon slot="icon-only" name="arrow-up-outline" aria-hidden="true" />
+                </ion-button>
+                <ion-button fill="clear" size="small" [disabled]="last" (click)="moveGoal(g.goal.id, 1)" [attr.aria-label]="'Move ' + g.goal.label + ' down'">
+                  <ion-icon slot="icon-only" name="arrow-down-outline" aria-hidden="true" />
+                </ion-button>
+                <ion-button fill="clear" size="small" color="danger" (click)="svc.removeGoal(g.goal.id)" [attr.aria-label]="'Remove ' + g.goal.label">
+                  <ion-icon slot="icon-only" name="trash-outline" aria-hidden="true" />
+                </ion-button>
+              </div>
+            </li>
+          }
+        </ol>
+        @if (adding() === 'goals') {
+          <ng-container *ngTemplateOutlet="addForm" />
+        }
+      </section>
+
+      <!-- Assumptions -->
+      <section class="ap-card section" aria-labelledby="h-assume">
+        <h2 id="h-assume">Assumptions</h2>
+        <p class="ap-muted small">Used for projections. Returns are never guaranteed; 0% is the conservative default.</p>
+        <div class="assume">
+          <label>Expected annual return on goal savings (%)
+            <input type="number" min="0" max="30" step="0.5" [value]="p().assumptions.expectedReturn" (change)="setAssumption('expectedReturn', $any($event.target).value)" />
+          </label>
+          <label>Inflation (%)
+            <input type="number" min="0" max="30" step="0.5" [value]="p().assumptions.inflation" (change)="setAssumption('inflation', $any($event.target).value)" />
+          </label>
+          <label>Financial independence multiple (× annual expenses)
+            <input type="number" min="10" max="50" step="1" [value]="p().assumptions.fiMultiple" (change)="setAssumption('fiMultiple', $any($event.target).value)" />
+          </label>
+        </div>
+      </section>
+    }
+  </div>
+</ion-content>
+
+<ng-template #addForm>
+  <form class="add" (ngSubmit)="add()" novalidate>
+    @if (adding() !== 'family') {
+      <label>Type
+        <select [ngModel]="draft().type" (ngModelChange)="patch({ type: $event })" name="type">
+          @for (t of typeOptions(); track t) {
+            <option [value]="t">{{ label(t) }}</option>
+          }
+        </select>
+      </label>
+    }
+    <label>{{ adding() === 'family' ? 'Relation' : 'Name (optional)' }}
+      <input [ngModel]="draft().label" (ngModelChange)="patch({ label: $event })" name="label" maxlength="60" />
+    </label>
+    @if (adding() === 'family') {
+      <label>Age <input type="number" min="0" max="119" [ngModel]="draft().age" (ngModelChange)="patch({ age: '' + ($event ?? '') })" name="age" /></label>
+      <label class="check"><input type="checkbox" [ngModel]="draft().dependent" (ngModelChange)="patch({ dependent: $event })" name="dependent" /> Depends on my income</label>
+    } @else {
+      <label>{{ adding() === 'goals' ? 'Target (₹)' : adding() === 'liabilities' ? 'Outstanding (₹)' : adding() === 'assets' ? 'Current value (₹)' : 'Amount (₹)' }}
+        <input inputmode="numeric" [ngModel]="draft().amount" (ngModelChange)="patch({ amount: $event })" name="amount" />
+      </label>
+    }
+    @if (adding() === 'incomes' || adding() === 'expenses') {
+      <label>How often
+        <select [ngModel]="draft().frequency" (ngModelChange)="patch({ frequency: $event })" name="freq">
+          @for (f of frequencies; track f) {
+            <option [value]="f">{{ label(f) }}</option>
+          }
+        </select>
+      </label>
+    }
+    @if (adding() === 'expenses') {
+      <label>How needed
+        <select [ngModel]="draft().need" (ngModelChange)="patch({ need: $event })" name="need">
+          @for (n of needs; track n) {
+            <option [value]="n">{{ label(n) }}</option>
+          }
+        </select>
+      </label>
+    }
+    @if (adding() === 'liabilities') {
+      <label>Monthly payment / EMI (₹) <input inputmode="numeric" [ngModel]="draft().payment" (ngModelChange)="patch({ payment: $event })" name="payment" /></label>
+      <label>Interest rate (% a year) <input inputmode="decimal" [ngModel]="draft().rate" (ngModelChange)="patch({ rate: $event })" name="rate" /></label>
+    }
+    @if (adding() === 'goals') {
+      <label>Saved so far (₹) <input inputmode="numeric" [ngModel]="draft().saved" (ngModelChange)="patch({ saved: $event })" name="saved" /></label>
+      <label>Target month <input type="month" [ngModel]="draft().date" (ngModelChange)="patch({ date: $event })" name="date" /></label>
+    }
+    @if (error()) {
+      <p class="ap-error" role="alert">{{ error() }}</p>
+    }
+    <div class="row">
+      <ion-button type="submit" size="small" [disabled]="busy()">Save</ion-button>
+      <ion-button fill="clear" size="small" (click)="adding.set(null)">Cancel</ion-button>
+    </div>
+  </form>
+</ng-template>

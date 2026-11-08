@@ -1,0 +1,7 @@
+{
+  "projects": {
+    "default": "demo-arthapath",
+    "uat": "arthapath-uat",
+    "prod": "arthapath-prod"
+  }
+}

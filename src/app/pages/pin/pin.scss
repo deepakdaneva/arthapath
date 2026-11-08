@@ -1,0 +1,106 @@
+.wrap {
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 16px;
+}
+
+.panel {
+  width: 100%;
+  max-width: 460px;
+  padding: 28px;
+
+  h1 {
+    margin: 8px 0 8px;
+    font-size: 1.5rem;
+  }
+
+  form {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    margin-top: 16px;
+  }
+}
+
+.icon {
+  font-size: 40px;
+  color: var(--ion-color-secondary);
+}
+
+.warn {
+  margin: 16px 0 0;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: rgba(var(--ion-color-warning-rgb), 0.12);
+  border-left: 4px solid var(--ion-color-warning);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.danger {
+  background: rgba(var(--ion-color-danger-rgb), 0.1);
+  border-left-color: var(--ion-color-danger);
+}
+
+ul {
+  padding-left: 20px;
+  line-height: 1.6;
+  font-size: 0.925rem;
+}
+
+// Long checkbox labels wrap instead of being cut off with an ellipsis.
+ion-checkbox::part(label) {
+  white-space: normal;
+  line-height: 1.4;
+}
+
+.strength {
+  font-size: 0.8rem;
+
+  &.weak {
+    color: var(--ion-color-danger);
+  }
+  &.fair {
+    color: var(--ion-color-warning);
+  }
+  &.strong {
+    color: var(--ion-color-success);
+  }
+}
+
+.links {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 16px;
+  font-size: 0.875rem;
+
+  button {
+    background: none;
+    border: 0;
+    padding: 0;
+    color: var(--ion-color-secondary);
+    font: inherit;
+    cursor: pointer;
+  }
+}
+
+.bio {
+  margin-bottom: 12px;
+}
+
+.offer {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  text-align: center;
+
+  h2 {
+    margin: 0;
+    font-size: 1.15rem;
+  }
+}

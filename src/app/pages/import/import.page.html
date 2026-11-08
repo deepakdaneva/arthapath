@@ -1,0 +1,128 @@
+<ion-content>
+  <div class="ap-container page">
+    <a routerLink="/app/updates" class="back">← Updates</a>
+    <h1>Import a statement</h1>
+    <p class="ap-muted intro">
+      Bring in transactions from a bank or card statement: a CSV export, a PDF, or text you paste. The file is
+      read on this device and is never uploaded or kept. You review every row before anything is saved.
+    </p>
+
+    @if (!rows().length && !done()) {
+      <section class="ap-card" aria-labelledby="h-file">
+        <h2 id="h-file">From a file</h2>
+        <label class="file">
+          <span class="sr-only">Choose a CSV or PDF statement</span>
+          <input type="file" accept=".csv,.txt,.pdf,text/csv,application/pdf,text/plain" (change)="onFile($event)" [disabled]="busy()" />
+        </label>
+        <p class="ap-muted small">CSV exports from most Indian banks work (date, narration, withdrawal and deposit columns). PDFs must contain text; scanned images are not supported.</p>
+
+        @if (needPassword()) {
+          <form class="password" (ngSubmit)="readPdf()">
+            <label>
+              This PDF is password-protected. Enter its password (it stays on this device):
+              <input type="password" name="pdfpw" autocomplete="off" [ngModel]="password()" (ngModelChange)="password.set($event ?? '')" />
+            </label>
+            <ion-button type="submit" [disabled]="!password() || busy()">Open</ion-button>
+          </form>
+        }
+      </section>
+
+      <section class="ap-card" aria-labelledby="h-paste">
+        <h2 id="h-paste">Or paste statement text</h2>
+        <label for="paste" class="sr-only">Statement text</label>
+        <textarea id="paste" rows="6" [ngModel]="pasted()" (ngModelChange)="pasted.set($event ?? '')" name="paste"
+          placeholder="05/11/2026 UPI/ZOMATO/Order 450.00 Dr 1,02,550.00"></textarea>
+        <ion-button (click)="readPasted()" [disabled]="!pasted().trim() || busy()">Read</ion-button>
+      </section>
+    }
+
+    @if (busy()) {
+      <p class="ap-muted busy" role="status"><ion-spinner name="crescent" aria-hidden="true" /> {{ status() }}</p>
+    }
+    @if (error()) {
+      <p class="ap-error" role="alert">{{ error() }}</p>
+    }
+
+    @if (rows().length) {
+      <section class="ap-card review" aria-labelledby="h-review">
+        <h2 id="h-review">Review {{ rows().length }} rows</h2>
+        <p class="ap-muted small">
+          {{ kept().length }} selected.
+          @if (duplicates()) {
+            {{ duplicates() }} look like entries you already have and are not selected.
+          }
+          @if (skipped()) {
+            {{ skipped() }} lines without a date and amount were skipped.
+          }
+          @if (aiCount()) {
+            {{ aiCount() }} rows were categorized by your AI provider (marked); please check them.
+          } @else if (!app.prefs().aiCategorizeImports) {
+            Categories come from this device. You can let your AI provider help in
+            <a routerLink="/app/settings">Settings</a>.
+          }
+        </p>
+        <div class="bulk">
+          <button type="button" class="link" (click)="toggleAll(true)">Select all</button>
+          <button type="button" class="link" (click)="toggleAll(false)">Select none</button>
+        </div>
+        <ul class="rows">
+          @for (r of rows(); track r.key) {
+            <li [class.off]="!r.keep">
+              <input type="checkbox" [checked]="r.keep" (change)="patch(r, { keep: !r.keep })" [attr.aria-label]="'Import ' + r.description" />
+              <div class="main">
+                <div class="line1">
+                  <strong>{{ r.description }}</strong>
+                  <span class="amt" [class.in]="r.type === 'income'">{{ r.type === 'income' ? '+' : '' }}{{ fmt(r.amount) }}</span>
+                </div>
+                <div class="line2">
+                  <span class="ap-muted small">{{ r.date }}</span>
+                  @if (r.duplicate) {
+                    <span class="tag dup">Possible duplicate</span>
+                  }
+                  @if (r.byAi) {
+                    <span class="tag ai">AI categorized</span>
+                  }
+                </div>
+                <div class="edit">
+                  <select [ngModel]="r.type" (ngModelChange)="patch(r, { type: $event })" [attr.aria-label]="'Type for ' + r.description" [name]="'t' + r.key">
+                    @for (t of types; track t) {
+                      <option [value]="t">{{ typeLabels[t] }}</option>
+                    }
+                  </select>
+                  @if (r.type === 'expense') {
+                    <select [ngModel]="r.category" (ngModelChange)="patch(r, { category: $event, need: $event === r.category ? r.need : undefined })" [attr.aria-label]="'Category for ' + r.description" [name]="'c' + r.key">
+                      @for (c of categories; track c) {
+                        <option [value]="c">{{ label(c) }}</option>
+                      }
+                    </select>
+                    <select [ngModel]="r.need" (ngModelChange)="patch(r, { need: $event })" [attr.aria-label]="'How needed: ' + r.description" [name]="'n' + r.key">
+                      @for (n of needs; track n) {
+                        <option [value]="n">{{ label(n) }}</option>
+                      }
+                    </select>
+                  }
+                  <input inputmode="decimal" [value]="rupeesOf(r.amount)" (change)="setAmount(r, $any($event.target).value)" [attr.aria-label]="'Amount for ' + r.description" />
+                </div>
+              </div>
+            </li>
+          }
+        </ul>
+        <div class="actions">
+          <ion-button (click)="save()" [disabled]="!kept().length || busy()">Save {{ kept().length }} entr{{ kept().length === 1 ? 'y' : 'ies' }}</ion-button>
+          <ion-button fill="clear" (click)="reset()" [disabled]="busy()">Discard</ion-button>
+        </div>
+      </section>
+    }
+
+    @if (done(); as d) {
+      <section class="ap-card done" role="status">
+        <h2>Imported {{ d.count }} entr{{ d.count === 1 ? 'y' : 'ies' }}</h2>
+        <p class="ap-muted">Your dashboard, trends, and details now include them. The statement file was not kept.</p>
+        <div class="actions">
+          <ion-button routerLink="/app">See dashboard</ion-button>
+          <ion-button fill="outline" (click)="reset()">Import another</ion-button>
+        </div>
+      </section>
+    }
+  </div>
+</ion-content>

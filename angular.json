@@ -1,0 +1,151 @@
+{
+  "$schema": "./node_modules/@angular/cli/lib/config/schema.json",
+  "version": 1,
+  "cli": {
+    "packageManager": "npm",
+    "schematicCollections": [
+      "angular-eslint"
+    ]
+  },
+  "newProjectRoot": "projects",
+  "projects": {
+    "arthapath": {
+      "projectType": "application",
+      "schematics": {
+        "@schematics/angular:component": {
+          "style": "scss"
+        }
+      },
+      "root": "",
+      "sourceRoot": "src",
+      "prefix": "app",
+      "architect": {
+        "build": {
+          "builder": "@angular/build:application",
+          "options": {
+            "browser": "src/main.ts",
+            "tsConfig": "tsconfig.app.json",
+            "inlineStyleLanguage": "scss",
+            "assets": [
+              {
+                "glob": "**/*",
+                "input": "public"
+              },
+              {
+                "glob": "**/*.svg",
+                "input": "node_modules/ionicons/dist/ionicons/svg",
+                "output": "./svg"
+              },
+              {
+                "glob": "pdf.worker.min.mjs",
+                "input": "node_modules/pdfjs-dist/build",
+                "output": "./pdfjs"
+              },
+              {
+                "glob": "*.html",
+                "input": "src/generated/legal",
+                "output": "legal"
+              },
+              {
+                "glob": "version.json",
+                "input": "src/generated",
+                "output": "."
+              }
+            ],
+            "styles": [
+              "src/styles.scss"
+            ],
+            "outputPath": {
+              "base": "www",
+              "browser": ""
+            }
+          },
+          "configurations": {
+            "production": {
+              "budgets": [
+                {
+                  "type": "initial",
+                  "maximumWarning": "1MB",
+                  "maximumError": "1.5MB"
+                },
+                {
+                  "type": "anyComponentStyle",
+                  "maximumWarning": "6kB",
+                  "maximumError": "12kB"
+                }
+              ],
+              "outputHashing": "all",
+              "optimization": {
+                "scripts": true,
+                "styles": {
+                  "minify": true,
+                  "inlineCritical": false
+                },
+                "fonts": true
+              }
+            },
+            "development": {
+              "optimization": false,
+              "extractLicenses": false,
+              "sourceMap": true
+            },
+            "uat": {
+              "budgets": [
+                {
+                  "type": "initial",
+                  "maximumWarning": "1MB",
+                  "maximumError": "1.5MB"
+                },
+                {
+                  "type": "anyComponentStyle",
+                  "maximumWarning": "6kB",
+                  "maximumError": "12kB"
+                }
+              ],
+              "outputHashing": "all",
+              "optimization": {
+                "scripts": true,
+                "styles": {
+                  "minify": true,
+                  "inlineCritical": false
+                },
+                "fonts": true
+              }
+            }
+          },
+          "defaultConfiguration": "production"
+        },
+        "serve": {
+          "builder": "@angular/build:dev-server",
+          "configurations": {
+            "production": {
+              "buildTarget": "arthapath:build:production"
+            },
+            "development": {
+              "buildTarget": "arthapath:build:development"
+            },
+            "uat": {
+              "buildTarget": "arthapath:build:uat"
+            }
+          },
+          "defaultConfiguration": "development"
+        },
+        "test": {
+          "builder": "@angular/build:unit-test",
+          "options": {
+            "runnerConfig": true
+          }
+        },
+        "lint": {
+          "builder": "@angular-eslint/builder:lint",
+          "options": {
+            "lintFilePatterns": [
+              "src/**/*.ts",
+              "src/**/*.html"
+            ]
+          }
+        }
+      }
+    }
+  }
+}

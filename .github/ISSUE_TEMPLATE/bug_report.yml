@@ -1,0 +1,43 @@
+name: Bug report
+description: Something is not working as expected.
+labels: ["bug", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **Never include real financial data, API keys, or your PIN.** Redact screenshots.
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: Describe the bug and what you expected instead.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: "1. Go to ...\n2. Click ...\n3. See error"
+    validations:
+      required: true
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Platform
+      options: ["Web (desktop)", "Web (mobile)", "Android", "iOS", "Other"]
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: App version or commit
+  - type: dropdown
+    id: env
+    attributes:
+      label: Environment
+      options: ["Production", "UAT", "Self-hosted", "Local emulator"]
+  - type: textarea
+    id: logs
+    attributes:
+      label: Console output (redacted)
+      render: text

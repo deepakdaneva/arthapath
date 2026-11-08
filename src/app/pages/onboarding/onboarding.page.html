@@ -1,0 +1,135 @@
+<ion-content #content>
+  <div class="ap-container thread" aria-live="polite">
+    <div class="top">
+      <h1>Your financial goals</h1>
+      <a routerLink="/app/finances" class="manual">Enter details manually</a>
+    </div>
+    <p class="ap-muted small safety">Messages go to the AI provider you set up, under its terms. Never share ID, card, or account numbers, OTPs, or passwords: ArthaPath removes the ones it recognizes before saving or sending.</p>
+
+    @if (noProvider()) {
+      <div class="ap-card notice" role="note">
+        <p>
+          Onboarding uses the AI provider you configure to understand your words. Add a free key under
+          <a routerLink="/app/ai-providers">AI Providers</a>, or
+          <a routerLink="/app/finances">enter your details manually</a>.
+        </p>
+      </div>
+    }
+
+    @for (t of turns(); track $index) {
+      <div class="msg {{ t.role }}">
+        @if (t.role === 'assistant') {
+          <div class="bubble ap-markdown" [innerHTML]="t.content | markdown"></div>
+        } @else {
+          <div class="bubble">{{ t.content }}</div>
+        }
+      </div>
+    }
+
+    @if (busy()) {
+      <div class="msg assistant"><div class="bubble typing" aria-label="Thinking">…</div></div>
+    }
+
+    @if (rows().length) {
+      <section class="ap-card review" aria-labelledby="review-title">
+        <h2 id="review-title">Check what I understood</h2>
+        <p class="ap-muted small">Correct any amount, untick anything wrong, then save. Nothing is stored until you save.</p>
+        <ul>
+          @for (r of rows(); track r.id) {
+            <li [class.off]="!r.keep">
+              <input type="checkbox" [checked]="r.keep" (change)="toggle(r)" [attr.aria-label]="'Keep ' + r.label" />
+              <div class="what">
+                <strong>{{ r.label }}</strong>
+                <span class="ap-muted small">{{ r.detail }}</span>
+                @if (r.estimated) {
+                  <span class="tag">Estimate: please confirm</span>
+                }
+                @if (r.need) {
+                  <select class="need" [value]="r.need" (change)="setNeed(r, $any($event.target).value)" [disabled]="!r.keep" [attr.aria-label]="'How needed is ' + r.label">
+                    @for (n of needs; track n) {
+                      <option [value]="n" [selected]="n === r.need">{{ n[0]!.toUpperCase() + n.slice(1) }}</option>
+                    }
+                  </select>
+                }
+              </div>
+              @if (r.amount !== null) {
+                <label class="amount">
+                  <span class="sr-only">Amount in rupees for {{ r.label }}</span>
+                  <span aria-hidden="true">₹</span>
+                  <input
+                    type="text"
+                    inputmode="numeric"
+                    [value]="r.amount"
+                    (change)="setAmount(r, $any($event.target).value)"
+                    [disabled]="!r.keep"
+                  />
+                </label>
+              }
+            </li>
+          }
+        </ul>
+        <div class="row">
+          <ion-button (click)="confirm()" [disabled]="saving()">
+            @if (saving()) {
+              <ion-spinner name="crescent" aria-label="Saving" />
+            } @else {
+              Save these details
+            }
+          </ion-button>
+          <ion-button fill="clear" (click)="discard()" [disabled]="saving()">Discard</ion-button>
+        </div>
+      </section>
+    }
+
+    @if (profile.openQuestions().length && !rows().length) {
+      <section class="ap-card questions" aria-labelledby="q-title">
+        <h2 id="q-title">Still useful to know</h2>
+        <ul>
+          @for (q of profile.openQuestions(); track q.id) {
+            <li>
+              <div>
+                <strong>{{ q.question }}</strong>
+                <span class="ap-muted small">{{ q.why }}{{ q.optional ? ' (optional)' : '' }}</span>
+              </div>
+              <ion-button fill="clear" size="small" (click)="profile.dismissQuestion(q.id)" [attr.aria-label]="'Dismiss: ' + q.question">
+                <ion-icon slot="icon-only" name="close-outline" aria-hidden="true" />
+              </ion-button>
+            </li>
+          }
+        </ul>
+      </section>
+    }
+
+    @if (error()) {
+      <p class="ap-error" role="alert">{{ error() }}</p>
+    }
+
+    @if ((done() || profile.hasData()) && !rows().length) {
+      <ion-button expand="block" class="finish" (click)="finish()">See my plan</ion-button>
+    }
+  </div>
+</ion-content>
+@if (!rows().length) {
+  <div class="starters" role="group" aria-label="Start with a template">
+    @for (s of starters; track s.label) {
+      <button type="button" class="chip" (click)="text.set(s.text)">{{ s.label }}</button>
+    }
+  </div>
+}
+<form class="composer" (ngSubmit)="send()">
+  <ion-textarea
+    aria-label="Describe your finances"
+    placeholder="Tell me about your income, expenses, loans, savings, and goals…"
+    [autoGrow]="true"
+    [rows]="1"
+    [maxlength]="4000"
+    name="text"
+    [disabled]="!!rows().length"
+    [ngModel]="text()"
+    (ngModelChange)="text.set($event ?? '')"
+    (keydown.enter)="onEnter($event)"
+  />
+  <ion-button type="submit" [disabled]="!text().trim() || busy() || !!rows().length" aria-label="Send">
+    <ion-icon slot="icon-only" name="send" aria-hidden="true" />
+  </ion-button>
+</form>

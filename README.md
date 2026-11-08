@@ -7,9 +7,11 @@ management app. Describe your finances in plain language, and ArthaPath builds
 a private, encrypted financial profile, a live dashboard, and a prioritized
 goal plan. You bring your own AI keys, from any supported provider.
 
-> **Status:** early development. Phase 1 (repository foundation) is in
-> progress. Track progress in [docs/PROJECT_STATUS.md](docs/PROJECT_STATUS.md).
-> Features below describe the target v1 scope, not shipped functionality.
+> **Status:** version 1.0. Try it at <https://arthapath-prod.web.app>, or
+> install the Android app from [Releases](https://github.com/deepakdaneva/arthapath/releases).
+> Progress and plans: [docs/PROJECT_STATUS.md](docs/PROJECT_STATUS.md).
+
+![ArthaPath dashboard](docs/screenshots/dashboard-dark.png)
 
 ## Why ArthaPath
 
@@ -27,17 +29,41 @@ goal plan. You bring your own AI keys, from any supported provider.
 - **Free to run.** Built entirely on the Firebase Spark (no-cost) plan.
   Anyone can deploy their own copy.
 
-## Planned v1 features
+## Features
 
-- Conversational onboarding: income, expenses, loans, family, assets, goals.
-- Dynamic dashboard: health score, cash flow, net worth, goal progress,
-  financial-independence estimate, interactive drill-down charts.
-- *Today's Updates*: log transactions in natural language ("Spent ₹500 on
-  groceries via UPI") and review before saving.
-- Statement import: CSV and PDF parsed on your device; review before import.
-- Pending questions: the assistant asks only for what it is missing.
-- Finance-only guardrails.
-- Web, Android; iOS later.
+- **Dashboard:** financial health score, where each month's income goes
+  (necessary, lifestyle, discretionary, unnecessary, investments), goals,
+  net worth, financial independence, and monthly trends. Every figure
+  drills down to the items and the calculation behind it.
+- **Early warnings:** goals falling behind, a thin emergency fund, spending
+  over plan, and a reminder when updates stop.
+- **Updates:** log activity in plain language ("Spent ₹500 on groceries via
+  UPI"), review it, and see what it means for your plan.
+- **Statement import:** CSV, PDF, or pasted text, read on your device and
+  never uploaded. Duplicates are flagged and every row is reviewed.
+- **AI chat and analysis:** ask about your finances or request an analysis;
+  the AI explains the app's calculated numbers. ID numbers and secrets are
+  removed on the device before anything is sent.
+- **Questions:** the app asks only for what it is missing.
+- Light and dark themes; works on phone and desktop.
+
+## Screenshots
+
+| | |
+|---|---|
+| ![Dashboard](docs/screenshots/dashboard.png) | ![Phone](docs/screenshots/mobile-dashboard.png) |
+| **Dashboard** with drill-down charts | **Phone** layout |
+| ![Chat](docs/screenshots/chat.png) | ![Analysis](docs/screenshots/analysis.png) |
+| **AI chat** with your own key | **Analysis** on request |
+| ![Updates](docs/screenshots/updates.png) | ![Import](docs/screenshots/import.png) |
+| **Updates** in plain language | **Statement import** on the device |
+| ![Details](docs/screenshots/details.png) | ![Your finances](docs/screenshots/finances.png) |
+| **Details** behind every figure | **Your finances** by form or chat |
+| ![AI providers](docs/screenshots/ai-providers.png) | ![Landing](docs/screenshots/landing.png) |
+| **AI providers** with automatic fallback | **Landing page** |
+
+Screenshots use a demo account with made-up numbers
+(`npm run screenshots` regenerates them).
 
 ## Technology
 
@@ -56,8 +82,11 @@ and the [ADRs](docs/architecture/ADR/).
 
 ## Getting started
 
-The application code lands in Phase 3. Until then, the docs below describe
-the setup that will apply:
+```bash
+npm ci
+npm run emulators   # terminal 1
+npm start           # terminal 2, http://localhost:4200
+```
 
 - Prerequisites and local setup: [docs/development/LOCAL_SETUP.md](docs/development/LOCAL_SETUP.md)
 - Firebase setup (your own projects): [docs/deployment/FIREBASE_SETUP.md](docs/deployment/FIREBASE_SETUP.md)

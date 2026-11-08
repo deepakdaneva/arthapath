@@ -1,0 +1,31 @@
+# Features
+
+Status key: **Planned**, **In progress**, **Done** (done means implemented
+and tested, not just UI).
+
+| Feature | Phase | Status |
+|---|---|---|
+| Public landing page | 3 | Done |
+| Google and email/password sign-in | 3 | Done (web); Android Google sign-in pending native plugin |
+| Profile menu, bottom navigation (Chat, Updates), FAB | 3 | Done (Updates arrive in later phases) |
+| Light and dark themes (navy + teal) | 3 | Done (also a one-tap switcher in the account menu) |
+| Delete account (data, profile, sign-in) | 4 | Done |
+| Build version shown in app; reload prompt on new deploy | 4 | Done |
+| Notifications bell | Later | Placeholder (no notifications yet) |
+| Current AI indicator next to the logo, blinks on provider switch | 4–5 | Done (indicator); provider data arrives in Phase 5 |
+| PIN setup, unlock, change, session lock | 4 | Done |
+| Client-side encryption of all financial data and AI keys | 4 | Done (encryption layer; AI keys use it in Phase 5) |
+| Biometric unlock | Later | Deferred (PIN only in v1) |
+| BYOK AI: Gemini, Groq, OpenRouter, custom OpenAI-compatible | 5 | Done (custom endpoints from an allowlist) |
+| Multiple keys, priority, automatic fallback with notices | 5 | Done |
+| Provider-independent conversation context | 5 | Done (financial snapshot filled in Phase 6) |
+| Finance-only guardrails | 5 | Done |
+| Conversational onboarding (extract, review and correct, save) with starter templates | 6 | Done |
+| Financial engine and goal prioritization | 6 | Done |
+| Dynamic interactive dashboard with drill-down | 7 | Done (spending donut, net worth bars, goal cards, FI progress, warnings, details pages with period filters; trend charts and transaction lists fill in with Phase 8) |
+| Updates: natural-language transaction entry, at any cadence (daily, weekly, monthly) | 8 | Done (on-device parser, AI fallback without an amount, review, plan vs actual, impact, trends, goal contributions) |
+| CSV and PDF statement import, duplicate detection | 9 | Done (CSV in common bank layouts, text PDFs incl. password-protected, pasted text; review; optional AI categorization switch in Settings) |
+| Pending questions with Chat badge | 6–9 | Done (AI questions plus gaps found in the data; why and what depends on each; answer, yes/no for insurance, or skip) |
+| AI analysis history and calculated recommendations | 9 | Done (on request, nudged when due; saved encrypted with the figures at the time) |
+| Android build | 3–10 | In progress (Capacitor project added) |
+| iOS build | Later | Deferred |

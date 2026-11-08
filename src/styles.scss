@@ -1,0 +1,202 @@
+/* Ionic core and utilities */
+@use '@ionic/angular/css/core.css';
+@use '@ionic/angular/css/normalize.css';
+@use '@ionic/angular/css/structure.css';
+@use '@ionic/angular/css/typography.css';
+@use '@ionic/angular/css/padding.css';
+@use '@ionic/angular/css/flex-utils.css';
+@use '@ionic/angular/css/display.css';
+/* Dark palette applied when <html> has .ion-palette-dark (ThemeService) */
+@use '@ionic/angular/css/palettes/dark.class.css';
+
+@use './theme/variables';
+
+html,
+body {
+  font-family: var(--ion-font-family);
+}
+
+.ap-container {
+  width: 100%;
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+.ap-card {
+  background: var(--ap-surface);
+  border: 1px solid var(--ap-border);
+  border-radius: 20px;
+  padding: 20px;
+}
+
+.ap-muted {
+  color: var(--ap-text-muted);
+}
+
+.ap-eyebrow {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ion-color-secondary);
+}
+
+.ap-error {
+  color: var(--ion-color-danger);
+  font-size: 0.875rem;
+}
+
+// Top-bar popovers render outside the shell component, so they are styled here.
+ion-popover.account-menu,
+ion-popover.app-popover {
+  --background: var(--ap-surface);
+  --box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
+}
+
+ion-popover.account-menu {
+  --width: min(320px, calc(100vw - 24px));
+
+  ion-list {
+    background: transparent;
+  }
+
+  ion-item:not(.who) {
+    --background: transparent;
+  }
+}
+
+:focus-visible {
+  outline: 2px solid var(--ion-color-secondary);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Markdown in AI replies (inserted with [innerHTML], so styled globally). */
+.ap-markdown {
+  white-space: normal;
+
+  > :first-child {
+    margin-top: 0;
+  }
+
+  > :last-child {
+    margin-bottom: 0;
+  }
+
+  p,
+  ul,
+  ol,
+  pre,
+  blockquote,
+  table {
+    margin: 0 0 10px;
+  }
+
+  ul,
+  ol {
+    padding-left: 22px;
+  }
+
+  li + li {
+    margin-top: 4px;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-size: 1rem;
+    margin: 14px 0 6px;
+  }
+
+  a {
+    color: var(--ion-color-secondary);
+  }
+
+  code {
+    font-size: 0.9em;
+    padding: 1px 5px;
+    border-radius: 6px;
+    background: var(--ap-surface-2);
+  }
+
+  pre {
+    padding: 10px 12px;
+    border-radius: 10px;
+    background: var(--ap-surface-2);
+    overflow-x: auto;
+
+    code {
+      padding: 0;
+      background: none;
+    }
+  }
+
+  blockquote {
+    padding-left: 12px;
+    border-left: 3px solid var(--ap-border);
+    color: var(--ap-text-muted);
+  }
+
+  table {
+    display: block;
+    max-width: 100%;
+    overflow-x: auto;
+    border-collapse: collapse;
+    font-size: 0.92em;
+  }
+
+  th,
+  td {
+    padding: 6px 10px;
+    border: 1px solid var(--ap-border);
+    text-align: left;
+    vertical-align: top;
+  }
+
+  th {
+    background: var(--ap-surface-2);
+  }
+
+  hr {
+    border: none;
+    border-top: 1px solid var(--ap-border);
+    margin: 12px 0;
+  }
+}
+
+/* reCAPTCHA (App Check) badge: hidden because it covers the add button; the
+   required notice is shown on the sign-in page instead. */
+.grecaptcha-badge {
+  visibility: hidden;
+}
+
+// --- Android edge-to-edge -------------------------------------------------------
+// Newer Android WebViews report the system bars through env(); older ones get
+// --safe-area-inset-* from Capacitor. Use whichever is larger.
+:root {
+  --ion-safe-area-top: max(env(safe-area-inset-top, 0px), var(--safe-area-inset-top, 0px));
+  --ion-safe-area-bottom: max(env(safe-area-inset-bottom, 0px), var(--safe-area-inset-bottom, 0px));
+  --ion-safe-area-left: max(env(safe-area-inset-left, 0px), var(--safe-area-inset-left, 0px));
+  --ion-safe-area-right: max(env(safe-area-inset-right, 0px), var(--safe-area-inset-right, 0px));
+}
+
+// Full-screen pages outside the app shell (no toolbar to carry the inset).
+app-landing ion-content,
+app-auth ion-content,
+app-legal ion-content,
+app-setup-pin ion-content,
+app-unlock ion-content,
+app-welcome ion-content {
+  --padding-top: var(--ion-safe-area-top, 0px);
+  --padding-bottom: var(--ion-safe-area-bottom, 0px);
+}

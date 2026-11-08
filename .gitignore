@@ -45,3 +45,12 @@ Thumbs.db
 !.vscode/extensions.json
 *.log
 npm-debug.log*
+
+# Generated at build time (scripts/write-app-config.mjs)
+src/environments/
+src/generated/
+
+# Playwright
+test-results/
+playwright-report/
+blob-report/

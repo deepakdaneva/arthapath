@@ -1,0 +1,169 @@
+.page {
+  padding-bottom: 96px;
+  max-width: 760px;
+}
+
+.intro {
+  line-height: 1.6;
+}
+
+.empty p {
+  margin: 0 0 6px;
+}
+
+.keys {
+  list-style: none;
+  padding: 0;
+  margin: 16px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.key {
+  padding: 14px 16px 8px;
+
+  &.off {
+    opacity: 0.85;
+  }
+}
+
+.key-main {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.order {
+  flex: none;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 0.8rem;
+  font-weight: 700;
+  background: var(--ap-surface-2);
+}
+
+.key-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  overflow-wrap: anywhere;
+}
+
+.mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.85rem;
+}
+
+.small {
+  font-size: 0.8rem;
+}
+
+.status {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--ion-color-success);
+
+  &.disabled {
+    color: var(--ap-text-muted);
+  }
+  &.cooling,
+  &.model {
+    color: var(--ion-color-warning);
+  }
+  &.invalid {
+    color: var(--ion-color-danger);
+  }
+}
+
+.key-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 8px;
+
+  h2 {
+    margin: 0;
+    font-size: 1.1rem;
+  }
+}
+
+.data-use {
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: rgba(var(--ion-color-warning-rgb), 0.08);
+  border: 1px solid rgba(var(--ion-color-warning-rgb), 0.3);
+
+  p {
+    margin: 6px 0 0;
+    line-height: 1.5;
+  }
+
+  a {
+    color: var(--ion-color-secondary);
+  }
+}
+
+.guide {
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: var(--ap-surface-2);
+  border: 1px solid var(--ap-border);
+
+  summary {
+    cursor: pointer;
+    font-weight: 600;
+  }
+
+  ol {
+    margin: 10px 0 8px;
+    padding-left: 20px;
+    line-height: 1.6;
+  }
+}
+
+.get-key {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--ion-color-secondary);
+  font-size: 0.9rem;
+}
+
+.model-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+
+  ion-input,
+  ion-select {
+    flex: 1 1 240px;
+  }
+}
+
+.ok {
+  color: var(--ion-color-success);
+  font-size: 0.875rem;
+}
+
+.row {
+  display: flex;
+  gap: 8px;
+}
+
+.note {
+  margin-top: 24px;
+  font-size: 0.8rem;
+  line-height: 1.55;
+}

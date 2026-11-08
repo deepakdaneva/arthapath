@@ -1,0 +1,278 @@
+<ion-content>
+  <div class="ap-container page">
+    <app-verify-banner />
+    <p class="ap-muted greeting">Hello{{ firstName() ? ', ' + firstName() : '' }}</p>
+
+    @if (!svc.loaded()) {
+      <ion-spinner name="crescent" aria-label="Loading your plan" />
+    } @else if (!svc.hasData()) {
+      <!-- No financial profile yet: onboarding call to action instead of an empty dashboard. -->
+      <section class="empty" aria-labelledby="start-title">
+        <a class="orb" routerLink="/app/onboarding" aria-describedby="start-sub">
+          <span class="ring" aria-hidden="true"></span>
+          <span class="ring two" aria-hidden="true"></span>
+          <span id="start-title" class="orb-text">Let's start with your financial goals.</span>
+        </a>
+        <p id="start-sub" class="ap-muted sub">
+          Tell ArthaPath about your income, expenses, family, and goals in your own words. Your dashboard
+          builds itself from the conversation.
+        </p>
+        <a class="manual" routerLink="/app/finances">Prefer a form? Enter details manually</a>
+      </section>
+    } @else {
+      @if (allWarnings().length) {
+        <section class="ap-card warnings" aria-labelledby="h-warn">
+          <h2 id="h-warn" class="sr-only">Things to look at</h2>
+          <ul>
+            @for (w of warnings(); track w.key) {
+              <li>
+                <a class="warn {{ w.severity }}" [routerLink]="w.link">
+                  <ion-icon [name]="severityIcon(w.severity)" aria-hidden="true" />
+                  <span class="warn-text">
+                    <strong><span class="sr-only">{{ severityLabel(w.severity) }}: </span>{{ w.title }}</strong>
+                    <span class="ap-muted small">{{ w.detail }}</span>
+                  </span>
+                  <ion-icon name="chevron-forward" class="go" aria-hidden="true" />
+                </a>
+              </li>
+            }
+          </ul>
+          @if (allWarnings().length > 3) {
+            <button type="button" class="more" (click)="showAllWarnings.set(!showAllWarnings())">
+              {{ showAllWarnings() ? 'Show fewer' : 'Show all ' + allWarnings().length }}
+            </button>
+          }
+        </section>
+      }
+
+      @if (svc.openQuestions().length) {
+        <a class="ap-card questions" routerLink="/app/questions">
+          <strong>{{ svc.openQuestions().length }} question{{ svc.openQuestions().length === 1 ? '' : 's' }} to improve your plan</strong>
+          <span class="ap-muted">{{ svc.openQuestions()[0]!.question }}</span>
+        </a>
+      }
+
+      <div class="grid top">
+        <a class="ap-card health" routerLink="/app/details/health" aria-labelledby="h-health">
+          <div class="head">
+            <h2 id="h-health">Financial health</h2>
+            <ion-icon name="chevron-forward" class="go" aria-hidden="true" />
+          </div>
+          @if (health().score !== null) {
+            <p class="score"><strong>{{ health().score }}</strong><span class="ap-muted">/100</span></p>
+          } @else {
+            <p class="ap-muted">Add income and expenses to calculate your score.</p>
+          }
+          <ul class="components">
+            @for (c of health().components; track c.key) {
+              <li>
+                <span>{{ c.label }}</span>
+                @if (c.value !== null) {
+                  <span class="bar" role="meter" [attr.aria-valuenow]="(c.value * 100) | number: '1.0-0'" aria-valuemin="0" aria-valuemax="100" [attr.aria-label]="c.label">
+                    <span [style.width.%]="c.value * 100"></span>
+                  </span>
+                } @else {
+                  <span class="ap-muted small">Not enough data</span>
+                }
+              </li>
+            }
+          </ul>
+          <span class="ap-muted small">See how it's calculated</span>
+        </a>
+
+        <section class="ap-card month" aria-labelledby="h-cash">
+          <h2 id="h-cash">Where each month's income goes</h2>
+          @if (slices().length) {
+            <div class="donut-wrap">
+              <div class="donut">
+                <app-chart [option]="donut()" label="Monthly income split into spending, loan payments, investments, and savings" (pick)="openSlice($event)" />
+                <div class="donut-center" aria-hidden="true">
+                  <span class="ap-muted small">Income</span>
+                  <strong>{{ fmt(m().monthlyIncome) }}</strong>
+                </div>
+              </div>
+              <ul class="legend" aria-label="Monthly breakdown">
+                @for (s of slices(); track s.key) {
+                  <li>
+                    <a [routerLink]="['/app/details', s.key]">
+                      <span class="swatch" [style.background]="s.color" aria-hidden="true"></span>
+                      <span class="name">{{ s.label }}</span>
+                      <span class="val">{{ fmt(s.amount) }}</span>
+                      <span class="ap-muted small pct">{{ s.share !== null ? (s.share | percent: '1.0-0') : '' }}</span>
+                    </a>
+                  </li>
+                }
+              </ul>
+            </div>
+          } @else {
+            <p class="ap-muted">Add income and expenses to see the split.</p>
+          }
+          <dl class="totals">
+            <dt>Savings rate</dt>
+            <dd>{{ m().savingsRate !== null ? (m().savingsRate | percent: '1.0-1') : '—' }}</dd>
+            @if (m().monthlySurplus < 0) {
+              <dt>Shortfall</dt>
+              <dd class="neg"><strong>{{ fmt(-m().monthlySurplus) }}</strong></dd>
+            }
+          </dl>
+        </section>
+      </div>
+
+      <section class="ap-card" aria-labelledby="h-goals">
+        <div class="head">
+          <h2 id="h-goals">Goals</h2>
+          <a routerLink="/app/finances">Manage</a>
+        </div>
+        @if (goalSavings(); as gs) {
+          <p class="ap-muted small overall">
+            Saved {{ fmt(gs.saved) }} of {{ fmt(gs.target) }} across all goals ({{ gs.progress | percent: '1.0-0' }}).
+          </p>
+        }
+        @if (svc.plans().length === 0) {
+          <p class="ap-muted">No goals yet. <a routerLink="/app/onboarding">Tell ArthaPath what you're saving for.</a></p>
+        }
+        <ul class="goal-cards">
+          @for (g of svc.plans(); track g.goal.id) {
+            <li>
+              <a class="goal" [routerLink]="['/app/details/goal', g.goal.id]">
+                <div class="goal-top">
+                  <strong>{{ g.rank }}. {{ g.goal.label }}</strong>
+                  <span class="status {{ g.status }}">{{ statusLabel[g.status] }}</span>
+                </div>
+                <span class="bar" role="progressbar" [attr.aria-valuenow]="(g.progress * 100) | number: '1.0-0'" aria-valuemin="0" aria-valuemax="100" [attr.aria-label]="g.goal.label + ' progress'">
+                  <span [class]="g.status" [style.width.%]="g.progress * 100"></span>
+                </span>
+                <dl class="goal-facts">
+                  <dt>Saved</dt><dd>{{ fmt(g.goal.saved) }} <span class="ap-muted">({{ g.progress | percent: '1.0-0' }})</span></dd>
+                  <dt>Target</dt><dd>{{ fmt(g.goal.target) }}</dd>
+                  <dt>Remaining</dt><dd>{{ fmt(g.remaining) }}</dd>
+                  <dt>By</dt><dd>{{ g.goal.targetDate ?? 'No date' }}</dd>
+                  <dt>Needed monthly</dt><dd>{{ g.requiredMonthly !== null && g.status !== 'achieved' ? fmt(g.requiredMonthly) : '—' }}</dd>
+                </dl>
+              </a>
+            </li>
+          }
+        </ul>
+      </section>
+
+      <div class="grid">
+        <a class="ap-card" routerLink="/app/details/networth" aria-labelledby="h-worth">
+          <div class="head">
+            <h2 id="h-worth">Net worth</h2>
+            <ion-icon name="chevron-forward" class="go" aria-hidden="true" />
+          </div>
+          <p class="big">{{ m().netWorth !== null ? fmt(m().netWorth!) : '—' }}</p>
+          @if (worth().length) {
+            <div class="bars">
+              <app-chart [option]="worthChart()" label="What you own by type and what you owe" (pick)="openSlice($event)" />
+            </div>
+            <ul class="legend inline" aria-label="Net worth legend">
+              <li><span class="swatch" [style.background]="worthColors()[0]" aria-hidden="true"></span>Owned</li>
+              <li><span class="swatch" [style.background]="worthColors()[1]" aria-hidden="true"></span>Owed</li>
+            </ul>
+          } @else {
+            <p class="ap-muted small">Add savings, investments, or loans to see your net worth.</p>
+          }
+        </a>
+
+        <a class="ap-card" routerLink="/app/details/fi" aria-labelledby="h-fi">
+          <div class="head">
+            <h2 id="h-fi">Financial independence</h2>
+            <ion-icon name="chevron-forward" class="go" aria-hidden="true" />
+          </div>
+          @if (m().fiProgress !== null) {
+            <p class="big">{{ m().fiProgress | percent: '1.0-1' }}</p>
+            <span class="bar" role="progressbar" [attr.aria-valuenow]="(m().fiProgress! * 100) | number: '1.0-0'" aria-valuemin="0" aria-valuemax="100" aria-label="Financial independence progress">
+              <span [style.width.%]="m().fiProgress! * 100"></span>
+            </span>
+            <p class="ap-muted small">
+              Invested assets {{ fmt(m().investedAssets) }} of an estimated {{ fmt(m().fiTarget!) }}
+              ({{ svc.profile().assumptions.fiMultiple }}× yearly spending). An estimate, not a retirement date.
+            </p>
+          } @else {
+            <p class="ap-muted small">Add expenses to estimate how far you are from living off your investments.</p>
+          }
+          <dl class="totals">
+            <dt>Emergency fund</dt>
+            <dd>{{ m().emergencyMonths !== null ? (m().emergencyMonths! | number: '1.0-1') + ' months' : '—' }}</dd>
+            <dt>Loan payments</dt>
+            <dd>{{ m().debtToIncome !== null ? (m().debtToIncome | percent: '1.0-0') + ' of income' : '—' }}</dd>
+          </dl>
+        </a>
+      </div>
+
+      <section class="ap-card trends" aria-labelledby="h-trends">
+        <div class="head">
+          <h2 id="h-trends">Spending and income trends</h2>
+          <a routerLink="/app/updates">Log an update</a>
+        </div>
+        @if (monthSoFar(); as ms) {
+          @if (ms.count > 0) {
+            <p class="ap-muted small month-line">
+              This month so far: spent {{ fmt(ms.spent) }}{{ ms.planned > 0 ? ' of ' + fmt(ms.planned) + ' planned' : '' }},
+              received {{ fmt(ms.received) }}, saved and invested {{ fmt(ms.saved) }}.
+            </p>
+          }
+        }
+        @if (trendMonths().length) {
+          <div class="trend-chart">
+            <app-chart [option]="trendChart()" label="Monthly income, spending, and savings from logged updates" (pick)="openSlice($event)" />
+          </div>
+          <ul class="legend inline" aria-label="Trend legend">
+            <li><span class="swatch" [style.background]="trendColors()[0]" aria-hidden="true"></span>Income</li>
+            <li><span class="swatch" [style.background]="trendColors()[1]" aria-hidden="true"></span>Spending</li>
+            <li><span class="swatch" [style.background]="trendColors()[2]" aria-hidden="true"></span>Saved and invested</li>
+          </ul>
+          @if (trendMonths().length < 2) {
+            <p class="ap-muted small">The trend line grows as you keep logging updates over the coming months.</p>
+          }
+        } @else {
+          <div class="trend-empty">
+            <ion-icon name="trending-up-outline" aria-hidden="true" />
+            <p class="ap-muted">
+              Trends appear once you log updates. Add what you spend, earn, and save, daily or weekly, and ArthaPath
+              will chart how things change and warn you early if a goal starts slipping.
+            </p>
+            <a routerLink="/app/updates">Go to Updates</a>
+          </div>
+        }
+      </section>
+
+      <a class="ap-card analysis-card" routerLink="/app/analysis" aria-labelledby="h-analysis">
+        <div class="head">
+          <h2 id="h-analysis">Analysis and recommendations</h2>
+          <ion-icon name="chevron-forward" class="go" aria-hidden="true" />
+        </div>
+        @if (analysis.recommendations()[0]; as r) {
+          <p><strong>{{ r.title }}.</strong>&ngsp;<span class="ap-muted">{{ analysis.recommendations().length - 1 > 0 ? '+' + (analysis.recommendations().length - 1) + ' more' : '' }}</span></p>
+        }
+        @if (analysis.nudge(); as n) {
+          <p class="ap-muted small">{{ n }} Ask for a fresh AI analysis.</p>
+        } @else if (analysis.history()[0]; as last) {
+          <p class="ap-muted small">Last AI analysis: {{ last.createdAt | date: 'd MMM y' }}.</p>
+        }
+      </a>
+
+      @if (svc.suggestions().length) {
+        <section class="ap-card" aria-labelledby="h-sugg">
+          <h2 id="h-sugg">Worth considering</h2>
+          <ul class="suggestions">
+            @for (s of svc.suggestions(); track s.category) {
+              <li>
+                <div>
+                  <strong>{{ s.label }}</strong>
+                  <span class="ap-muted small">{{ s.reason }}</span>
+                </div>
+                <ion-button size="small" fill="outline" (click)="addSuggestion(s)">Add goal</ion-button>
+              </li>
+            }
+          </ul>
+        </section>
+      }
+
+      <p class="ap-muted disclaimer">
+        Figures are calculated from what you entered. Recommendations are informational, not professional financial advice.
+      </p>
+    }
+  </div>
+</ion-content>

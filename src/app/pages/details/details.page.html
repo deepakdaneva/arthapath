@@ -1,0 +1,205 @@
+<ion-content>
+  <div class="ap-container page">
+    <a routerLink="/app" class="back">← Dashboard</a>
+    <h1>{{ title() }}</h1>
+
+    @switch (topic()) {
+      @case ('goal') {
+        @if (goalPlan(); as g) {
+          <section class="ap-card">
+            <div class="head">
+              <span class="status {{ g.status }}">{{ statusLabel[g.status] }}</span>
+              <span class="ap-muted small">Priority {{ g.rank }}</span>
+            </div>
+            <span class="bar" role="progressbar" [attr.aria-valuenow]="(g.progress * 100) | number: '1.0-0'" aria-valuemin="0" aria-valuemax="100" aria-label="Progress">
+              <span [class]="g.status" [style.width.%]="g.progress * 100"></span>
+            </span>
+            <dl>
+              <dt>Target</dt><dd>{{ fmt(g.goal.target) }}</dd>
+              <dt>Saved</dt><dd>{{ fmt(g.goal.saved) }} ({{ g.progress | percent: '1.0-0' }})</dd>
+              <dt>Remaining</dt><dd>{{ fmt(g.remaining) }}</dd>
+              <dt>Target date</dt><dd>{{ g.goal.targetDate ?? 'Not set' }}</dd>
+              <dt>Months left</dt><dd>{{ g.monthsLeft ?? '—' }}</dd>
+              <dt>Needed each month</dt><dd>{{ g.requiredMonthly !== null ? fmt(g.requiredMonthly) : '—' }}</dd>
+              <dt>Your plan sets aside</dt><dd>{{ fmt(g.allocated) }} a month</dd>
+            </dl>
+          </section>
+          <section class="ap-card">
+            <h2>How this is calculated</h2>
+            <p>
+              Needed each month = what is left to save, spread over the months until the target date
+              @if (svc.profile().assumptions.expectedReturn > 0) {
+                , assuming {{ svc.profile().assumptions.expectedReturn }}% a year growth
+              } @else {
+                , with no growth assumed
+              }.
+              Your monthly surplus ({{ fmt(m().monthlySurplus) }}) is shared across goals in priority order:
+              on track when fully covered, at risk at half or more, behind below half.
+            </p>
+            @if (g.reasons.length) {
+              <h3>Why it ranks here</h3>
+              <ul class="reasons">
+                @for (r of g.reasons; track r) {
+                  <li>{{ r }}</li>
+                }
+              </ul>
+            }
+          </section>
+        } @else {
+          <p class="ap-muted">This goal no longer exists.</p>
+        }
+      }
+
+      @case ('health') {
+        <section class="ap-card">
+          <p class="big">{{ svc.health().score ?? '—' }}<span class="ap-muted">/100</span></p>
+          <p>
+            The score is a weighted average of the parts below. Parts without enough data are left out and the
+            remaining weights are scaled up, so missing details never count against you.
+          </p>
+          <table class="calc">
+            <thead><tr><th>Part</th><th>Weight</th><th>Score</th></tr></thead>
+            <tbody>
+              @for (c of svc.health().components; track c.key) {
+                <tr>
+                  <td><strong>{{ c.label }}</strong><span class="ap-muted small">{{ c.explanation }}</span></td>
+                  <td>{{ c.weight }}</td>
+                  <td>{{ c.value !== null ? ((c.value * 100) | number: '1.0-0') : 'Not enough data' }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </section>
+      }
+
+      @case ('savings') {
+        <section class="ap-card">
+          <table class="calc">
+            <tbody>
+              <tr><td>Income</td><td class="num">{{ fmt(m().monthlyIncome) }}</td></tr>
+              <tr><td>− Spending</td><td class="num">{{ fmt(m().monthlyExpenses) }}</td></tr>
+              <tr><td>− Loan payments</td><td class="num">{{ fmt(m().monthlyDebtPayments) }}</td></tr>
+              <tr><td>− Investments</td><td class="num">{{ fmt(m().monthlyInvesting) }}</td></tr>
+              <tr class="sum"><td>Left to save each month</td><td class="num" [class.neg]="m().monthlySurplus < 0">{{ fmt(m().monthlySurplus) }}</td></tr>
+            </tbody>
+          </table>
+          <p class="ap-muted small">
+            Savings rate {{ m().savingsRate !== null ? (m().savingsRate | percent: '1.0-1') : '—' }}: investments plus what is
+            left, as a share of income. Yearly and quarterly amounts are counted as monthly equivalents.
+          </p>
+        </section>
+      }
+
+      @case ('networth') {
+        <section class="ap-card">
+          <p class="big">{{ m().netWorth !== null ? fmt(m().netWorth!) : '—' }}</p>
+          <p class="ap-muted small">Everything you own minus everything you owe.</p>
+          <h2>Owned · {{ fmt(m().totalAssets) }}</h2>
+          <ul class="rows">
+            @for (r of owned(); track $index) {
+              <li><span><strong>{{ r.label }}</strong><span class="ap-muted small">{{ r.detail }}</span></span><span class="num">{{ fmt(r.amount) }}</span></li>
+            } @empty {
+              <li class="ap-muted">Nothing added yet.</li>
+            }
+          </ul>
+          <h2>Owed · {{ fmt(m().totalLiabilities) }}</h2>
+          <ul class="rows">
+            @for (r of owed(); track $index) {
+              <li><span><strong>{{ r.label }}</strong><span class="ap-muted small">{{ r.detail }}</span></span><span class="num">{{ fmt(r.amount) }}</span></li>
+            } @empty {
+              <li class="ap-muted">No loans added.</li>
+            }
+          </ul>
+        </section>
+      }
+
+      @default {
+        <section class="ap-card">
+          @if (total() !== null) {
+            <p class="big">{{ fmt(total()!) }}<span class="ap-muted small">{{ topic() === 'emergency' || topic() === 'fi' ? '' : ' a month' }}</span></p>
+          }
+          @switch (topic()) {
+            @case ('emergency') {
+              <p>
+                Savings and deposits cover
+                <strong>{{ m().emergencyMonths !== null ? (m().emergencyMonths! | number: '1.0-1') : '0' }} months</strong>
+                of necessary spending and loan payments ({{ fmt(m().essentialMonthly) }} a month). Aim for 3 to 6 months.
+              </p>
+            }
+            @case ('fi') {
+              <p>
+                Estimate: invested assets
+                @if (m().fiTarget !== null) {
+                  compared with {{ fmt(m().fiTarget!) }}, which is {{ svc.profile().assumptions.fiMultiple }}× your
+                  yearly spending and loan payments ({{ m().fiProgress | percent: '1.0-1' }} reached).
+                } @else {
+                  compared with a multiple of yearly spending, once expenses are known.
+                }
+                This is a rule of thumb, not a retirement date: it ignores inflation, taxes, and changes in spending.
+              </p>
+            }
+            @default {
+              <p class="ap-muted small">
+                Monthly equivalents of what you saved in Your finances (yearly amounts ÷ 12, weekly × 52 ÷ 12).
+                @if (m().monthlyIncome > 0 && total() !== null) {
+                  That is {{ total()! / m().monthlyIncome | percent: '1.0-0' }} of income.
+                }
+              </p>
+            }
+          }
+          <ul class="rows">
+            @for (r of rows(); track $index) {
+              <li><span><strong>{{ r.label }}</strong><span class="ap-muted small">{{ r.detail }}</span></span><span class="num">{{ fmt(r.amount) }}</span></li>
+            } @empty {
+              <li class="ap-muted">Nothing here yet.</li>
+            }
+          </ul>
+          <a routerLink="/app/finances" class="edit">Edit in Your finances</a>
+        </section>
+      }
+    }
+
+    @if (hasTransactions()) {
+      <section class="ap-card" aria-labelledby="h-tx">
+        <h2 id="h-tx">Transactions</h2>
+        <div class="filters" role="group" aria-label="Period">
+          @for (p of periods; track p.key) {
+            <button type="button" class="chip" [class.on]="period() === p.key" [attr.aria-pressed]="period() === p.key" (click)="setPeriod(p.key)">{{ p.label }}</button>
+          }
+        </div>
+        @if (period() === 'custom') {
+          <div class="custom">
+            <label>From <input type="date" [value]="customFrom()" (change)="setCustom('from', $any($event.target).value)" /></label>
+            <label>To <input type="date" [value]="customTo()" (change)="setCustom('to', $any($event.target).value)" /></label>
+          </div>
+        }
+        @if (range(); as r) {
+          <p class="ap-muted small">{{ r.from | date: 'd MMM y' }} – {{ rangeEnd() | date: 'd MMM y' }}</p>
+          @if (txs.isLoading()) {
+            <p class="ap-muted small">Loading…</p>
+          } @else if (matching().length) {
+            <p class="period-total">{{ matching().length }} entr{{ matching().length === 1 ? 'y' : 'ies' }} · <strong>{{ fmt(matchingTotal()) }}</strong></p>
+            <ul class="rows" aria-label="Transactions">
+              @for (t of matching(); track t.id) {
+                <li>
+                  <span>
+                    <strong>{{ t.description || t.category }}</strong>
+                    <span class="ap-muted small">{{ t.date }} · {{ typeLabels[t.type] }}{{ t.type === 'expense' ? ' · ' + t.category : '' }}{{ t.method ? ' · ' + methodLabels[t.method] : '' }}{{ t.merchant ? ' · ' + t.merchant : '' }}</span>
+                  </span>
+                  <span class="num">{{ fmt(t.amount) }}</span>
+                </li>
+              }
+            </ul>
+          } @else {
+            <p class="tx-empty">
+              No entries in this period. Log spending and income in <a routerLink="/app/updates">Updates</a> and they
+              appear here.
+            </p>
+          }
+        } @else {
+          <p class="ap-muted small">Choose a start and end date.</p>
+        }
+      </section>
+    }
+  </div>
+</ion-content>

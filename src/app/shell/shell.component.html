@@ -1,0 +1,138 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar class="topbar">
+    <div slot="start" class="start">
+      <a class="brand" routerLink="/app" aria-label="ArthaPath dashboard">
+        <img src="favicon.svg" alt="" width="28" height="28" />
+        <span class="brand-name">ArthaPath</span>
+      </a>
+      <app-ai-status />
+    </div>
+    <div slot="end" class="end">
+      <ion-button fill="clear" id="notifications-trigger" class="icon-btn" aria-label="Notifications">
+        <ion-icon slot="icon-only" name="notifications-outline" aria-hidden="true" />
+      </ion-button>
+      <ion-button fill="clear" id="profile-trigger" class="avatar-btn" aria-label="Open account menu">
+        <ion-avatar>
+          @if (user()?.photoURL; as photo) {
+            <img [src]="photo" alt="" referrerpolicy="no-referrer" />
+          } @else {
+            <span class="initials">{{ initials() }}</span>
+          }
+        </ion-avatar>
+      </ion-button>
+    </div>
+  </ion-toolbar>
+</ion-header>
+
+<ion-popover cssClass="app-popover" trigger="notifications-trigger" triggerAction="click" alignment="end">
+  <ng-template>
+    <div class="notifications" role="region" aria-label="Notifications">
+      <h2>Notifications</h2>
+      <ion-icon name="notifications-off-outline" aria-hidden="true" />
+      <p class="ap-muted">You're all caught up. Reminders and alerts will appear here.</p>
+    </div>
+  </ng-template>
+</ion-popover>
+
+<ion-popover #accountMenu cssClass="account-menu" trigger="profile-trigger" triggerAction="click" alignment="end" [dismissOnSelect]="false">
+  <ng-template>
+    <ion-list lines="none" class="menu">
+      <ion-item button detail="false" lines="none" class="who" (click)="go('/app/profile')" aria-label="Open your profile">
+        <ion-avatar slot="start" class="who-avatar">
+          @if (user()?.photoURL; as photo) {
+            <img [src]="photo" alt="" referrerpolicy="no-referrer" />
+          } @else {
+            <span class="initials">{{ initials() }}</span>
+          }
+        </ion-avatar>
+        <ion-label>
+          <h2>{{ user()?.displayName || 'Your account' }}</h2>
+          <p>{{ user()?.email }}</p>
+        </ion-label>
+      </ion-item>
+      <div class="divider" role="separator"></div>
+      <ion-item button detail="false" (click)="go('/app/finances')">
+        <ion-icon slot="start" name="wallet-outline" aria-hidden="true" />
+        <ion-label>Your finances</ion-label>
+      </ion-item>
+      <ion-item button detail="false" (click)="go('/app/analysis')">
+        <ion-icon slot="start" name="analytics-outline" aria-hidden="true" />
+        <ion-label>Analysis</ion-label>
+      </ion-item>
+      <ion-item button detail="false" (click)="go('/app/import')">
+        <ion-icon slot="start" name="cloud-upload-outline" aria-hidden="true" />
+        <ion-label>Import a statement</ion-label>
+      </ion-item>
+      <ion-item button detail="false" (click)="go('/app/settings')">
+        <ion-icon slot="start" name="settings-outline" aria-hidden="true" />
+        <ion-label>Settings</ion-label>
+      </ion-item>
+      <ion-item button detail="false" (click)="go('/app/ai-providers')">
+        <ion-icon slot="start" name="key-outline" aria-hidden="true" />
+        <ion-label>AI Providers / API Keys</ion-label>
+      </ion-item>
+      <ion-item button detail="false" (click)="go('/app/about')">
+        <ion-icon slot="start" name="information-circle-outline" aria-hidden="true" />
+        <ion-label>About</ion-label>
+      </ion-item>
+      <ion-item button detail="false" (click)="go('/privacy')">
+        <ion-icon slot="start" name="document-text-outline" aria-hidden="true" />
+        <ion-label>Privacy Policy</ion-label>
+      </ion-item>
+      <p class="version">Version {{ version }}</p>
+      <div class="menu-footer">
+        <ion-button
+          fill="clear"
+          class="theme-btn"
+          (click)="theme.cycle()"
+          [attr.aria-label]="'Theme: ' + themeLabel() + '. Switch to ' + nextThemeLabel()"
+          [title]="'Theme: ' + themeLabel()"
+        >
+          <ion-icon slot="icon-only" [name]="themeIcon()" aria-hidden="true" />
+        </ion-button>
+        <button type="button" class="logout" (click)="logout()">Log out</button>
+      </div>
+    </ion-list>
+  </ng-template>
+</ion-popover>
+
+<div class="outlet-host">
+  <ion-router-outlet />
+  <!-- Pages with a message box (Chat, onboarding): the quick-add button would cover Send. -->
+  @if (!hasComposer()) {
+    <ion-fab vertical="bottom" horizontal="end" slot="fixed">
+      <ion-fab-button routerLink="/app/updates" aria-label="Add an update">
+        <ion-icon name="add" aria-hidden="true" />
+      </ion-fab-button>
+    </ion-fab>
+  }
+</div>
+
+<ion-footer class="ion-no-border">
+  <nav class="tabbar" aria-label="Primary">
+    <a routerLink="/app" [class.active]="onHome()" [attr.aria-current]="onHome() ? 'page' : null">
+      <span class="tab-icon">
+        <ion-icon [name]="onHome() ? 'home' : 'home-outline'" aria-hidden="true" />
+      </span>
+      <span>Home</span>
+    </a>
+    <a routerLink="/app/chat" [class.active]="onChat()" [attr.aria-current]="onChat() ? 'page' : null">
+      <span class="tab-icon">
+        <ion-icon [name]="onChat() ? 'chatbubbles' : 'chatbubbles-outline'" aria-hidden="true" />
+        @if (openQuestions() > 0) {
+          <span class="badge" [attr.aria-label]="openQuestions() + ' open questions'">{{ openQuestions() }}</span>
+        }
+      </span>
+      <span>Chat</span>
+    </a>
+    <a routerLink="/app/updates" [class.active]="onUpdates()" [attr.aria-current]="onUpdates() ? 'page' : null">
+      <span class="tab-icon">
+        <ion-icon [name]="onUpdates() ? 'receipt' : 'receipt-outline'" aria-hidden="true" />
+        @if (updateOverdue()) {
+          <span class="badge dot" [attr.aria-label]="'No updates for ' + updateOverdue() + ' days'">!</span>
+        }
+      </span>
+      <span>Updates</span>
+    </a>
+  </nav>
+</ion-footer>

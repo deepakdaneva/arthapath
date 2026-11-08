@@ -1,0 +1,164 @@
+<ion-content>
+  <div class="ap-container page">
+    <h1>AI Providers</h1>
+    <p class="ap-muted intro">
+      Bring your own API keys. ArthaPath uses the first available key in this order and switches to the
+      next one automatically when a key hits its limit. Keys are encrypted on this device before they
+      are saved and are never shown in full again.
+    </p>
+
+    @if (!svc.loaded()) {
+      <ion-spinner name="crescent" aria-label="Loading keys" />
+    } @else if (svc.loadError()) {
+      <p class="ap-error" role="alert">Could not load your keys. Check your connection.</p>
+    } @else {
+      @if (svc.keys().length === 0 && editing() === null) {
+        <div class="ap-card empty">
+          <p><strong>No AI provider yet.</strong></p>
+          <p class="ap-muted">
+            Free keys are available from Groq, Google AI Studio (Gemini), and OpenRouter. Add at least one to
+            use Chat. Add more than one so ArthaPath can switch when a free limit runs out. Providers handle
+            your data differently, especially on free plans: each one shows how when you add it.
+          </p>
+        </div>
+      }
+
+      <ol class="keys" aria-label="Configured keys in fallback order">
+        @for (k of svc.keys(); track k.id; let i = $index, last = $last) {
+          <li class="ap-card key" [class.off]="k.status !== 'ready'">
+            <div class="key-main">
+              <span class="order" aria-hidden="true">{{ i + 1 }}</span>
+              <div class="key-text">
+                <strong>{{ k.label || k.providerName }}</strong>
+                <span class="ap-muted mono">{{ k.masked }}</span>
+                <span class="ap-muted small">{{ k.providerName }} · {{ k.model }}</span>
+                <span class="status {{ k.status }}">{{ statusText(k) }}</span>
+              </div>
+              <ion-toggle
+                [checked]="k.enabled"
+                (ionChange)="toggle(k, $event.detail.checked)"
+                [attr.aria-label]="'Use ' + (k.label || k.providerName)"
+              />
+            </div>
+            <div class="key-actions">
+              <ion-button fill="clear" size="small" [disabled]="i === 0" (click)="svc.move(k.id, -1)" [attr.aria-label]="'Move ' + (k.label || k.providerName) + ' up'">
+                <ion-icon slot="icon-only" name="arrow-up-outline" aria-hidden="true" />
+              </ion-button>
+              <ion-button fill="clear" size="small" [disabled]="last" (click)="svc.move(k.id, 1)" [attr.aria-label]="'Move ' + (k.label || k.providerName) + ' down'">
+                <ion-icon slot="icon-only" name="arrow-down-outline" aria-hidden="true" />
+              </ion-button>
+              <ion-button fill="clear" size="small" (click)="startEdit(k)" [attr.aria-label]="'Edit ' + (k.label || k.providerName)">
+                <ion-icon slot="icon-only" name="create-outline" aria-hidden="true" />
+              </ion-button>
+              <ion-button fill="clear" size="small" color="danger" (click)="remove(k)" [attr.aria-label]="'Remove ' + (k.label || k.providerName)">
+                <ion-icon slot="icon-only" name="trash-outline" aria-hidden="true" />
+              </ion-button>
+            </div>
+          </li>
+        }
+      </ol>
+
+      @if (editing() === null) {
+        <ion-button (click)="startAdd()">Add an AI provider</ion-button>
+      } @else {
+        <form class="ap-card form" (ngSubmit)="save()" novalidate aria-labelledby="form-title">
+          <h2 id="form-title">{{ isEdit() ? 'Edit key' : 'Add an AI provider' }}</h2>
+
+          <ion-select label="Provider" labelPlacement="floating" fill="outline" interface="popover"
+            [value]="draft().provider" [disabled]="isEdit()" (ionChange)="setProvider($event.detail.value)">
+            @for (p of providers; track p.id) {
+              <ion-select-option [value]="p.id">{{ p.name }}</ion-select-option>
+            }
+          </ion-select>
+
+          @if (draft().provider === 'custom') {
+            <ion-select label="Service" labelPlacement="floating" fill="outline" interface="popover"
+              [value]="draft().baseUrl" (ionChange)="patch({ baseUrl: $event.detail.value })">
+              @for (p of presets; track p.baseUrl) {
+                <ion-select-option [value]="p.baseUrl">{{ p.name }}</ion-select-option>
+              }
+            </ion-select>
+            @if (baseUrlError()) {
+              <p class="ap-error">{{ baseUrlError() }}</p>
+            }
+          }
+
+          @if (guide(); as g) {
+            <section class="data-use" aria-label="How this provider handles your data">
+              <strong>How {{ g.name }} handles your data</strong>
+              <p>{{ g.privacy }}</p>
+              <p class="ap-muted small">
+                {{ dataNotice }}
+                <a [href]="g.privacyUrl" target="_blank" rel="noopener noreferrer">Read {{ g.name }}'s terms</a>
+              </p>
+            </section>
+            <details class="guide" [open]="!isEdit()">
+              <summary>How to get a {{ g.name }} key</summary>
+              <ol>
+                @for (step of g.steps; track $index) {
+                  <li>{{ step }}</li>
+                }
+              </ol>
+              @if (g.note) {
+                <p class="ap-muted small">{{ g.note }}</p>
+              }
+              <a class="get-key" [href]="g.url" target="_blank" rel="noopener noreferrer">
+                Open {{ g.name }} <ion-icon name="open-outline" aria-hidden="true" />
+              </a>
+            </details>
+          }
+
+          <ion-input type="password" label="API key" labelPlacement="floating" fill="outline" autocomplete="off"
+            [placeholder]="isEdit() ? 'Leave empty to keep the current key' : ''"
+            name="apiKey" [ngModel]="draft().apiKey" (ngModelChange)="patch({ apiKey: $event ?? '' })" (ionBlur)="onKeyEntered()" />
+
+          <ion-input label="Name (optional)" labelPlacement="floating" fill="outline" name="label" [maxlength]="40"
+            [ngModel]="draft().label" (ngModelChange)="patch({ label: $event ?? '' })" />
+
+          <div class="model-row">
+            @if (models().length) {
+              <ion-select label="Model" labelPlacement="floating" fill="outline" interface="popover"
+                [value]="draft().model" (ionChange)="patch({ model: $event.detail.value })">
+                @for (m of models(); track m.id) {
+                  <ion-select-option [value]="m.id">{{ m.id }}{{ m.free ? ' (free)' : '' }}</ion-select-option>
+                }
+              </ion-select>
+            } @else {
+              <ion-input label="Model" labelPlacement="floating" fill="outline" name="model"
+                [placeholder]="isEdit() ? '' : 'Loaded from the provider after you enter the key'"
+                [ngModel]="draft().model" (ngModelChange)="patch({ model: $event ?? '' })" />
+            }
+            <ion-button fill="outline" (click)="loadModels()" [disabled]="loadingModels()">
+              @if (loadingModels()) {
+                <ion-spinner name="crescent" aria-label="Checking key" />
+              } @else {
+                Check key &amp; load models
+              }
+            </ion-button>
+          </div>
+
+          @if (info()) {
+            <p class="ok" role="status">{{ info() }}</p>
+          }
+          @if (error()) {
+            <p class="ap-error" role="alert">{{ error() }}</p>
+          }
+
+          <div class="row">
+            <ion-button type="submit" [disabled]="!canSave()">{{ isEdit() ? 'Save changes' : 'Save key' }}</ion-button>
+            <ion-button fill="clear" (click)="cancel()">Cancel</ion-button>
+          </div>
+        </form>
+      }
+
+      <p class="ap-muted note">
+        Your key is used directly from this device to call the provider, so anything running on this device
+        (for example a malicious browser extension) could read it while ArthaPath is unlocked. When you chat,
+        your message and relevant financial context are sent from this device to the provider in use. How
+        that provider stores or uses them depends on the provider and your key's plan, under the provider's
+        terms; ArthaPath does not control or receive that data. Identity numbers and secrets that ArthaPath
+        recognizes are removed before anything is saved or sent.
+      </p>
+    }
+  </div>
+</ion-content>

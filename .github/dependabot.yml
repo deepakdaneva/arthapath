@@ -1,0 +1,23 @@
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    target-branch: development
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    groups:
+      angular:
+        patterns: ["@angular/*", "@angular-devkit/*", "angular-eslint", "@angular-eslint/*"]
+      ionic-capacitor:
+        patterns: ["@ionic/*", "@capacitor/*", "ionicons"]
+  - package-ecosystem: npm
+    directory: /firebase/rules-tests
+    target-branch: development
+    schedule:
+      interval: weekly
+  - package-ecosystem: github-actions
+    directory: /
+    target-branch: development
+    schedule:
+      interval: weekly
