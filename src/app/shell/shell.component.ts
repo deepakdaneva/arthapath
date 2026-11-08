@@ -21,6 +21,8 @@ import {
   add,
   chatbubbles,
   chatbubblesOutline,
+  home,
+  homeOutline,
   contrastOutline,
   documentTextOutline,
   informationCircleOutline,
@@ -110,6 +112,8 @@ export class ShellComponent {
     ),
     { initialValue: this.router.url },
   );
+  /** Home covers the dashboard and its drill-down pages. */
+  readonly onHome = computed(() => /^\/app(\/details\/.*)?(\?.*)?$/.test(this.url()));
   readonly onChat = computed(() => this.url().startsWith('/app/chat'));
   readonly onUpdates = computed(() => this.url().startsWith('/app/updates'));
   readonly hasComposer = computed(() => this.onChat() || this.onUpdates() || this.url().startsWith('/app/onboarding'));
@@ -119,6 +123,8 @@ export class ShellComponent {
       add,
       chatbubbles,
       chatbubblesOutline,
+  home,
+  homeOutline,
       contrastOutline,
       documentTextOutline,
       informationCircleOutline,

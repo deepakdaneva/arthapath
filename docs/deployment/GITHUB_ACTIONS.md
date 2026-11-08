@@ -8,7 +8,7 @@ comment). Dependabot proposes SHA updates weekly. Workflows default to
 
 | File | Trigger | Purpose |
 |---|---|---|
-| `ci.yml` | PRs and pushes to `main` / `development`, manual | `validate`: secret-pattern scan, lint, unit tests, build. `rules`: Firestore rules tests in the emulator. `deploy` (pushes only, after both pass): `development` to the `uat` environment (`arthapath-uat`), `main` to `production` (`arthapath-prod`); deploys Firestore rules, indexes, and Hosting. |
+| `ci.yml` | PRs and pushes to `main` / `development`, manual | `validate`: secret-pattern scan, lint, unit tests, build. `rules`: Firestore rules tests in the emulator. `deploy` (pushes only, after both pass): `development` to the `uat` environment (`arthapath-uat`), `main` to `production` (`arthapath-prod`); deploys Firestore rules, indexes, and Hosting. `android` (PRs): Gradle unit tests, lint, debug APK. `android-release` (after deploy): signed APK, a UAT artifact from `development` or a GitHub release from `main` ([ANDROID_RELEASE.md](ANDROID_RELEASE.md)). |
 | `codeql.yml` | PRs, pushes, weekly | CodeQL static analysis (JavaScript/TypeScript, Actions) |
 | `dependency-review.yml` | PRs | Block newly added vulnerable dependencies |
 
@@ -16,8 +16,7 @@ comment). Dependabot proposes SHA updates weekly. Workflows default to
 
 `validate`, `rules`, `e2e`, `analyze (javascript-typescript)`,
 `analyze (actions)`, `dependency-review` (job names) on PRs into `main` and
-`development`. The `android` job is not required and is skipped unless the
-repository variable `ENABLE_ANDROID_BUILD` is set to `true`.
+`development`, plus `android` once it has passed on a PR.
 
 ## Deployment authentication: Workload Identity Federation
 

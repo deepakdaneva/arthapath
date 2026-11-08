@@ -110,6 +110,12 @@
 
 <ion-footer class="ion-no-border">
   <nav class="tabbar" aria-label="Primary">
+    <a routerLink="/app" [class.active]="onHome()" [attr.aria-current]="onHome() ? 'page' : null">
+      <span class="tab-icon">
+        <ion-icon [name]="onHome() ? 'home' : 'home-outline'" aria-hidden="true" />
+      </span>
+      <span>Home</span>
+    </a>
     <a routerLink="/app/chat" [class.active]="onChat()" [attr.aria-current]="onChat() ? 'page' : null">
       <span class="tab-icon">
         <ion-icon [name]="onChat() ? 'chatbubbles' : 'chatbubbles-outline'" aria-hidden="true" />

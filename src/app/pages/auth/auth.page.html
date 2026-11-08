@@ -14,7 +14,7 @@
         }
       </h1>
 
-      @if (mode() !== 'reset') {
+      @if (mode() !== 'reset' && googleAvailable) {
         <ion-button expand="block" fill="outline" class="google" [disabled]="busy()" (click)="google()">
           <ion-icon slot="start" name="logo-google" aria-hidden="true" />
           Continue with Google

@@ -17,7 +17,9 @@ deployment in GitHub.
    deployments.
 5. The job deploys Firestore rules, indexes, and hosting to
    `arthapath-prod` using keyless Workload Identity Federation.
-6. Tag the release (`vX.Y.Z`) and publish GitHub release notes.
+6. The `android-release` job then builds the signed production APK and
+   publishes the GitHub release `vX.Y.Z` with it (tag and notes are
+   created automatically; see [ANDROID_RELEASE.md](ANDROID_RELEASE.md)).
 7. Smoke-test production (checklist below).
 
 ## Supply-chain safeguards in the deploy job

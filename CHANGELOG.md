@@ -7,6 +7,9 @@ Versioning: [Semantic Versioning](https://semver.org/).
 ## [1.0.0] - first production release
 
 ### Added
+- Home tab in the bottom bar, beside Chat and Updates.
+- Android APK: Gradle tests and lint on every PR; signed UAT APK from
+  `development`; signed production APK published as a GitHub release from `main`.
 - Sign-up asks you to agree to the Terms of Service and Privacy Policy.
 - README screenshots from a demo account (`npm run screenshots`).
 - Statement import (Phase 9): CSV exports, PDFs (including password-
@@ -92,6 +95,7 @@ Versioning: [Semantic Versioning](https://semver.org/).
   with a System/Light/Dark theme switcher and Log out.
 
 ### Changed
+- Google sign-in is hidden in the Android app (blocked inside a WebView).
 - Each AI provider shows how it says it handles data, with a link to its
   terms, plus a notice that handling depends on the provider and the key's
   plan. Groq is offered first. Privacy policy and terms updated to match.
