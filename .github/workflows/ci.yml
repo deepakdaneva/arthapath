@@ -8,8 +8,8 @@ name: ci
 # FIREBASE_MESSAGING_SENDER_ID, WIF_PROVIDER, WIF_SERVICE_ACCOUNT.
 # Deploy authentication is keyless (Workload Identity Federation).
 # After deploy, android-release packages the same bundle as a signed APK
-# (repository secrets ANDROID_KEYSTORE_BASE64, ANDROID_KEYSTORE_PASSWORD,
-# ANDROID_KEY_ALIAS): a UAT artifact from development, a GitHub release from main.
+# (repository secrets ANDROID_KEYSTORE_BASE64, ANDROID_KEYSTORE_PASSWORD;
+# key alias "arthapath", or the ANDROID_KEY_ALIAS variable): a UAT artifact from development, a GitHub release from main.
 
 on:
   pull_request:
@@ -218,7 +218,7 @@ jobs:
     # main -> production APK attached to a GitHub release vX.Y.Z.
     # The APK is built unsigned and signed afterwards with apksigner, so the
     # signing key is only present in the signing step (repository secrets
-    # ANDROID_KEYSTORE_BASE64, ANDROID_KEYSTORE_PASSWORD, ANDROID_KEY_ALIAS).
+    # ANDROID_KEYSTORE_BASE64, ANDROID_KEYSTORE_PASSWORD; alias "arthapath").
     needs: deploy
     runs-on: ubuntu-latest
     timeout-minutes: 30
@@ -264,7 +264,8 @@ jobs:
         env:
           KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
           KS_PASS: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
-          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          # Not secret; a variable so its value ("arthapath") is not masked in logs.
+          KEY_ALIAS: ${{ vars.ANDROID_KEY_ALIAS || 'arthapath' }}
           NAME: ${{ github.ref_name == 'main' && 'ArthaPath' || 'ArthaPath-UAT' }}
           PACKAGE: io.github.deepakdaneva.arthapath${{ github.ref_name == 'main' && '' || '.uat' }}
           VERSION: ${{ steps.v.outputs.version }}
@@ -276,7 +277,7 @@ jobs:
           OUT="$NAME-$VERSION.apk"
           "$BT/apksigner" sign --ks "$KS" --ks-pass env:KS_PASS --ks-key-alias "$KEY_ALIAS"             --out "$OUT" android/app/build/outputs/apk/release/app-release-unsigned.apk
           rm -f "$KS"
-          "$BT/apksigner" verify --print-certs "$OUT" | grep -E "Signer #1 certificate (DN|SHA-256)"
+          "$BT/apksigner" verify --print-certs "$OUT" # fails on a bad signature; prints the public certificate
           BADGING=$("$BT/aapt2" dump badging "$OUT" | head -1)
           echo "$BADGING"
           echo "$BADGING" | grep -q "name='$PACKAGE' versionCode='${VERSION##*.}' versionName='$VERSION'"             || { echo "::error::APK package or version mismatch"; exit 1; }
