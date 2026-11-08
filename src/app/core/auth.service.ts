@@ -168,6 +168,8 @@ export class AuthService {
    * with a fresh database instance.
    */
   private async clearLocalData(): Promise<void> {
+    const { forgetBiometricPin } = await import('./crypto/biometric.service');
+    await forgetBiometricPin();
     try {
       const [{ db }, { terminate, clearIndexedDbPersistence }] = await Promise.all([import('./data/db'), import('firebase/firestore')]);
       await terminate(db);

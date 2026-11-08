@@ -53,4 +53,19 @@ test.describe('public pages', () => {
     await page.getByRole('button', { name: 'Create account' }).click();
     await expect(page).toHaveURL(/\/setup-pin$/);
   });
+
+  test('welcome slides (Android first launch) advance and lead to sign-up', async ({ page }) => {
+    await page.goto('/welcome');
+    await expect(page.getByRole('heading', { name: 'Your money. Your goals. Your future.' })).toBeVisible();
+    await page.getByRole('button', { name: 'Next' }).click();
+    await expect(page.getByRole('heading', { name: 'Private by design' })).toBeVisible();
+    await page.getByRole('button', { name: 'Previous' }).click();
+    await expect(page.getByRole('heading', { name: 'Your money. Your goals. Your future.' })).toBeVisible();
+    for (let i = 0; i < 5; i++) await page.getByRole('button', { name: 'Next' }).click();
+    await expect(page.getByRole('heading', { name: 'Stay on track' })).toBeVisible();
+    await page.getByRole('button', { name: 'Create account' }).click();
+    await expect(page).toHaveURL(/\/auth\?mode=signup$/);
+    await expect(page.getByRole('heading', { name: 'Create your account' })).toBeVisible();
+    expect(await page.evaluate(() => localStorage.getItem('arthapath.welcome.seen'))).toBe('1');
+  });
 });

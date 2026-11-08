@@ -1,7 +1,8 @@
 .topbar {
   --background: var(--ion-background-color);
   --min-height: 56px;
-  padding: 0 8px;
+  // Keep Ionic's status bar inset (Android edge-to-edge) while adding side padding.
+  padding: var(--ion-safe-area-top, 0px) 8px 0;
 }
 
 .start,
@@ -206,7 +207,7 @@
   display: flex;
   justify-content: center;
   gap: 8px;
-  padding: 6px 12px calc(6px + env(safe-area-inset-bottom));
+  padding: 6px 12px calc(6px + var(--ion-safe-area-bottom, 0px));
   background: var(--ap-surface);
   border-top: 1px solid var(--ap-border);
 

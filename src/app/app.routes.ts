@@ -1,14 +1,20 @@
 import { Routes } from '@angular/router';
-import { authGuard, guestGuard } from './core/auth.guards';
+import { appStartGuard, authGuard, guestGuard } from './core/auth.guards';
 import { needsPinGuard, vaultUnlockedGuard } from './core/crypto/vault.guards';
 
 export const routes: Routes = [
   {
     path: '',
     pathMatch: 'full',
-    canActivate: [guestGuard],
+    canActivate: [guestGuard, appStartGuard],
     loadComponent: () => import('./pages/landing/landing.page').then((m) => m.LandingPage),
     title: 'ArthaPath · Your Money. Your Goals. Your Financial Future.',
+  },
+  {
+    path: 'welcome',
+    canActivate: [guestGuard],
+    loadComponent: () => import('./pages/welcome/welcome.page').then((m) => m.WelcomePage),
+    title: 'Welcome · ArthaPath',
   },
   {
     path: 'auth',

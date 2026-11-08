@@ -59,6 +59,10 @@ deployments that changed the security rules.
 - PINs that are quick to guess offline (short single-class, repeats,
   sequences) are refused at setup and on change, because a stolen copy of
   the encrypted data could otherwise be attacked offline.
+- Android fingerprint or face unlock keeps the PIN in the Android Keystore
+  behind a biometric-bound key (invalidated by new enrollments); it is
+  deleted on sign-out, account deletion, and PIN reset. The PIN remains the
+  only key to the encrypted data.
 - Signing out or deleting the account clears the local Firestore cache
   (encrypted documents and PIN parameters) from the device.
 - App Check (reCAPTCHA Enterprise) can be enabled to stop scripted abuse of the

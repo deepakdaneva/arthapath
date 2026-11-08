@@ -179,3 +179,24 @@ ion-popover.account-menu {
 .grecaptcha-badge {
   visibility: hidden;
 }
+
+// --- Android edge-to-edge -------------------------------------------------------
+// Newer Android WebViews report the system bars through env(); older ones get
+// --safe-area-inset-* from Capacitor. Use whichever is larger.
+:root {
+  --ion-safe-area-top: max(env(safe-area-inset-top, 0px), var(--safe-area-inset-top, 0px));
+  --ion-safe-area-bottom: max(env(safe-area-inset-bottom, 0px), var(--safe-area-inset-bottom, 0px));
+  --ion-safe-area-left: max(env(safe-area-inset-left, 0px), var(--safe-area-inset-left, 0px));
+  --ion-safe-area-right: max(env(safe-area-inset-right, 0px), var(--safe-area-inset-right, 0px));
+}
+
+// Full-screen pages outside the app shell (no toolbar to carry the inset).
+app-landing ion-content,
+app-auth ion-content,
+app-legal ion-content,
+app-setup-pin ion-content,
+app-unlock ion-content,
+app-welcome ion-content {
+  --padding-top: var(--ion-safe-area-top, 0px);
+  --padding-bottom: var(--ion-safe-area-bottom, 0px);
+}

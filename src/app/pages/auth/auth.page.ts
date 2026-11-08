@@ -1,6 +1,6 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Capacitor } from '@capacitor/core';
 import { IonButton } from '@ionic/angular/ion-button';
 import { IonCheckbox } from '@ionic/angular/ion-checkbox';
@@ -42,6 +42,8 @@ export class AuthPage {
 
   constructor() {
     addIcons({ logoGoogle });
+    const m = inject(ActivatedRoute).snapshot.queryParamMap.get('mode');
+    if (m === 'signup' || m === 'signin') this.mode.set(m);
   }
 
   setMode(m: Mode): void {

@@ -7,6 +7,9 @@ Versioning: [Semantic Versioning](https://semver.org/).
 ## [1.0.0] - first production release
 
 ### Added
+- Android: story-style welcome slides on first launch, fingerprint or face
+  unlock tied to the PIN, app icon (adaptive and themed), and an animated
+  launch screen.
 - Home tab in the bottom bar, beside Chat and Updates.
 - Android APK: Gradle tests and lint on every PR; signed UAT APK from
   `development`; signed production APK published as a GitHub release from `main`.
@@ -124,6 +127,7 @@ Versioning: [Semantic Versioning](https://semver.org/).
   prompts.
 
 ### Fixed
+- Android: content no longer runs under the status bar.
 - Dashboard questions card and recommendation count spacing.
 - AI replies render Markdown (bold, lists, tables, code, links) in Chat and
   onboarding instead of showing raw symbols. Raw HTML from the model is shown

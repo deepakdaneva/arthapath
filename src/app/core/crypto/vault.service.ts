@@ -91,6 +91,13 @@ export class VaultService {
     }
   }
 
+  /** Checks a PIN without changing the lock state. Throws WrongPinError. */
+  async verifyPin(pin: string): Promise<void> {
+    if (!this.params) throw new Error('No vault');
+    const [crypto] = await lib();
+    await crypto.openVault(pin, this.params);
+  }
+
   async changePin(currentPin: string, newPin: string): Promise<void> {
     if (!this.params || !this.unlocked()) throw new Error('Unlock first');
     const [crypto, store] = await lib();
