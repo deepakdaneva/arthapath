@@ -40,7 +40,7 @@
                   <span class="ap-muted small">
                     @switch (sec.key) {
                       @case ('incomes') { {{ label(it.kind) }} · {{ label(it.frequency) }} }
-                      @case ('expenses') { {{ label(it.category) }} · {{ label(it.frequency) }} · {{ it.essential ? 'essential' : 'flexible' }} }
+                      @case ('expenses') { {{ label(it.category) }} · {{ label(it.frequency) }} · {{ label(it.need) }} }
                       @case ('liabilities') { {{ label(it.kind) }} · EMI {{ fmt(it.monthlyPayment) }}{{ it.interestRate !== undefined ? ' · ' + it.interestRate + '%' : '' }} }
                       @case ('assets') { {{ label(it.kind) }} }
                     }
@@ -185,7 +185,13 @@
       </label>
     }
     @if (adding() === 'expenses') {
-      <label class="check"><input type="checkbox" [ngModel]="draft().essential" (ngModelChange)="patch({ essential: $event })" name="essential" /> Essential</label>
+      <label>How needed
+        <select [ngModel]="draft().need" (ngModelChange)="patch({ need: $event })" name="need">
+          @for (n of needs; track n) {
+            <option [value]="n">{{ label(n) }}</option>
+          }
+        </select>
+      </label>
     }
     @if (adding() === 'liabilities') {
       <label>Monthly payment / EMI (₹) <input inputmode="numeric" [ngModel]="draft().payment" (ngModelChange)="patch({ payment: $event })" name="payment" /></label>

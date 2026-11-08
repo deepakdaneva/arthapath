@@ -22,7 +22,7 @@ and tested, not just UI).
 | Finance-only guardrails | 5 | Done |
 | Conversational onboarding (extract, review and correct, save) with starter templates | 6 | Done |
 | Financial engine and goal prioritization | 6 | Done |
-| Dynamic interactive dashboard with drill-down | 7 | Planned |
+| Dynamic interactive dashboard with drill-down | 7 | Done (spending donut, net worth bars, goal cards, FI progress, warnings, details pages with period filters; trend charts and transaction lists fill in with Phase 8) |
 | Updates: natural-language transaction entry, at any cadence (daily, weekly, monthly) | 8 | Planned |
 | CSV and PDF statement import, duplicate detection | 9 | Planned |
 | Pending questions with Chat badge | 6–9 | Done (basic: from onboarding, dismissable); more in Phase 9 |

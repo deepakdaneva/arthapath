@@ -64,6 +64,16 @@ export const routes: Routes = [
       },
       // Old name of the Updates tab.
       { path: 'today', redirectTo: 'updates', pathMatch: 'full' },
+      {
+        path: 'details/goal/:id',
+        loadComponent: () => import('./pages/details/details.page').then((m) => m.DetailsPage),
+        title: 'Goal · ArthaPath',
+      },
+      {
+        path: 'details/:topic',
+        loadComponent: () => import('./pages/details/details.page').then((m) => m.DetailsPage),
+        title: 'Details · ArthaPath',
+      },
 
       {
         path: 'profile',

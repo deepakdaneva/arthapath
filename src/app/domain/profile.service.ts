@@ -2,8 +2,8 @@ import { Injectable, computed, effect, inject, signal } from '@angular/core';
 import { VaultService } from '../core/crypto/vault.service';
 import type { Extraction, PendingQuestionDraft } from '../ai/extraction';
 import { redacted } from '../ai/redact';
-import { computeMetrics, healthScore, planGoals, suggestGoals } from './engine';
-import { emptyProfile, type FinancialProfile, type Goal } from './models';
+import { UPDATE_REMINDER_DAYS, computeMetrics, daysSince, financialWarnings, healthScore, planGoals, spendingBreakdown, suggestGoals } from './engine';
+import { emptyProfile, normalizeProfile, type FinancialProfile, type Goal } from './models';
 
 export interface PendingQuestion extends PendingQuestionDraft {
   id: string;
@@ -34,6 +34,13 @@ export class ProfileService {
   readonly plans = computed(() => planGoals(this.goals(), this.metrics(), this.profile().assumptions, new Date()));
   readonly health = computed(() => healthScore(this.profile(), this.metrics(), this.plans()));
   readonly suggestions = computed(() => suggestGoals(this.profile(), this.metrics(), this.goals()));
+  readonly breakdown = computed(() => spendingBreakdown(this.profile(), this.metrics()));
+  readonly warnings = computed(() => financialWarnings(this.profile(), this.metrics(), this.plans(), new Date()));
+  /** Days since the last saved change, when past the reminder threshold; otherwise null. */
+  readonly updateOverdueDays = computed(() => {
+    const d = daysSince(this.profile().updatedAt, new Date());
+    return d !== null && d > UPDATE_REMINDER_DAYS ? d : null;
+  });
   readonly openQuestions = computed(() => this.questions().filter((q) => q.status === 'open'));
   readonly hasData = computed(() => {
     const p = this.profile();
@@ -72,7 +79,7 @@ export class ProfileService {
         this.vault.list<Goal>(['goals']),
         this.vault.list<PendingQuestion>(['pendingQuestions']),
       ]);
-      this.profile.set({ ...emptyProfile(), ...(p ?? {}) });
+      this.profile.set(normalizeProfile(p));
       this.goals.set(goals.map((g) => ({ ...g.value, id: g.id })));
       this.questions.set(qs.map((q) => ({ ...q.value, id: q.id })).sort((a, b) => a.createdAt - b.createdAt));
       this.loadError.set(false);
@@ -93,6 +100,7 @@ export class ProfileService {
       liabilities: clean(next.liabilities),
       assets: clean(next.assets),
       version: this.profile().version + 1,
+      updatedAt: Date.now(),
     };
     await this.vault.put(PROFILE_PATH, versioned);
     this.profile.set(versioned);
@@ -203,7 +211,7 @@ export class ProfileService {
       data: {
         currency: 'INR',
         incomes: p.incomes.map((i) => ({ label: i.label, kind: i.kind, amount: r(i.amount), frequency: i.frequency, earner: i.earner, source: i.provenance })),
-        expenses: p.expenses.map((e) => ({ label: e.label, category: e.category, amount: r(e.amount), frequency: e.frequency, essential: e.essential, source: e.provenance })),
+        expenses: p.expenses.map((e) => ({ label: e.label, category: e.category, amount: r(e.amount), frequency: e.frequency, need: e.need, source: e.provenance })),
         liabilities: p.liabilities.map((l) => ({ label: l.label, kind: l.kind, outstanding: r(l.outstanding), monthlyPayment: r(l.monthlyPayment), interestRate: l.interestRate ?? null })),
         assets: p.assets.map((a) => ({ label: a.label, kind: a.kind, value: r(a.value) })),
         family: p.family.map((f) => ({ relation: f.relation, age: f.age ?? null, dependent: f.dependent })),

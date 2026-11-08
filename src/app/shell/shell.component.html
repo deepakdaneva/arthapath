@@ -112,7 +112,12 @@
       <span>Chat</span>
     </a>
     <a routerLink="/app/updates" [class.active]="onUpdates()" [attr.aria-current]="onUpdates() ? 'page' : null">
-      <ion-icon [name]="onUpdates() ? 'receipt' : 'receipt-outline'" aria-hidden="true" />
+      <span class="tab-icon">
+        <ion-icon [name]="onUpdates() ? 'receipt' : 'receipt-outline'" aria-hidden="true" />
+        @if (updateOverdue()) {
+          <span class="badge dot" [attr.aria-label]="'No updates for ' + updateOverdue() + ' days'">!</span>
+        }
+      </span>
       <span>Updates</span>
     </a>
   </nav>

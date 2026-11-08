@@ -77,6 +77,7 @@ export class ShellComponent {
   readonly theme = inject(ThemeService);
   private readonly profileSvc = inject(ProfileService);
   readonly openQuestions = computed(() => this.profileSvc.openQuestions().length);
+  readonly updateOverdue = computed(() => this.profileSvc.updateOverdueDays());
   private static readonly THEME = {
     system: { label: 'System', icon: 'contrast-outline' },
     light: { label: 'Light', icon: 'sunny-outline' },

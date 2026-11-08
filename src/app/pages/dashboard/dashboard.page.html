@@ -20,6 +20,31 @@
         <a class="manual" routerLink="/app/finances">Prefer a form? Enter details manually</a>
       </section>
     } @else {
+      @if (svc.warnings().length) {
+        <section class="ap-card warnings" aria-labelledby="h-warn">
+          <h2 id="h-warn" class="sr-only">Things to look at</h2>
+          <ul>
+            @for (w of warnings(); track w.key) {
+              <li>
+                <a class="warn {{ w.severity }}" [routerLink]="w.link">
+                  <ion-icon [name]="severityIcon(w.severity)" aria-hidden="true" />
+                  <span class="warn-text">
+                    <strong><span class="sr-only">{{ severityLabel(w.severity) }}: </span>{{ w.title }}</strong>
+                    <span class="ap-muted small">{{ w.detail }}</span>
+                  </span>
+                  <ion-icon name="chevron-forward" class="go" aria-hidden="true" />
+                </a>
+              </li>
+            }
+          </ul>
+          @if (svc.warnings().length > 3) {
+            <button type="button" class="more" (click)="showAllWarnings.set(!showAllWarnings())">
+              {{ showAllWarnings() ? 'Show fewer' : 'Show all ' + svc.warnings().length }}
+            </button>
+          }
+        </section>
+      }
+
       @if (svc.openQuestions().length) {
         <a class="ap-card questions" routerLink="/app/onboarding">
           <strong>{{ svc.openQuestions().length }} question{{ svc.openQuestions().length === 1 ? '' : 's' }} to improve your plan</strong>
@@ -27,9 +52,12 @@
         </a>
       }
 
-      <div class="grid">
-        <section class="ap-card health" aria-labelledby="h-health">
-          <h2 id="h-health">Financial health</h2>
+      <div class="grid top">
+        <a class="ap-card health" routerLink="/app/details/health" aria-labelledby="h-health">
+          <div class="head">
+            <h2 id="h-health">Financial health</h2>
+            <ion-icon name="chevron-forward" class="go" aria-hidden="true" />
+          </div>
           @if (health().score !== null) {
             <p class="score"><strong>{{ health().score }}</strong><span class="ap-muted">/100</span></p>
           } @else {
@@ -37,7 +65,7 @@
           }
           <ul class="components">
             @for (c of health().components; track c.key) {
-              <li [title]="c.explanation">
+              <li>
                 <span>{{ c.label }}</span>
                 @if (c.value !== null) {
                   <span class="bar" role="meter" [attr.aria-valuenow]="(c.value * 100) | number: '1.0-0'" aria-valuemin="0" aria-valuemax="100" [attr.aria-label]="c.label">
@@ -49,37 +77,44 @@
               </li>
             }
           </ul>
-          <p class="ap-muted small">Weighted: savings rate 25, emergency fund 25, debt payments 25, goals 15, insurance 10. Missing parts are left out.</p>
-        </section>
+          <span class="ap-muted small">See how it's calculated</span>
+        </a>
 
-        <section class="ap-card" aria-labelledby="h-cash">
-          <h2 id="h-cash">This month</h2>
-          <dl>
-            <dt>Income</dt><dd>{{ fmt(m().monthlyIncome) }}</dd>
-            <dt>Expenses</dt><dd>{{ fmt(m().monthlyExpenses) }}</dd>
-            <dt>Loan payments</dt><dd>{{ fmt(m().monthlyDebtPayments) }}</dd>
-            <dt>Surplus</dt><dd [class.neg]="m().monthlySurplus < 0"><strong>{{ fmt(m().monthlySurplus) }}</strong></dd>
-            @if (m().savingsRate !== null) {
-              <dt>Savings rate</dt><dd>{{ m().savingsRate | percent: '1.0-1' }}</dd>
+        <section class="ap-card month" aria-labelledby="h-cash">
+          <h2 id="h-cash">Where each month's income goes</h2>
+          @if (slices().length) {
+            <div class="donut-wrap">
+              <div class="donut">
+                <app-chart [option]="donut()" label="Monthly income split into spending, loan payments, investments, and savings" (pick)="openSlice($event)" />
+                <div class="donut-center" aria-hidden="true">
+                  <span class="ap-muted small">Income</span>
+                  <strong>{{ fmt(m().monthlyIncome) }}</strong>
+                </div>
+              </div>
+              <ul class="legend" aria-label="Monthly breakdown">
+                @for (s of slices(); track s.key) {
+                  <li>
+                    <a [routerLink]="['/app/details', s.key]">
+                      <span class="swatch" [style.background]="s.color" aria-hidden="true"></span>
+                      <span class="name">{{ s.label }}</span>
+                      <span class="val">{{ fmt(s.amount) }}</span>
+                      <span class="ap-muted small pct">{{ s.share !== null ? (s.share | percent: '1.0-0') : '' }}</span>
+                    </a>
+                  </li>
+                }
+              </ul>
+            </div>
+          } @else {
+            <p class="ap-muted">Add income and expenses to see the split.</p>
+          }
+          <dl class="totals">
+            <dt>Savings rate</dt>
+            <dd>{{ m().savingsRate !== null ? (m().savingsRate | percent: '1.0-1') : '—' }}</dd>
+            @if (m().monthlySurplus < 0) {
+              <dt>Shortfall</dt>
+              <dd class="neg"><strong>{{ fmt(-m().monthlySurplus) }}</strong></dd>
             }
           </dl>
-        </section>
-
-        <section class="ap-card" aria-labelledby="h-safety">
-          <h2 id="h-safety">Safety and wealth</h2>
-          <dl>
-            <dt>Emergency fund</dt>
-            <dd>{{ m().emergencyMonths !== null ? (m().emergencyMonths! | number: '1.0-1') + ' months' : '—' }}</dd>
-            <dt>Debt-to-income</dt>
-            <dd>{{ m().debtToIncome !== null ? (m().debtToIncome | percent: '1.0-1') : '—' }}</dd>
-            <dt>Net worth</dt>
-            <dd>{{ m().netWorth !== null ? fmt(m().netWorth!) : '—' }}</dd>
-            <dt>Financial independence</dt>
-            <dd>{{ m().fiProgress !== null ? (m().fiProgress | percent: '1.0-1') : '—' }}</dd>
-          </dl>
-          @if (m().fiTarget !== null) {
-            <p class="ap-muted small">Estimate: invested assets vs {{ fmt(m().fiTarget!) }} ({{ svc.profile().assumptions.fiMultiple }}× yearly spending). An assumption, not a promise.</p>
-          }
         </section>
       </div>
 
@@ -88,28 +123,94 @@
           <h2 id="h-goals">Goals</h2>
           <a routerLink="/app/finances">Manage</a>
         </div>
-        @if (topGoals().length === 0) {
-          <p class="ap-muted">No goals yet.</p>
+        @if (goalSavings(); as gs) {
+          <p class="ap-muted small overall">
+            Saved {{ fmt(gs.saved) }} of {{ fmt(gs.target) }} across all goals ({{ gs.progress | percent: '1.0-0' }}).
+          </p>
         }
-        <ul class="goals">
-          @for (g of topGoals(); track g.goal.id) {
+        @if (svc.plans().length === 0) {
+          <p class="ap-muted">No goals yet. <a routerLink="/app/onboarding">Tell ArthaPath what you're saving for.</a></p>
+        }
+        <ul class="goal-cards">
+          @for (g of svc.plans(); track g.goal.id) {
             <li>
-              <div class="goal-top">
-                <strong>{{ g.rank }}. {{ g.goal.label }}</strong>
-                <span class="status {{ g.status }}">{{ statusLabel(g.status) }}</span>
-              </div>
-              <span class="bar" role="progressbar" [attr.aria-valuenow]="(g.progress * 100) | number: '1.0-0'" aria-valuemin="0" aria-valuemax="100" [attr.aria-label]="g.goal.label + ' progress'">
-                <span [style.width.%]="g.progress * 100"></span>
-              </span>
-              <span class="ap-muted small">
-                {{ fmt(g.goal.saved) }} of {{ fmt(g.goal.target) }}{{ g.goal.targetDate ? ' · by ' + g.goal.targetDate : '' }}
-                @if (g.requiredMonthly !== null && g.status !== 'achieved') {
-                  · {{ fmt(g.requiredMonthly) }}/month needed
-                }
-              </span>
+              <a class="goal" [routerLink]="['/app/details/goal', g.goal.id]">
+                <div class="goal-top">
+                  <strong>{{ g.rank }}. {{ g.goal.label }}</strong>
+                  <span class="status {{ g.status }}">{{ statusLabel[g.status] }}</span>
+                </div>
+                <span class="bar" role="progressbar" [attr.aria-valuenow]="(g.progress * 100) | number: '1.0-0'" aria-valuemin="0" aria-valuemax="100" [attr.aria-label]="g.goal.label + ' progress'">
+                  <span [class]="g.status" [style.width.%]="g.progress * 100"></span>
+                </span>
+                <dl class="goal-facts">
+                  <dt>Saved</dt><dd>{{ fmt(g.goal.saved) }} <span class="ap-muted">({{ g.progress | percent: '1.0-0' }})</span></dd>
+                  <dt>Target</dt><dd>{{ fmt(g.goal.target) }}</dd>
+                  <dt>Remaining</dt><dd>{{ fmt(g.remaining) }}</dd>
+                  <dt>By</dt><dd>{{ g.goal.targetDate ?? 'No date' }}</dd>
+                  <dt>Needed monthly</dt><dd>{{ g.requiredMonthly !== null && g.status !== 'achieved' ? fmt(g.requiredMonthly) : '—' }}</dd>
+                </dl>
+              </a>
             </li>
           }
         </ul>
+      </section>
+
+      <div class="grid">
+        <a class="ap-card" routerLink="/app/details/networth" aria-labelledby="h-worth">
+          <div class="head">
+            <h2 id="h-worth">Net worth</h2>
+            <ion-icon name="chevron-forward" class="go" aria-hidden="true" />
+          </div>
+          <p class="big">{{ m().netWorth !== null ? fmt(m().netWorth!) : '—' }}</p>
+          @if (worth().length) {
+            <div class="bars">
+              <app-chart [option]="worthChart()" label="What you own by type and what you owe" (pick)="openSlice($event)" />
+            </div>
+            <ul class="legend inline" aria-label="Net worth legend">
+              <li><span class="swatch" [style.background]="worthColors()[0]" aria-hidden="true"></span>Owned</li>
+              <li><span class="swatch" [style.background]="worthColors()[1]" aria-hidden="true"></span>Owed</li>
+            </ul>
+          } @else {
+            <p class="ap-muted small">Add savings, investments, or loans to see your net worth.</p>
+          }
+        </a>
+
+        <a class="ap-card" routerLink="/app/details/fi" aria-labelledby="h-fi">
+          <div class="head">
+            <h2 id="h-fi">Financial independence</h2>
+            <ion-icon name="chevron-forward" class="go" aria-hidden="true" />
+          </div>
+          @if (m().fiProgress !== null) {
+            <p class="big">{{ m().fiProgress | percent: '1.0-1' }}</p>
+            <span class="bar" role="progressbar" [attr.aria-valuenow]="(m().fiProgress! * 100) | number: '1.0-0'" aria-valuemin="0" aria-valuemax="100" aria-label="Financial independence progress">
+              <span [style.width.%]="m().fiProgress! * 100"></span>
+            </span>
+            <p class="ap-muted small">
+              Invested assets {{ fmt(m().investedAssets) }} of an estimated {{ fmt(m().fiTarget!) }}
+              ({{ svc.profile().assumptions.fiMultiple }}× yearly spending). An estimate, not a retirement date.
+            </p>
+          } @else {
+            <p class="ap-muted small">Add expenses to estimate how far you are from living off your investments.</p>
+          }
+          <dl class="totals">
+            <dt>Emergency fund</dt>
+            <dd>{{ m().emergencyMonths !== null ? (m().emergencyMonths! | number: '1.0-1') + ' months' : '—' }}</dd>
+            <dt>Loan payments</dt>
+            <dd>{{ m().debtToIncome !== null ? (m().debtToIncome | percent: '1.0-0') + ' of income' : '—' }}</dd>
+          </dl>
+        </a>
+      </div>
+
+      <section class="ap-card trends" aria-labelledby="h-trends">
+        <h2 id="h-trends">Spending and income trends</h2>
+        <div class="trend-empty">
+          <ion-icon name="trending-up-outline" aria-hidden="true" />
+          <p class="ap-muted">
+            Trends appear once you log updates. Add what you spend, earn, and save, daily or weekly, and ArthaPath
+            will chart how things change and warn you early if a goal starts slipping.
+          </p>
+          <a routerLink="/app/updates">Go to Updates</a>
+        </div>
       </section>
 
       @if (svc.suggestions().length) {

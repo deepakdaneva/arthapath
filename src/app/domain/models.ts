@@ -17,8 +17,12 @@ export type IncomeKind = (typeof INCOME_KINDS)[number];
 
 export const EXPENSE_CATEGORIES = [
   'household', 'groceries', 'utilities', 'rent', 'insurance', 'medical', 'education',
-  'transport', 'travel', 'subscriptions', 'entertainment', 'dining', 'shopping', 'other',
+  'transport', 'travel', 'subscriptions', 'entertainment', 'dining', 'shopping', 'investments', 'other',
 ] as const;
+
+/** How needed an expense is. "investments" expenses are savings, not spending, whatever their tag. */
+export const NEEDS = ['necessary', 'discretionary', 'unnecessary'] as const;
+export type Need = (typeof NEEDS)[number];
 export type ExpenseCategory = (typeof EXPENSE_CATEGORIES)[number];
 
 export const LIABILITY_KINDS = ['home_loan', 'vehicle_loan', 'personal_loan', 'education_loan', 'credit_card', 'other'] as const;
@@ -53,8 +57,8 @@ export interface Expense extends Item {
   category: ExpenseCategory;
   amount: Paise;
   frequency: Frequency;
-  /** Essential spending counts toward emergency-fund needs. */
-  essential: boolean;
+  /** Necessary spending counts toward emergency-fund needs. */
+  need: Need;
 }
 
 export interface Liability extends Item {
@@ -114,9 +118,24 @@ export interface FinancialProfile {
   assumptions: Assumptions;
   /** True once the user finished onboarding at least once. */
   onboarded: boolean;
+  /** Epoch ms of the last saved change; drives the update reminder. */
+  updatedAt?: number;
 }
 
 export const DEFAULT_ASSUMPTIONS: Assumptions = { expectedReturn: 0, inflation: 6, fiMultiple: 25 };
+
+/**
+ * Brings a stored profile up to the current shape. Profiles saved before the
+ * three-level need tag had `essential: boolean`.
+ */
+export function normalizeProfile(raw: Partial<FinancialProfile> | null): FinancialProfile {
+  const p = { ...emptyProfile(), ...(raw ?? {}) };
+  p.expenses = p.expenses.map((e) => {
+    const { essential, ...rest } = e as Expense & { essential?: boolean };
+    return { ...rest, need: NEEDS.includes(rest.need) ? rest.need : essential === false ? 'discretionary' : 'necessary' };
+  });
+  return p;
+}
 
 export function emptyProfile(): FinancialProfile {
   return {

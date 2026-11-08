@@ -15,11 +15,12 @@ user's currency and locale (`en-IN` default for ₹ grouping like 1,50,000).
 | Metric | Formula | Notes |
 |---|---|---|
 | Monthly income | Σ recurring income (normalized to monthly) | Annual items ÷ 12 |
-| Monthly expenses | Σ recurring expenses + EMIs | |
-| Monthly surplus | income − expenses | |
-| Savings rate | surplus ÷ income | Undefined if income = 0 |
+| Monthly expenses | Σ recurring expenses, excluding the "investments" category | Each expense is tagged necessary, discretionary, or unnecessary |
+| Monthly investing | Σ expenses in the "investments" category (SIP, RD, PPF) | Saving, not spending |
+| Monthly surplus (left to save) | income − expenses − EMIs − investing | |
+| Savings rate | (income − expenses − EMIs) ÷ income | Includes investing; undefined if income = 0 |
 | Debt-to-income | Σ EMIs and minimum card dues ÷ income | |
-| Emergency fund coverage | liquid assets ÷ essential monthly expenses | In months |
+| Emergency fund coverage | liquid assets ÷ (necessary expenses + EMIs) | In months |
 | Net worth | Σ assets − Σ liabilities | Shown only when assets and liabilities are reported |
 | Goal required monthly | Future-value annuity solve for contribution | Uses user-confirmed assumed return; 0% default |
 | Goal progress | current ÷ target | |
@@ -75,7 +76,7 @@ A rebuild routine can regenerate aggregates from transactions if needed.
 ### Scoring details
 
 - Savings rate: 0 at 0% or less, full at 20% or more (linear).
-- Emergency fund: liquid assets (savings, fixed deposits) ÷ (essential
+- Emergency fund: liquid assets (savings, fixed deposits) ÷ (necessary
   expenses + loan payments); 0 at 0 months, full at 6.
 - Debt payments: full at 30% of income or less, 0 at 60% or more.
 - Goals: share of dated goals whose required monthly saving is fully
@@ -111,3 +112,48 @@ types must be known values (otherwise "other"), dates must be `YYYY-MM`,
 at most 20 items per section and 4 questions. Rough figures are tagged
 `ai_estimate`. The user reviews and can correct every amount before saving;
 a corrected amount becomes `user`.
+
+## Dashboard calculations (Phase 7)
+
+All in `src/app/domain/engine.ts`, pure and unit-tested.
+
+### Spending breakdown
+
+`spendingBreakdown` splits monthly income into: necessary, discretionary,
+and unnecessary spending; loan payments; investments; and what is left to
+save (surplus, never below zero). Empty slices are left out. Profiles saved
+before the three-level tag (`essential: true/false`) are upgraded on load:
+essential becomes necessary, the rest discretionary.
+
+### Warnings
+
+`financialWarnings` returns deterministic warnings, most severe first. Each
+states its threshold so the user can judge it:
+
+| Warning | Rule | Severity |
+|---|---|---|
+| Spending more than you earn | surplus < 0 | critical |
+| No updates for N days | last saved change more than 7 days ago | serious |
+| Most of your income is spent | (expenses + EMIs) > 80% of income | serious |
+| High loan payments | EMIs > 40% of income | serious |
+| No / small emergency fund | coverage < 1 month (serious) or < 3 months | serious / warning |
+| Goal behind / at risk | from goal planning | serious / warning |
+| Low savings | savings rate < 10% | warning |
+| Spending you marked unnecessary | > 10% of income | warning |
+| Goal coming up | due within 12 months, not achieved | warning |
+
+Rising liabilities and spending trends need history and arrive with
+transactions (Phase 8).
+
+### Update reminder
+
+`profile.updatedAt` is set on every saved change. After 7 days without one,
+the dashboard shows the "No updates" warning and the Updates tab shows a
+badge. Nothing is blocked or forced.
+
+### Period filters
+
+`periodRange` turns Day, Week (Monday start), Month, Year, or a custom
+from/to into a local-time range with an exclusive end, used by the
+transaction list on each details page.
+

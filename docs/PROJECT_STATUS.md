@@ -13,7 +13,7 @@ _Last updated: 2026-11-07_
 | 4 Security and encryption | Done (pending UAT verification) |
 | 5 AI integration | Done (pending UAT verification with real keys) |
 | 6 Financial engine and onboarding | Done (pending UAT verification with real keys) |
-| 7 Dashboard | Not started |
+| 7 Dashboard | Done (trend charts and transaction lists wait for Phase 8 data) |
 | 8 Updates (activity logging) | Not started |
 | 9 Import and advanced features | Not started |
 | 10 Production readiness | Not started |
@@ -205,6 +205,22 @@ local PDF parsing with consented AI assist.
 - Not yet done: updating the profile from free-form Chat messages (Chat
   answers using the profile; changes go through onboarding or the editor).
 
+## Phase 7 results
+
+- Expenses tagged necessary, discretionary, or unnecessary (form, onboarding
+  review, AI extraction); old profiles upgraded on load. Regular investments
+  are a category counted as saving.
+- Dashboard: warnings strip, health score, spending donut with legend,
+  goal cards (target, saved, remaining, date, monthly need, progress,
+  status), net worth bars, financial independence, trend placeholder.
+- Every card and chart slice opens a details page with the items, the
+  calculation, and (for money in and out) a transaction list with Day,
+  Week, Month, Year, and Custom filters.
+- Update reminder after 7 days without changes (dashboard and Updates tab).
+- Charts: Apache ECharts 6.1 (tree-shaken, SVG renderer), colour-blind-safe
+  palette validated for both themes; dashboard chunk is lazy-loaded
+  (about 160 kB gzip).
+
 ## Security issues
 
 None open.
@@ -219,5 +235,5 @@ Not deployed.
 
 ## Next tasks
 
-1. Verify on UAT with real free keys: chat and onboarding.
-2. Phase 7: dashboard charts and drill-down.
+1. Verify Phase 7 on UAT.
+2. Phase 8: Updates (activity logging, transactions, trends).

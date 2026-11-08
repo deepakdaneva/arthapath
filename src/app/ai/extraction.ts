@@ -10,6 +10,7 @@ import {
   GOAL_CATEGORIES,
   INCOME_KINDS,
   LIABILITY_KINDS,
+  NEEDS,
   rupees,
   type Asset,
   type Expense,
@@ -51,7 +52,7 @@ Respond with one JSON object only, matching:
 {
   "reply": "short friendly reply (max 70 words): acknowledge, then ask the single most useful next question",
   "incomes": [{"label": "", "kind": "${INCOME_KINDS.join('|')}", "amount": 0, "frequency": "weekly|monthly|quarterly|half_yearly|yearly", "earner": "self|spouse|other", "estimated": false}],
-  "expenses": [{"label": "", "category": "${EXPENSE_CATEGORIES.join('|')}", "amount": 0, "frequency": "monthly", "essential": true, "estimated": false}],
+  "expenses": [{"label": "", "category": "${EXPENSE_CATEGORIES.join('|')}", "amount": 0, "frequency": "monthly", "need": "necessary|discretionary|unnecessary", "estimated": false}],
   "liabilities": [{"label": "", "kind": "${LIABILITY_KINDS.join('|')}", "outstanding": 0, "monthlyPayment": 0, "interestRate": null, "estimated": false}],
   "assets": [{"label": "", "kind": "${ASSET_KINDS.join('|')}", "value": 0, "estimated": false}],
   "family": [{"relation": "", "age": null, "dependent": true}],
@@ -63,6 +64,10 @@ Respond with one JSON object only, matching:
 Rules: use empty arrays when nothing applies. "estimated": true when the user
 gave a rough figure or range (use the midpoint). For a goal without an amount,
 estimate a typical target, set "estimated": true, and ask to confirm.
+"need": necessary (rent, groceries, utilities, school fees, insurance,
+medicine), discretionary (dining, travel, entertainment, shopping), or
+unnecessary (spending the user calls wasteful or wants to cut). Regular
+investments (SIP, RD, PPF) use category "investments".
 "questions" lists the important missing facts (income, essential expenses,
 loans, savings, dependents, insurance, goal amounts and dates), at most 4.
 "done" is true once income, main expenses, and at least one goal are known.`;
@@ -112,7 +117,7 @@ export function parseExtraction(text: string): Extraction {
     const amount = money(o['amount']);
     if (!amount) return [];
     const category = oneOf(o['category'], EXPENSE_CATEGORIES, 'other');
-    return [{ id: id(), label: str(o['label']) || category, category, amount, frequency: oneOf(o['frequency'], FREQS, 'monthly'), essential: bool(o['essential']) ?? true, provenance: prov(o) }];
+    return [{ id: id(), label: str(o['label']) || category, category, amount, frequency: oneOf(o['frequency'], FREQS, 'monthly'), need: oneOf(o['need'], NEEDS, bool(o['essential']) === false ? 'discretionary' : 'necessary'), provenance: prov(o) }];
   });
   const liabilities = arr(raw['liabilities']).flatMap((o): Liability[] => {
     const outstanding = money(o['outstanding']) ?? 0;

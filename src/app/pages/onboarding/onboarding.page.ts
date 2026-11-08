@@ -20,7 +20,7 @@ import { AllProvidersExhaustedError, exhaustedMessage, route } from '../../ai/ro
 import { AiStatusService } from '../../core/ai-status.service';
 import { NoticeService } from '../../core/notice.service';
 import { describeRedactions, redact } from '../../ai/redact';
-import { formatInr, rupees, toRupees, type Provenance } from '../../domain/models';
+import { formatInr, rupees, toRupees, type Provenance, NEEDS, type Need } from '../../domain/models';
 import { ProfileService } from '../../domain/profile.service';
 
 interface Turn {
@@ -38,6 +38,8 @@ interface ReviewRow {
   amount: number | null;
   estimated: boolean;
   keep: boolean;
+  /** Expenses only: how needed it is (editable). */
+  need?: Need;
 }
 
 const INTRO =
@@ -148,6 +150,12 @@ export class OnboardingPage {
     }
   }
 
+  readonly needs = NEEDS;
+
+  setNeed(row: ReviewRow, need: Need): void {
+    this.rows.update((rs) => rs.map((r) => (r === row ? { ...r, need } : r)));
+  }
+
   setAmount(row: ReviewRow, value: string | null | undefined): void {
     const n = Number(String(value ?? '').replace(/[,₹\s]/g, ''));
     this.rows.update((rs) => rs.map((r) => (r === row ? { ...r, amount: Number.isFinite(n) && n >= 0 ? n : r.amount } : r)));
@@ -177,7 +185,7 @@ export class OnboardingPage {
       const reviewed: Extraction = {
         ...x,
         incomes: review(x.incomes, 'amount'),
-        expenses: review(x.expenses, 'amount'),
+        expenses: review(x.expenses, 'amount').map((e) => ({ ...e, need: keep.get(e.id)!.need ?? e.need })),
         liabilities: review(x.liabilities, 'outstanding'),
         assets: review(x.assets, 'value'),
         goals: review(x.goals, 'target'),
@@ -211,7 +219,7 @@ export class OnboardingPage {
     const est = (p: string) => p === 'ai_estimate';
     return [
       ...x.incomes.map((i) => ({ section: 'incomes' as const, id: i.id, label: i.label, detail: `Income · ${i.frequency.replace('_', '-')} · ${i.earner}`, amount: r(i.amount), estimated: est(i.provenance), keep: true })),
-      ...x.expenses.map((i) => ({ section: 'expenses' as const, id: i.id, label: i.label, detail: `Expense · ${i.frequency.replace('_', '-')} · ${i.essential ? 'essential' : 'flexible'}`, amount: r(i.amount), estimated: est(i.provenance), keep: true })),
+      ...x.expenses.map((i) => ({ section: 'expenses' as const, id: i.id, label: i.label, detail: `Expense · ${i.frequency.replace('_', '-')}`, amount: r(i.amount), estimated: est(i.provenance), keep: true, need: i.need })),
       ...x.liabilities.map((i) => ({ section: 'liabilities' as const, id: i.id, label: i.label, detail: `Loan · EMI ${formatInr(i.monthlyPayment)}${i.interestRate !== undefined ? ` · ${i.interestRate}%` : ''} · outstanding`, amount: r(i.outstanding), estimated: est(i.provenance), keep: true })),
       ...x.assets.map((i) => ({ section: 'assets' as const, id: i.id, label: i.label, detail: `Asset · ${i.kind.replace('_', ' ')}`, amount: r(i.value), estimated: est(i.provenance), keep: true })),
       ...x.goals.map((i) => ({ section: 'goals' as const, id: i.id, label: i.label, detail: `Goal${i.targetDate ? ` · by ${i.targetDate}` : ''} · target`, amount: r(i.target), estimated: est(i.provenance), keep: true })),
