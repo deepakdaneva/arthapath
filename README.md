@@ -7,7 +7,8 @@ management app. Describe your finances in plain language, and ArthaPath builds
 a private, encrypted financial profile, a live dashboard, and a prioritized
 goal plan. You bring your own AI keys, from any supported provider.
 
-> **Status:** version 1.0. Try it at <https://arthapath-prod.web.app>.
+> **Status:** version 1.0. Try it at <https://arthapath-prod.web.app>, or
+> install the Android app from [Releases](https://github.com/deepakdaneva/arthapath/releases).
 > Progress and plans: [docs/PROJECT_STATUS.md](docs/PROJECT_STATUS.md).
 
 ![ArthaPath dashboard](docs/screenshots/dashboard-dark.png)

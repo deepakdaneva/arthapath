@@ -7,6 +7,9 @@ name: ci
 # non-secret variables: FIREBASE_PROJECT_ID, FIREBASE_API_KEY, FIREBASE_APP_ID,
 # FIREBASE_MESSAGING_SENDER_ID, WIF_PROVIDER, WIF_SERVICE_ACCOUNT.
 # Deploy authentication is keyless (Workload Identity Federation).
+# After deploy, android-release packages the same bundle as a signed APK
+# (repository secrets ANDROID_KEYSTORE_BASE64, ANDROID_KEYSTORE_PASSWORD,
+# ANDROID_KEY_ALIAS): a UAT artifact from development, a GitHub release from main.
 
 on:
   pull_request:
@@ -119,9 +122,9 @@ jobs:
           retention-days: 7
 
   android:
-    # Skipped until the web app is stable. Enable by setting the repository
-    # variable ENABLE_ANDROID_BUILD=true (Settings > Secrets and variables > Actions).
-    if: vars.ENABLE_ANDROID_BUILD == 'true'
+    # PR check: the Android project builds and its unit tests and lint pass.
+    # Branch pushes build signed APKs in android-release instead.
+    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -141,9 +144,9 @@ jobs:
       - run: npm ci
       - run: npm run build
       - run: npx cap sync android
-      - name: Assemble debug APK (Gradle 9, AGP 9, JDK 25)
+      - name: Unit tests, lint, debug APK (Gradle 9, AGP 9, JDK 25)
         working-directory: android
-        run: ./gradlew assembleDebug --no-daemon
+        run: ./gradlew testDebugUnitTest lintDebug assembleDebug --no-daemon
 
   deploy:
     if: github.event_name != 'pull_request' && (github.ref_name == 'main' || github.ref_name == 'development')
@@ -178,6 +181,14 @@ jobs:
           npm ci
           npm run build -- --configuration ${{ github.ref_name == 'main' && 'production' || 'uat' }}
 
+      # The exact bundle deployed here is also packaged into the Android APK.
+      - name: Keep web bundle for the Android build
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: web-bundle
+          path: www/
+          retention-days: 1
+
       # Install everything before credentials exist, so no package install
       # script can read them.
       - name: Install Firebase CLI
@@ -199,3 +210,90 @@ jobs:
         env:
           PROJECT: ${{ vars.FIREBASE_PROJECT_ID }}
         run: '"$RUNNER_TEMP/fbt/node_modules/.bin/firebase" deploy --only firestore,hosting --project "$PROJECT" --non-interactive'
+
+  android-release:
+    # After a successful deploy: package the deployed bundle as an Android APK.
+    # development -> UAT APK (io.github.deepakdaneva.arthapath.uat) as a run artifact.
+    # main -> production APK attached to a GitHub release vX.Y.Z.
+    # The APK is built unsigned and signed afterwards with apksigner, so the
+    # signing key is only present in the signing step (repository secrets
+    # ANDROID_KEYSTORE_BASE64, ANDROID_KEYSTORE_PASSWORD, ANDROID_KEY_ALIAS).
+    needs: deploy
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: write # create the GitHub release (main only)
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@77dd5b2ce225ea11469928ac317850245a74ae78 # v6.2.0
+        with:
+          distribution: temurin
+          java-version: 25
+          cache: gradle
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: web-bundle
+          path: www
+      - run: npx cap sync android
+
+      - name: Version from the deployed bundle
+        id: v
+        run: |
+          VERSION=$(node -p "require('./www/version.json').version")
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "code=${VERSION##*.}" >> "$GITHUB_OUTPUT"
+
+      - name: Unit tests, lint, release APK (unsigned)
+        working-directory: android
+        env:
+          UAT: ${{ github.ref_name != 'main' }}
+        run: |
+          EXTRA=()
+          if [ "$UAT" = "true" ]; then EXTRA=(-PappIdSuffix=.uat "-PappName=ArthaPath UAT"); fi
+          ./gradlew testReleaseUnitTest lintRelease assembleRelease --no-daemon             -PversionCode=${{ steps.v.outputs.code }} -PversionName=${{ steps.v.outputs.version }} "${EXTRA[@]}"
+
+      - name: Sign and verify
+        env:
+          KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          KS_PASS: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          NAME: ${{ github.ref_name == 'main' && 'ArthaPath' || 'ArthaPath-UAT' }}
+          PACKAGE: io.github.deepakdaneva.arthapath${{ github.ref_name == 'main' && '' || '.uat' }}
+          VERSION: ${{ steps.v.outputs.version }}
+        run: |
+          if [ -z "$KEYSTORE_BASE64" ]; then echo "::error::Signing secrets missing (see docs/deployment/ANDROID_RELEASE.md)"; exit 1; fi
+          BT="$ANDROID_HOME/build-tools/$(ls "$ANDROID_HOME/build-tools" | sort -V | tail -1)"
+          KS="$RUNNER_TEMP/release.jks"
+          echo "$KEYSTORE_BASE64" | base64 -d > "$KS"
+          OUT="$NAME-$VERSION.apk"
+          "$BT/apksigner" sign --ks "$KS" --ks-pass env:KS_PASS --ks-key-alias "$KEY_ALIAS"             --out "$OUT" android/app/build/outputs/apk/release/app-release-unsigned.apk
+          rm -f "$KS"
+          "$BT/apksigner" verify --print-certs "$OUT" | grep -E "Signer #1 certificate (DN|SHA-256)"
+          BADGING=$("$BT/aapt2" dump badging "$OUT" | head -1)
+          echo "$BADGING"
+          echo "$BADGING" | grep -q "name='$PACKAGE' versionCode='${VERSION##*.}' versionName='$VERSION'"             || { echo "::error::APK package or version mismatch"; exit 1; }
+          sha256sum "$OUT" > "$OUT.sha256"
+          echo "APK=$OUT" >> "$GITHUB_ENV"
+
+      - name: Upload UAT APK
+        if: github.ref_name != 'main'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: android-uat-apk
+          path: ArthaPath-UAT-*
+          retention-days: 30
+
+      - name: Publish GitHub release
+        if: github.ref_name == 'main'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.v.outputs.version }}
+        run: |
+          gh release create "v$VERSION" "$APK" "$APK.sha256"             --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA"             --title "ArthaPath $VERSION" --generate-notes

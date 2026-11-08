@@ -154,8 +154,8 @@ local PDF parsing with consented AI assist.
 - Regression suite: 12 Playwright tests (`e2e/`) covering the flows
   above; pass locally twice in a row. CI job `e2e` gates deploys. Found and
   fixed an unlock race (PIN submitted before settings loaded).
-- Android CI build skipped by default (`ENABLE_ANDROID_BUILD`); focus is
-  the web app first.
+- Android CI build skipped by default at the time; enabled in 1.0 (see
+  docs/deployment/ANDROID_RELEASE.md).
 - Not yet verified: unlock time on a real Android device; the flow on UAT.
 
 ## Shell and account updates (post Phase 4)

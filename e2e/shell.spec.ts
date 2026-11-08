@@ -50,6 +50,23 @@ test.describe('app shell', () => {
     expect(iterations).toBe('5');
   });
 
+  test('bottom tabs: Home, Chat, and Updates navigate and mark the current page', async ({ page }) => {
+    await signUp(page, uniqueEmail('tabs'));
+    await setupPin(page);
+    const tabs = page.getByRole('navigation', { name: 'Primary' });
+    const current = tabs.locator('[aria-current="page"]');
+    await expect(current).toHaveText('Home');
+    await tabs.getByRole('link', { name: 'Chat' }).click();
+    await expect(page).toHaveURL(/\/app\/chat$/);
+    await expect(current).toHaveText('Chat');
+    await tabs.getByRole('link', { name: 'Updates' }).click();
+    await expect(page).toHaveURL(/\/app\/updates$/);
+    await expect(current).toHaveText('Updates');
+    await tabs.getByRole('link', { name: 'Home' }).click();
+    await expect(page).toHaveURL(/\/app$/);
+    await expect(current).toHaveText('Home');
+  });
+
   test('offers a reload when a newer version is deployed', async ({ page }) => {
     await page.goto('/');
     const { version } = await (await page.request.get('/version.json')).json();

@@ -1,6 +1,7 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
+import { Capacitor } from '@capacitor/core';
 import { IonButton } from '@ionic/angular/ion-button';
 import { IonCheckbox } from '@ionic/angular/ion-checkbox';
 import { IonContent } from '@ionic/angular/ion-content';
@@ -29,6 +30,8 @@ export class AuthPage {
   readonly info = signal('');
   /** Sign-up requires agreeing to the Terms and Privacy Policy. */
   readonly agreed = signal(false);
+  /** Google sign-in needs a browser popup; the Android WebView blocks it (native sign-in is planned). */
+  readonly googleAvailable = !Capacitor.isNativePlatform();
 
   readonly form = inject(FormBuilder).nonNullable.group({
     name: ['', [Validators.maxLength(100)]],
