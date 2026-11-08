@@ -14,7 +14,8 @@ export function authErrorMessage(err: unknown): string {
     case 'auth/email-already-in-use':
       return 'An account with this email already exists. Try signing in.';
     case 'auth/weak-password':
-      return 'Choose a stronger password (at least 8 characters).';
+    case 'auth/password-does-not-meet-requirements':
+      return 'Use at least 8 characters, including a lowercase letter and a number.';
     case 'auth/too-many-requests':
       return 'Too many attempts. Please wait a moment and try again.';
     case 'auth/network-request-failed':

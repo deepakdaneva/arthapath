@@ -81,8 +81,12 @@ export function customBaseUrlError(url: string): string | null {
   } catch {
     return 'Enter a full URL, for example https://api.mistral.ai/v1';
   }
-  const local = u.hostname === 'localhost' || u.hostname === '127.0.0.1';
-  if (local && (u.protocol === 'http:' || u.protocol === 'https:')) return null;
+  // Local model servers: only the origins the Content Security Policy allows.
+  if (u.hostname === 'localhost' || u.hostname === '127.0.0.1') {
+    return u.origin === 'http://localhost:11434' || u.origin === 'http://localhost:1234'
+      ? null
+      : 'Local servers are supported at http://localhost:11434 (Ollama) or http://localhost:1234 (LM Studio).';
+  }
   if (u.protocol !== 'https:') return 'Use an https:// URL.';
   if (!ALLOWED_HOSTS.has(u.hostname)) {
     return 'This provider is not on the allowed list. Choose one of the listed providers (self-hosted copies of ArthaPath can extend the list).';

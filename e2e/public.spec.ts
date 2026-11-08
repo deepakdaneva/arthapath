@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { agreeToTerms, field, uniqueEmail } from './helpers';
 
 test.describe('public pages', () => {
   test('landing page shows the product and leads to sign-in', async ({ page }) => {
@@ -37,5 +38,19 @@ test.describe('public pages', () => {
     await page.locator('ion-input[label="Password"] input').fill('wrong-password-1');
     await page.getByRole('button', { name: 'Sign in', exact: true }).click();
     await expect(page.getByRole('alert')).toHaveText('Email or password is incorrect.');
+  });
+
+  test('sign-up requires agreeing to the terms and privacy policy', async ({ page }) => {
+    await page.goto('/auth');
+    await page.getByRole('button', { name: 'Create an account' }).click();
+    await field(page, 'Email').fill(uniqueEmail('terms'));
+    await field(page, 'Password').fill('emulator-test-pass');
+    await page.getByRole('button', { name: 'Create account' }).click();
+    await expect(page.getByRole('alert')).toContainText('agree to the Terms and Privacy Policy');
+    await expect(page).toHaveURL(/\/auth$/);
+    await agreeToTerms(page);
+    await expect(page.getByRole('alert')).toHaveCount(0);
+    await page.getByRole('button', { name: 'Create account' }).click();
+    await expect(page).toHaveURL(/\/setup-pin$/);
   });
 });

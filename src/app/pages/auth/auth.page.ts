@@ -2,6 +2,7 @@ import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { IonButton } from '@ionic/angular/ion-button';
+import { IonCheckbox } from '@ionic/angular/ion-checkbox';
 import { IonContent } from '@ionic/angular/ion-content';
 import { IonIcon } from '@ionic/angular/ion-icon';
 import { IonInput } from '@ionic/angular/ion-input';
@@ -14,7 +15,7 @@ type Mode = 'signin' | 'signup' | 'reset';
 
 @Component({
   selector: 'app-auth',
-  imports: [IonContent, IonButton, IonInput, IonIcon, IonSpinner, ReactiveFormsModule, RouterLink],
+  imports: [IonContent, IonButton, IonCheckbox, IonInput, IonIcon, IonSpinner, ReactiveFormsModule, RouterLink],
   templateUrl: './auth.page.html',
   styleUrl: './auth.page.scss',
 })
@@ -26,6 +27,8 @@ export class AuthPage {
   readonly busy = signal(false);
   readonly error = signal('');
   readonly info = signal('');
+  /** Sign-up requires agreeing to the Terms and Privacy Policy. */
+  readonly agreed = signal(false);
 
   readonly form = inject(FormBuilder).nonNullable.group({
     name: ['', [Validators.maxLength(100)]],
@@ -44,6 +47,7 @@ export class AuthPage {
   }
 
   async google(): Promise<void> {
+    if (!this.termsOk()) return;
     await this.run(() => this.auth.signInWithGoogle());
   }
 
@@ -62,9 +66,16 @@ export class AuthPage {
       this.form.markAllAsTouched();
       return;
     }
+    if (!this.termsOk()) return;
     await this.run(() =>
       m === 'signup' ? this.auth.signUpWithEmail(name, email, password) : this.auth.signInWithEmail(email, password),
     );
+  }
+
+  private termsOk(): boolean {
+    if (this.mode() !== 'signup' || this.agreed()) return true;
+    this.error.set('Please agree to the Terms and Privacy Policy to create an account.');
+    return false;
   }
 
   private async run(fn: () => Promise<void>, navigate = true): Promise<void> {

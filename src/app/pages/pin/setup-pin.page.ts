@@ -11,7 +11,7 @@ import { NavController } from '@ionic/angular/nav-controller';
 import { addIcons } from 'ionicons';
 import { shieldCheckmarkOutline } from 'ionicons/icons';
 import { AuthService } from '../../core/auth.service';
-import { MIN_PIN_LENGTH, pinStrength } from '../../core/crypto/crypto';
+import { MIN_PIN_LENGTH, pinStrength, weakPinReason } from '../../core/crypto/crypto';
 import { VaultService } from '../../core/crypto/vault.service';
 
 @Component({
@@ -109,7 +109,7 @@ export class SetupPinPage {
   readonly strength = computed(() => pinStrength(this.pin()));
   readonly mismatch = computed(() => this.confirm().length > 0 && this.confirm() !== this.pin());
   readonly canSubmit = computed(
-    () => this.pin().length >= MIN_PIN_LENGTH && this.pin() === this.confirm() && this.ack(),
+    () => !weakPinReason(this.pin()) && this.pin() === this.confirm() && this.ack(),
   );
 
   constructor() {
@@ -117,7 +117,8 @@ export class SetupPinPage {
   }
 
   async submit(): Promise<void> {
-    if (this.pin().length < MIN_PIN_LENGTH) return this.error.set(`Use at least ${MIN_PIN_LENGTH} characters.`);
+    const weak = weakPinReason(this.pin());
+    if (weak) return this.error.set(weak);
     if (this.pin() !== this.confirm()) return this.error.set('The PINs do not match.');
     if (!this.ack()) return this.error.set('Please confirm you understand the PIN cannot be recovered.');
     this.busy.set(true);

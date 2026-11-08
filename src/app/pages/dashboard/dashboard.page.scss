@@ -90,7 +90,8 @@ h2 {
 }
 
 // --- summary ------------------------------------------------------------------
-.questions {
+// a.ap-card sets display: block; match its specificity so the column layout wins.
+a.ap-card.questions {
   display: flex;
   flex-direction: column;
   gap: 4px;

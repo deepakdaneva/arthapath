@@ -130,7 +130,7 @@ export class ImportPage {
       const to = new Date(new Date(`${dates.at(-1)}T00:00:00`).getTime() + 86_400_000);
       const existing = await this.tx.list(from, to).catch(() => []);
       const dup = markDuplicates(parsed.rows, existing);
-      let rows: Row[] = parsed.rows.map((r, i) => ({ ...r, description: redacted(r.description), raw: '', key: this.nextKey++, keep: !dup[i], duplicate: dup[i]!, byAi: false }));
+      let rows: Row[] = parsed.rows.map((r, i) => ({ ...r, description: redacted(r.description.slice(0, 300)), raw: '', key: this.nextKey++, keep: !dup[i], duplicate: dup[i]!, byAi: false }));
       if (this.app.prefs().aiCategorizeImports) rows = await this.aiCategorize(rows);
       this.rows.set(rows);
       this.pasted.set('');

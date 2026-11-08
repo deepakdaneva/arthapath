@@ -148,9 +148,27 @@ export class AuthService {
       // Storage unavailable: nothing to clean up.
     }
     await deleteUser(u);
+    await this.clearLocalData();
   }
 
-  signOut(): Promise<void> {
-    return signOut(auth);
+  async signOut(): Promise<void> {
+    await signOut(auth);
+    await this.clearLocalData();
+  }
+
+  /**
+   * Removes the offline Firestore cache (encrypted documents and the PIN
+   * parameters) from this device, then reloads so the next sign-in starts
+   * with a fresh database instance.
+   */
+  private async clearLocalData(): Promise<void> {
+    try {
+      const [{ db }, { terminate, clearIndexedDbPersistence }] = await Promise.all([import('./data/db'), import('firebase/firestore')]);
+      await terminate(db);
+      await clearIndexedDbPersistence(db);
+    } catch {
+      // Cache unavailable (private mode) or already gone: nothing to clear.
+    }
+    location.assign('/');
   }
 }

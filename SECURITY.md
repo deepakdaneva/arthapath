@@ -56,3 +56,19 @@ deployments that changed the security rules.
 - Statement files are read in the browser (pdf.js for PDFs) and never
   uploaded or stored; PDF passwords stay on the device. Files over 10 MB
   are refused.
+- PINs that are quick to guess offline (short single-class, repeats,
+  sequences) are refused at setup and on change, because a stolen copy of
+  the encrypted data could otherwise be attacked offline.
+- Signing out or deleting the account clears the local Firestore cache
+  (encrypted documents and PIN parameters) from the device.
+- App Check (reCAPTCHA v3) can be enabled to stop scripted abuse of the
+  shared free quota; see PRODUCTION_DEPLOYMENT.md.
+- AI replies never load images (a link is shown instead), so model output
+  cannot send data to another site without a click.
+- The production deploy installs dependencies and builds before obtaining
+  credentials, and requires maintainer approval.
+
+Known remaining limits: Firestore metadata (document counts, month
+buckets, timestamps) is visible to the operator by design; a compromised
+device or browser extension can read decrypted data and keys while the
+app is unlocked.

@@ -1,6 +1,6 @@
 {
   "name": "arthapath",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "scripts": {
     "config": "node scripts/write-app-config.mjs",
     "prestart": "npm run config",
@@ -14,7 +14,8 @@
     "test:rules": "npm --prefix firebase/rules-tests test",
     "cap:sync": "npm run build && cap sync",
     "test:integration": "npm run config && firebase emulators:exec --only auth,firestore --project demo-arthapath \"ng test --watch=false\"",
-    "test:e2e": "npm run config && firebase emulators:exec --only auth,firestore --project demo-arthapath \"playwright test\""
+    "test:e2e": "npm run config && firebase emulators:exec --only auth,firestore --project demo-arthapath \"playwright test\"",
+    "screenshots": "npm run config && firebase emulators:exec --only auth,firestore --project demo-arthapath \"playwright test --config playwright.screenshots.config.ts\""
   },
   "private": true,
   "dependencies": {

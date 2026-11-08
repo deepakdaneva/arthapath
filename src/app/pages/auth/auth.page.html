@@ -50,8 +50,24 @@
             labelPlacement="floating"
             fill="outline"
             [autocomplete]="mode() === 'signup' ? 'new-password' : 'current-password'"
+            [helperText]="mode() === 'signup' ? 'At least 8 characters, including a lowercase letter and a number.' : ''"
             errorText="At least 8 characters."
           />
+        }
+
+        @if (mode() === 'signup') {
+          <ion-checkbox
+            class="terms"
+            labelPlacement="end"
+            justify="start"
+            [checked]="agreed()"
+            (ionChange)="agreed.set($event.detail.checked); error.set('')"
+          >
+            <span class="ion-text-wrap">
+              I agree to the <a routerLink="/terms" target="_blank">Terms of Service</a> and
+              <a routerLink="/privacy" target="_blank">Privacy Policy</a>.
+            </span>
+          </ion-checkbox>
         }
 
         @if (error()) {
@@ -88,8 +104,13 @@
     </section>
 
     <p class="legal ap-muted">
-      By continuing you agree to the <a routerLink="/terms">Terms</a> and
-      <a routerLink="/privacy">Privacy Policy</a>.
+      @if (mode() !== 'signup') {
+        By continuing you agree to the <a routerLink="/terms">Terms</a> and
+        <a routerLink="/privacy">Privacy Policy</a>.
+      }
+      This site is protected by reCAPTCHA; the Google
+      <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer">Privacy Policy</a> and
+      <a href="https://policies.google.com/terms" target="_blank" rel="noopener noreferrer">Terms of Service</a> apply.
     </p>
   </div>
 </ion-content>

@@ -179,6 +179,18 @@ export async function decryptJson<T>(dek: CryptoKey, env: Pick<Envelope, 'v' | '
 }
 
 /** Rough strength hint for the PIN screen (not a security control). */
+/**
+ * A PIN that is too easy to guess offline (short and from one character class,
+ * a repeat, or a sequence) is refused at setup and on change; null when fine.
+ */
+export function weakPinReason(pin: string): string | null {
+  if (pin.length < MIN_PIN_LENGTH) return `Use at least ${MIN_PIN_LENGTH} characters.`;
+  if (pinStrength(pin) === 'weak') {
+    return 'Too easy to guess. Use at least 10 digits, or mix letters with numbers or symbols (for example river-mango-42).';
+  }
+  return null;
+}
+
 export function pinStrength(pin: string): 'weak' | 'fair' | 'strong' {
   const classes = [/\d/, /[a-z]/, /[A-Z]/, /[^A-Za-z0-9]/].filter((r) => r.test(pin)).length;
   const repeated = /^(.)\1+$/.test(pin) || '01234567890'.includes(pin) || '09876543210'.includes(pin);

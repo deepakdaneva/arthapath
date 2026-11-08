@@ -173,3 +173,9 @@ ion-popover.account-menu {
     margin: 12px 0;
   }
 }
+
+/* reCAPTCHA (App Check) badge: hidden because it covers the add button; the
+   required notice is shown on the sign-in page instead. */
+.grecaptcha-badge {
+  visibility: hidden;
+}

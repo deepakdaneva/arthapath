@@ -18,14 +18,20 @@ export async function signUp(page: Page, email: string, name = 'E2E User'): Prom
   await field(page, 'Name (optional)').fill(name);
   await field(page, 'Email').fill(email);
   await field(page, 'Password').fill('emulator-test-pass');
+  await agreeToTerms(page);
   await page.getByRole('button', { name: 'Create account' }).click();
   await expect(page).toHaveURL(/\/setup-pin$/);
+}
+
+/** Ticks the sign-up terms box (clicks the box itself, not the links in its label). */
+export async function agreeToTerms(page: Page): Promise<void> {
+  await page.locator('ion-checkbox.terms').click({ position: { x: 8, y: 10 } });
 }
 
 export async function setupPin(page: Page, pin = PIN): Promise<void> {
   await field(page, 'PIN or passphrase').fill(pin);
   await field(page, 'Confirm PIN').fill(pin);
-  await page.locator('ion-checkbox').click();
+  await page.locator('app-setup-pin ion-checkbox').click();
   await page.getByRole('button', { name: 'Create PIN' }).click();
   await expect(page).toHaveURL(/\/app$/);
 }

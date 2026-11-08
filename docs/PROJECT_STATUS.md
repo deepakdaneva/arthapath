@@ -16,7 +16,7 @@ _Last updated: 2026-11-07_
 | 7 Dashboard | Done (trend charts and transaction lists wait for Phase 8 data) |
 | 8 Updates (activity logging) | Done |
 | 9 Import and advanced features | Done |
-| 10 Production readiness | Not started |
+| 10 Production readiness | In progress (release readiness done; awaiting release) |
 
 ## Phase 0 findings
 
@@ -247,6 +247,21 @@ local PDF parsing with consented AI assist.
   when due), encrypted history with the figures at the time.
 - Fixed: the Updates list now refreshes when the page is shown again.
 
+## Phase 10 results (release readiness)
+
+- Independent security review: no XSS, cross-user access, or plaintext
+  storage found. Fixed: weak PINs refused; local cache cleared on sign-out
+  and account deletion; deploy credentials obtained only after installs and
+  build; AI reply images shown as links; local AI server URLs limited to the
+  CSP origins; redaction input capped.
+- Production: localhost removed from authorized domains; password policy
+  enforced (prod and UAT); production deployments need maintainer approval.
+- App Check (reCAPTCHA v3) wired and off until a site key is configured.
+- Privacy policy and terms published (no longer drafts); contact through
+  GitHub; reCAPTCHA disclosure. Version 1.0.
+- Dependency audit: no known vulnerabilities in runtime dependencies;
+  moderate advisories remain in development-only tooling.
+
 ## Security issues
 
 None open.
@@ -261,5 +276,6 @@ Not deployed.
 
 ## Next tasks
 
-1. Verify Phase 9 on UAT.
-2. Phase 10: production readiness (full testing, security review, legal review, release).
+1. Merge to development and verify on UAT.
+2. Configure reCAPTCHA keys, then enforce App Check.
+3. Release PR development → main; approve the production deployment.

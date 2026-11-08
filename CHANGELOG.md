@@ -4,9 +4,11 @@ All notable changes to this project are documented here.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versioning: [Semantic Versioning](https://semver.org/).
 
-## [Unreleased]
+## [1.0.0] - first production release
 
 ### Added
+- Sign-up asks you to agree to the Terms of Service and Privacy Policy.
+- README screenshots from a demo account (`npm run screenshots`).
 - Statement import (Phase 9): CSV exports, PDFs (including password-
   protected ones), or pasted text, read on the device. Duplicates are
   flagged and unselected; every row can be corrected before saving. The file
@@ -103,6 +105,13 @@ Versioning: [Semantic Versioning](https://semver.org/).
   bundle reduced from 909 kB to 674 kB.
 
 ### Security
+- PINs that are quick to guess offline are refused at setup and on change.
+- Signing out and deleting the account clear the local Firestore cache.
+- App Check with reCAPTCHA v3 (enabled once a site key is configured).
+- AI replies show images as links instead of loading them.
+- Local AI server URLs limited to the origins the security policy allows.
+- Production deploy: credentials obtained only after installs and build;
+  maintainer approval required.
 - Identity numbers and secrets (PAN, Aadhaar, card and account numbers,
   passport, phone, email, UPI ID, OTP/PIN/CVV/password) are removed on the
   device before messages, labels, and AI replies are saved, shown, or sent
@@ -111,6 +120,7 @@ Versioning: [Semantic Versioning](https://semver.org/).
   prompts.
 
 ### Fixed
+- Dashboard questions card and recommendation count spacing.
 - AI replies render Markdown (bold, lists, tables, code, links) in Chat and
   onboarding instead of showing raw symbols. Raw HTML from the model is shown
   as text, links open in a new tab, and Angular sanitizes the result.
