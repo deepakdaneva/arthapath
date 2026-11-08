@@ -98,6 +98,22 @@
   }
 }
 
+.data-use {
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: rgba(var(--ion-color-warning-rgb), 0.08);
+  border: 1px solid rgba(var(--ion-color-warning-rgb), 0.3);
+
+  p {
+    margin: 6px 0 0;
+    line-height: 1.5;
+  }
+
+  a {
+    color: var(--ion-color-secondary);
+  }
+}
+
 .guide {
   padding: 12px 14px;
   border-radius: 12px;

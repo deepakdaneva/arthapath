@@ -51,6 +51,9 @@ function retryHint(body: string): number | null {
 const QUOTA = /(per[\s_-]?day|daily|quota|insufficient|credits?|billing|exceeded your current|RPD|TPD)/i;
 const BAD_KEY = /(api[\s_-]?key[^.]*(not valid|invalid|expired)|API_KEY_INVALID|invalid[\s_-]?api[\s_-]?key|unauthori[sz]ed|incorrect api key)/i;
 const MODEL = /(model[^.]*(not found|does not exist|decommissioned|not supported|no longer available|unavailable))|NOT_FOUND/i;
+const PRIVACY_POLICY = /(data policy|data_collection|privacy settings?)/i;
+/** Marker in the error message for a model blocked by the no-training setting. */
+export const PRIVACY_BLOCKED = 'no provider for this model promises not to store or train on prompts';
 const CONTEXT = /(context[\s_-]?length|too many tokens|maximum context|request too large)/i;
 
 /** Maps an HTTP error from any supported provider to an AIError. */
@@ -66,6 +69,8 @@ export function classifyHttpError(status: number, body: string, provider: string
       ? new AIError('quota_exhausted', msg('quota exhausted'), hint, status)
       : new AIError('rate_limited', msg('rate limited'), hint, status);
   }
+  // OpenRouter: no provider for this model meets the no-training privacy setting.
+  if (PRIVACY_POLICY.test(body)) return new AIError('model_unavailable', msg(PRIVACY_BLOCKED), null, status);
   if (status === 404 || MODEL.test(body)) return new AIError('model_unavailable', msg('model unavailable'), null, status);
   if (status === 413 || CONTEXT.test(body)) return new AIError('invalid_request', msg('request too large'), null, status);
   if (status >= 500) return new AIError('provider_down', msg('service unavailable'), hint, status);

@@ -19,6 +19,7 @@ import { ONBOARDING_STARTERS } from '../../ai/starters';
 import { AllProvidersExhaustedError, exhaustedMessage, route } from '../../ai/router';
 import { AiStatusService } from '../../core/ai-status.service';
 import { NoticeService } from '../../core/notice.service';
+import { describeRedactions, redact } from '../../ai/redact';
 import { formatInr, rupees, toRupees, type Provenance } from '../../domain/models';
 import { ProfileService } from '../../domain/profile.service';
 
@@ -87,8 +88,12 @@ export class OnboardingPage {
   }
 
   async send(): Promise<void> {
-    const message = this.text().trim();
+    // ID numbers and secrets are removed on this device: never stored, shown again, or sent.
+    const { text: message, found } = redact(this.text().trim());
     if (!message || this.busy() || this.pending()) return;
+    if (found.length) {
+      void this.notices.show(`Removed ${describeRedactions(found)} for your safety. ArthaPath never needs ID numbers or secrets.`, 'warning');
+    }
     this.text.set('');
     this.error.set('');
     this.turns.update((t) => [...t, { role: 'user', content: message }]);

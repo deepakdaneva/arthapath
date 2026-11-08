@@ -59,6 +59,9 @@ Versioning: [Semantic Versioning](https://semver.org/).
   with a System/Light/Dark theme switcher and Log out.
 
 ### Changed
+- Each AI provider shows how it says it handles data, with a link to its
+  terms, plus a notice that handling depends on the provider and the key's
+  plan. Groq is offered first. Privacy policy and terms updated to match.
 - "Today's Updates" renamed to "Updates": activity can be logged at any
   cadence (daily, weekly, monthly); `/app/today` redirects.
 - Android toolchain: Gradle 9.9.0, Android Gradle Plugin 9.5.1, JDK 25
@@ -67,6 +70,14 @@ Versioning: [Semantic Versioning](https://semver.org/).
   later, no decrypted data) stays in the hidden DOM.
 - Ionic components imported from per-component entry points; initial
   bundle reduced from 909 kB to 674 kB.
+
+### Security
+- Identity numbers and secrets (PAN, Aadhaar, card and account numbers,
+  passport, phone, email, UPI ID, OTP/PIN/CVV/password) are removed on the
+  device before messages, labels, and AI replies are saved, shown, or sent
+  to an AI provider; the user is told what was removed.
+- OpenRouter requests only go to providers that do not store or train on
+  prompts.
 
 ### Fixed
 - AI replies render Markdown (bold, lists, tables, code, links) in Chat and

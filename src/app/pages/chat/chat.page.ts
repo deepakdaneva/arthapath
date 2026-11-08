@@ -43,6 +43,7 @@ import { ProfileService } from '../../domain/profile.service';
                 knows the details you shared, and your conversation is encrypted.
               </p>
             }
+            <p class="ap-muted safety">Messages go to the AI provider you set up, under its terms. Never share ID, card, or account numbers, OTPs, or passwords: ArthaPath removes the ones it recognizes before saving or sending.</p>
             @if (keys.loaded() && keys.keys().length === 0) {
               <ion-button routerLink="/app/ai-providers">Add an AI provider</ion-button>
             }
@@ -152,6 +153,10 @@ import { ProfileService } from '../../domain/profile.service';
     .typing {
       letter-spacing: 3px;
       color: var(--ap-text-muted);
+    }
+    .safety {
+      font-size: 0.8rem;
+      max-width: 520px;
     }
     .meta {
       margin-top: 4px;

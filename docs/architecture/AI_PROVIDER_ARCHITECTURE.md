@@ -133,6 +133,25 @@ not expose its rate-limit headers to browsers, so retry hints are parsed
 from the error body ("Please try again in 1m26.4s"); Gemini's come from
 `RetryInfo.retryDelay`.
 
+### Data protection
+
+- **Redaction on the device** (`src/app/ai/redact.ts`): identity numbers and
+  secrets are removed from user messages, onboarding messages, saved labels,
+  extraction results, and AI replies before they are stored, shown again,
+  or sent. Rules use fixed shapes (PAN, email, UPI ID, passport), checksums
+  (cards: Luhn; Aadhaar: Verhoeff), or a nearby keyword (account and phone
+  numbers, OTP/PIN/CVV/password), so amounts are never touched. The user is
+  told what was removed.
+- **OpenRouter**: every request sets `provider.data_collection: "deny"`. If
+  no provider for the model qualifies, OpenRouter rejects the request; the
+  key is marked `model_unavailable` and the user is asked to choose another
+  model.
+- **Provider data notices** (`src/app/ai/key-guides.ts`): each provider's
+  stated data practices, with a link to its terms, are shown in the key form
+  together with a general notice that data handling is decided by the
+  provider and the key's plan. Groq is listed first because it states it
+  does not train on prompts.
+
 ### Models (fetched live, never stored as lists)
 
 ArthaPath keeps no model names in code. When a key is entered (or a key is

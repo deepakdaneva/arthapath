@@ -31,9 +31,9 @@ const geminiQuota: Handler = () => ({
 });
 const groqQuota: Handler = () => ({ status: 429, json: { error: { message: 'Rate limit reached on requests per day (RPD)' } } });
 
-async function addKey(page: Page, provider: 'Google Gemini' | 'Groq', key: string, model: string) {
+async function addKey(page: Page, provider: 'Google Gemini' | 'Groq' | 'OpenRouter', key: string, model: string) {
   await page.getByRole('button', { name: 'Add an AI provider' }).click();
-  if (provider !== 'Google Gemini') {
+  if (provider !== 'Groq') {
     await page.locator('ion-select[label="Provider"]').click();
     await page.getByRole('radio', { name: provider }).click();
   }
@@ -162,6 +162,10 @@ test.describe('AI providers and chat', () => {
     });
     await ready(page, 'live');
     await page.getByRole('button', { name: 'Add an AI provider' }).click();
+    await page.locator('ion-select[label="Provider"]').click();
+    await page.getByRole('radio', { name: 'Google Gemini' }).click();
+    // The closing provider menu returns focus to itself; wait so it does not blur the key field early.
+    await expect(page.locator('ion-popover.select-popover')).toHaveCount(0);
     await field(page, 'API key').fill(FAKE_GEMINI_KEY);
     await field(page, 'API key').blur();
     await expect(page.getByText('Key works. 3 models available.')).toBeVisible();
@@ -187,6 +191,61 @@ test.describe('AI providers and chat', () => {
     expect(await page.evaluate(() => (window as unknown as { __xss?: number }).__xss)).toBeUndefined();
     // The user's own message stays plain text.
     await expect(page.locator('.msg.user .bubble').last()).toHaveText('How can I cut my expenses?');
+  });
+
+  test('identity numbers are removed before saving, showing, or sending', async ({ page }) => {
+    const bodies: string[] = [];
+    await page.route('https://api.groq.com/**', async (route) => {
+      const req = route.request();
+      if (req.method() === 'OPTIONS') return route.fulfill({ status: 204, headers: CORS });
+      if (req.method() === 'GET') return route.fulfill({ status: 200, headers: CORS, json: { data: [] } });
+      bodies.push(req.postData() ?? '');
+      return route.fulfill({ status: 200, headers: CORS, json: { model: 'llama-test', choices: [{ message: { content: 'Noted. Card 4111 1111 1111 1111 is risky.' } }] } });
+    });
+    await ready(page, 'redact');
+    await addKey(page, 'Groq', FAKE_GROQ_KEY, 'llama-test');
+    await page.getByRole('link', { name: 'Chat' }).click();
+    await expect(page.getByText('Never share ID, card, or account numbers')).toBeVisible();
+    await page.getByRole('textbox', { name: 'Message' }).fill('My PAN is ABCPE1234F and I earn 150000 a month. OTP 482913');
+    await page.getByRole('button', { name: 'Send', exact: true }).click();
+    await expect(page.locator('ion-toast')).toContainText('Removed 1 OTP, PIN, CVV or password and 1 PAN for your safety');
+    await expect(page.locator('.msg.user .bubble').last()).toHaveText('My PAN is [PAN removed] and I earn 150000 a month. OTP [removed]');
+    await expect(page.locator('.msg.assistant .ap-markdown').last()).toContainText('Card [card ending 1111] is risky.');
+    expect(bodies).toHaveLength(1);
+    expect(bodies[0]).not.toContain('ABCPE1234F');
+    expect(bodies[0]).not.toContain('482913');
+    expect(bodies[0]).toContain('150000');
+    await expect(page.getByText('ABCPE1234F')).toHaveCount(0);
+  });
+
+  test('each provider shows how it handles data, with a link to its terms', async ({ page }) => {
+    await ready(page, 'disclaimer');
+    await page.getByRole('button', { name: 'Add an AI provider' }).click();
+    const box = page.getByRole('region', { name: 'How this provider handles your data' });
+    await expect(box).toContainText('Groq states that it does not use prompts or responses to train models');
+    await expect(box).toContainText('ArthaPath does not control or receive that data');
+    await page.locator('ion-select[label="Provider"]').click();
+    await page.getByRole('radio', { name: 'Google Gemini' }).click();
+    await expect(box).toContainText('human reviewers may read them');
+    await expect(box.getByRole('link', { name: /terms/ })).toHaveAttribute('href', 'https://ai.google.dev/gemini-api/terms');
+  });
+
+  test('OpenRouter requests ask for providers that do not store or train on prompts', async ({ page }) => {
+    let sent: Record<string, unknown> | null = null;
+    await page.route('https://openrouter.ai/**', async (route) => {
+      const req = route.request();
+      if (req.method() === 'OPTIONS') return route.fulfill({ status: 204, headers: CORS });
+      if (req.method() === 'GET') return route.fulfill({ status: 200, headers: CORS, json: { data: [] } });
+      sent = req.postDataJSON();
+      return route.fulfill({ status: 404, headers: CORS, json: { error: { code: 404, message: 'No endpoints found matching your data policy (Free model training)' } } });
+    });
+    await ready(page, 'orpriv');
+    await addKey(page, 'OpenRouter', 'sk-or-v1-FAKE-e2e-openrouter-key-000003', 'some/model:free');
+    await page.getByRole('link', { name: 'Chat' }).click();
+    await page.getByRole('textbox', { name: 'Message' }).fill('How do I budget my salary?');
+    await page.getByRole('button', { name: 'Send', exact: true }).click();
+    await expect(page.getByText('promises not to store or train on your data')).toBeVisible();
+    expect(sent!['provider']).toEqual({ data_collection: 'deny' });
   });
 
   test('a retired model is reported as needing a new model, not as a limit', async ({ page }) => {

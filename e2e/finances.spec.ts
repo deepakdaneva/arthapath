@@ -174,12 +174,12 @@ test.describe('navigation and guides', () => {
     await page.locator('ion-input[label="PIN or passphrase"] input').fill('river-mango-42');
     await page.getByRole('button', { name: 'Unlock', exact: true }).click();
     await page.getByRole('button', { name: 'Add an AI provider' }).click();
-    await expect(page.getByText('How to get a Google Gemini (Google AI Studio) key')).toBeVisible();
-    await expect(page.getByText('Click "Create API key"')).toBeVisible();
-    await page.locator('ion-select[label="Provider"]').click();
-    await page.getByRole('radio', { name: 'Groq' }).click();
     await expect(page.getByText('How to get a Groq key')).toBeVisible();
     await expect(page.getByRole('link', { name: 'Open Groq' })).toHaveAttribute('href', 'https://console.groq.com/keys');
+    await page.locator('ion-select[label="Provider"]').click();
+    await page.getByRole('radio', { name: 'Google Gemini' }).click();
+    await expect(page.getByText('How to get a Google Gemini (Google AI Studio) key')).toBeVisible();
+    await expect(page.getByText('Click "Create API key"')).toBeVisible();
     await expect(page.locator('ion-popover.select-popover')).toHaveCount(0);
     await page.locator('ion-select[label="Provider"]').click();
     await page.getByRole('radio', { name: 'Custom (OpenAI-compatible)' }).click();

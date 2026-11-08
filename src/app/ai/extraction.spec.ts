@@ -45,6 +45,18 @@ describe('parseExtraction', () => {
     expect(x.goals[0]!.targetDate).toBeUndefined();
   });
 
+  it('removes identity numbers from extracted text', () => {
+    const x = parseExtraction(
+      JSON.stringify({
+        reply: 'Noted your PAN ABCPE1234F.',
+        assets: [{ label: 'HDFC account 50100123456789', kind: 'savings', value: 200000 }],
+      }),
+    );
+    expect(x.reply).toBe('Noted your PAN [PAN removed].');
+    expect(x.assets[0]!.label).toBe('HDFC account [ending 6789]');
+    expect(x.assets[0]!.value).toBe(rupees(200000));
+  });
+
   it('accepts JSON wrapped in code fences or prose', () => {
     expect(parseExtraction('```json\n{"reply":"hi"}\n```').reply).toBe('hi');
     expect(parseExtraction('Here you go: {"reply":"hello"} thanks').reply).toBe('hello');

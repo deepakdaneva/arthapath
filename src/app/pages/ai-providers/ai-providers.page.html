@@ -16,8 +16,9 @@
         <div class="ap-card empty">
           <p><strong>No AI provider yet.</strong></p>
           <p class="ap-muted">
-            Free keys are available from Google AI Studio (Gemini), Groq, and OpenRouter. Add at least one to
-            use Chat. Add more than one so ArthaPath can switch when a free limit runs out.
+            Free keys are available from Groq, Google AI Studio (Gemini), and OpenRouter. Add at least one to
+            use Chat. Add more than one so ArthaPath can switch when a free limit runs out. Providers handle
+            your data differently, especially on free plans: each one shows how when you add it.
           </p>
         </div>
       }
@@ -83,6 +84,14 @@
           }
 
           @if (guide(); as g) {
+            <section class="data-use" aria-label="How this provider handles your data">
+              <strong>How {{ g.name }} handles your data</strong>
+              <p>{{ g.privacy }}</p>
+              <p class="ap-muted small">
+                {{ dataNotice }}
+                <a [href]="g.privacyUrl" target="_blank" rel="noopener noreferrer">Read {{ g.name }}'s terms</a>
+              </p>
+            </section>
             <details class="guide" [open]="!isEdit()">
               <summary>How to get a {{ g.name }} key</summary>
               <ol>
@@ -145,8 +154,10 @@
       <p class="ap-muted note">
         Your key is used directly from this device to call the provider, so anything running on this device
         (for example a malicious browser extension) could read it while ArthaPath is unlocked. When you chat,
-        your message and relevant financial context are sent to the provider in use, under its terms; some
-        free tiers may use requests to improve their products.
+        your message and relevant financial context are sent from this device to the provider in use. How
+        that provider stores or uses them depends on the provider and your key's plan, under the provider's
+        terms; ArthaPath does not control or receive that data. Identity numbers and secrets that ArthaPath
+        recognizes are removed before anything is saved or sent.
       </p>
     }
   </div>
