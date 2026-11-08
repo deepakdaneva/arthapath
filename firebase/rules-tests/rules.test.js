@@ -106,7 +106,8 @@ describe('encrypted subcollections', () => {
     await assertFails(setDoc(doc(db(ALICE), 'users', ALICE, 'goals', 'g1'), envelope({ v: 2 })));
   });
 
-  test('vault only allows the main document', async () => {
+  test('vault only allows the main and profile documents', async () => {
+    await assertSucceeds(setDoc(doc(db(ALICE), 'users', ALICE, 'vault', 'profile'), envelope()));
     await assertFails(setDoc(doc(db(ALICE), 'users', ALICE, 'vault', 'other'), envelope()));
   });
 

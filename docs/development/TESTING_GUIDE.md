@@ -56,6 +56,12 @@ browser-agnostic; CI runs them on Playwright's Chromium.
 | AI fallback | Exhausted provider triggers a switch notice and indicator blink; context carried to the next provider; cooling-down key skipped; messages stored encrypted and reloaded |
 | AI limits | All-providers-exhausted message; off-topic question answered locally with no provider call; no-provider guidance |
 
+| Finances | Manual entry computes surplus and goal order; user reordering; dashboard figures; profile and goals stored encrypted |
+| Onboarding | Chat starters open onboarding prefilled; extraction review with estimates; corrected amount saved; pending question badge; plan shown |
+| Context | Chat request carries calculated profile figures |
+| Unlock race | A message sent right after unlocking waits for keys and profile |
+| Navigation | Updates tab (renamed from Today's Updates) and redirect; key-creation guides per provider |
+
 Provider APIs are mocked in the browser tests (`page.route`), so CI never
 calls a real provider or uses a real key.
 

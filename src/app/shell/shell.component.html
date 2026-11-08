@@ -51,6 +51,10 @@
         </ion-label>
       </ion-item>
       <div class="divider" role="separator"></div>
+      <ion-item button detail="false" (click)="go('/app/finances')">
+        <ion-icon slot="start" name="wallet-outline" aria-hidden="true" />
+        <ion-label>Your finances</ion-label>
+      </ion-item>
       <ion-item button detail="false" (click)="go('/app/settings')">
         <ion-icon slot="start" name="settings-outline" aria-hidden="true" />
         <ion-label>Settings</ion-label>
@@ -86,10 +90,10 @@
 
 <div class="outlet-host">
   <ion-router-outlet />
-  <!-- Chat has its own composer; the quick-add button would cover Send there. -->
-  @if (!onChat()) {
+  <!-- Pages with a message box (Chat, onboarding): the quick-add button would cover Send. -->
+  @if (!hasComposer()) {
     <ion-fab vertical="bottom" horizontal="end" slot="fixed">
-      <ion-fab-button routerLink="/app/today" aria-label="Add a transaction or update">
+      <ion-fab-button routerLink="/app/updates" aria-label="Add an update">
         <ion-icon name="add" aria-hidden="true" />
       </ion-fab-button>
     </ion-fab>
@@ -99,12 +103,17 @@
 <ion-footer class="ion-no-border">
   <nav class="tabbar" aria-label="Primary">
     <a routerLink="/app/chat" [class.active]="onChat()" [attr.aria-current]="onChat() ? 'page' : null">
-      <ion-icon [name]="onChat() ? 'chatbubbles' : 'chatbubbles-outline'" aria-hidden="true" />
+      <span class="tab-icon">
+        <ion-icon [name]="onChat() ? 'chatbubbles' : 'chatbubbles-outline'" aria-hidden="true" />
+        @if (openQuestions() > 0) {
+          <span class="badge" [attr.aria-label]="openQuestions() + ' open questions'">{{ openQuestions() }}</span>
+        }
+      </span>
       <span>Chat</span>
     </a>
-    <a routerLink="/app/today" [class.active]="onToday()" [attr.aria-current]="onToday() ? 'page' : null">
-      <ion-icon [name]="onToday() ? 'today' : 'today-outline'" aria-hidden="true" />
-      <span>Today's Updates</span>
+    <a routerLink="/app/updates" [class.active]="onUpdates()" [attr.aria-current]="onUpdates() ? 'page' : null">
+      <ion-icon [name]="onUpdates() ? 'receipt' : 'receipt-outline'" aria-hidden="true" />
+      <span>Updates</span>
     </a>
   </nav>
 </ion-footer>

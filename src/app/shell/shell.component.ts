@@ -30,12 +30,14 @@ import {
   notificationsOutline,
   settingsOutline,
   sunnyOutline,
-  today,
-  todayOutline,
+  receipt,
+  receiptOutline,
+  walletOutline,
 } from 'ionicons/icons';
 import { AuthService } from '../core/auth.service';
 import { SessionLockService } from '../core/crypto/session-lock.service';
 import { ThemeService } from '../core/theme.service';
+import { ProfileService } from '../domain/profile.service';
 import { UpdateService } from '../core/update.service';
 import { AiStatusComponent } from './ai-status.component';
 
@@ -73,6 +75,8 @@ export class ShellComponent {
   readonly user = this.auth.user;
   readonly version = inject(UpdateService).version;
   readonly theme = inject(ThemeService);
+  private readonly profileSvc = inject(ProfileService);
+  readonly openQuestions = computed(() => this.profileSvc.openQuestions().length);
   private static readonly THEME = {
     system: { label: 'System', icon: 'contrast-outline' },
     light: { label: 'Light', icon: 'sunny-outline' },
@@ -102,7 +106,8 @@ export class ShellComponent {
     { initialValue: this.router.url },
   );
   readonly onChat = computed(() => this.url().startsWith('/app/chat'));
-  readonly onToday = computed(() => this.url().startsWith('/app/today'));
+  readonly onUpdates = computed(() => this.url().startsWith('/app/updates'));
+  readonly hasComposer = computed(() => this.onChat() || this.url().startsWith('/app/onboarding'));
 
   constructor() {
     addIcons({
@@ -118,8 +123,9 @@ export class ShellComponent {
       notificationsOutline,
       settingsOutline,
       sunnyOutline,
-      today,
-      todayOutline,
+      receipt,
+      receiptOutline,
+      walletOutline,
     });
   }
 

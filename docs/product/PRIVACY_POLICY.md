@@ -47,6 +47,10 @@ processing. That provider may retain or use the data under its own terms;
 some free tiers use submitted data to improve their products. Review each
 provider's terms. ArthaPath never sends your PIN or encryption key.
 
+During onboarding, your message and your current financial profile are sent
+to your AI provider so it can understand what you described. Nothing it
+extracts is saved until you review and confirm it.
+
 Statement imports are parsed on your device. Extracted text is sent to an
 AI provider only if you explicitly agree for that import. Raw files are
 never uploaded or stored.

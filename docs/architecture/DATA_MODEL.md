@@ -24,7 +24,8 @@ amounts, categories, merchants, or descriptions.
 
 ```
 users/{uid}                                   // identity + crypto params
-users/{uid}/vault/main                        // encrypted financial profile snapshot
+users/{uid}/vault/main                        // encrypted preferences (auto-lock)
+users/{uid}/vault/profile                     // encrypted financial profile (income, expenses, loans, assets, family, insurance, assumptions)
 users/{uid}/goals/{goalId}                    // encrypted
 users/{uid}/transactions/{txId}               // encrypted; plaintext: month ("2026-11"), occurredAt
 users/{uid}/aggregates/{yyyy-mm}              // encrypted monthly totals per category/type

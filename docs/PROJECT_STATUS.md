@@ -12,9 +12,9 @@ _Last updated: 2026-11-07_
 | 3 Frontend foundation | Done |
 | 4 Security and encryption | Done (pending UAT verification) |
 | 5 AI integration | Done (pending UAT verification with real keys) |
-| 6 Financial engine and onboarding | Not started |
+| 6 Financial engine and onboarding | Done (pending UAT verification with real keys) |
 | 7 Dashboard | Not started |
-| 8 Today's Updates | Not started |
+| 8 Updates (activity logging) | Not started |
 | 9 Import and advanced features | Not started |
 | 10 Production readiness | Not started |
 
@@ -108,7 +108,7 @@ local PDF parsing with consented AI assist.
   `demo-arthapath`. Real values only in GitHub environment variables.
 - Pages: landing, auth (Google popup, email sign-in/up, verification,
   reset with no account enumeration), shell (brand, avatar menu, bottom
-  Chat / Today's Updates nav, FAB), dashboard first-run CTA, chat and
+  Chat / Updates nav, FAB), dashboard first-run CTA, chat and
   today empty states, profile (name and photo URL editing), settings
   (theme), about, privacy/terms (markdown rendered to HTML at build time).
 - Links to GitHub (docs, source, license, legal sources) follow the build
@@ -188,6 +188,23 @@ local PDF parsing with consented AI assist.
 - Vitest uses a threads pool capped at 2 workers (stable on busy machines).
 - Not yet verified: real provider calls with real keys (only mocks so far).
 
+## Phase 6 results
+
+- Domain model in paise; engine with 11 known-answer tests (metrics,
+  annuity solve, prioritization, health score, suggestions).
+- Encrypted `vault/profile`, `goals/`, `pendingQuestions/`; Firestore
+  rules allow `vault/profile` (rules test added).
+- Onboarding: starter templates, validated extraction (5 tests), review
+  and correction, pending questions, Chat badge; manual editor; dashboard
+  summary; chat context from the real profile.
+- Also: key creation guides per provider; Updates tab rename.
+- Fixed from browser runs: unlock/send race for keys and profile; FAB
+  covering Send on onboarding.
+- Tests: 70 unit, 27 rules, 27 e2e.
+- Not yet verified: onboarding with a real AI provider (mocked so far).
+- Not yet done: updating the profile from free-form Chat messages (Chat
+  answers using the profile; changes go through onboarding or the editor).
+
 ## Security issues
 
 None open.
@@ -202,5 +219,5 @@ Not deployed.
 
 ## Next tasks
 
-1. Verify on UAT with real free keys (Gemini, Groq, OpenRouter).
-2. Phase 6: financial domain models, engine, conversational onboarding.
+1. Verify on UAT with real free keys: chat and onboarding.
+2. Phase 7: dashboard charts and drill-down.

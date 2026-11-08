@@ -61,7 +61,7 @@ service cloud.firestore {
 
       match /vault/{docId} {
         allow read, delete: if isOwner(uid);
-        allow create, update: if isOwner(uid) && docId == 'main' && isEnvelope([]);
+        allow create, update: if isOwner(uid) && docId in ['main', 'profile'] && isEnvelope([]);
       }
 
       match /transactions/{txId} {

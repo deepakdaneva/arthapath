@@ -5,7 +5,10 @@
 Landing page → **Get Started** → sign in (Google or email) → PIN setup with
 a clear no-recovery warning → empty-state screen with a central circular
 call-to-action, "Let's start with your financial goals." → conversational
-onboarding → dashboard generated; chat minimizes to the Chat tab.
+onboarding (starter templates; the AI extracts facts; the user
+reviews, corrects amounts, and saves; open questions become pending questions)
+→ dashboard generated from the saved profile. A manual form (Your finances)
+is always available instead.
 
 ## Returning user
 
@@ -13,7 +16,7 @@ Open app → signed in automatically → PIN unlock → dashboard.
 
 ## Daily entry
 
-Today's Updates tab (or FAB) → type "Spent ₹500 on groceries via UPI" →
+Updates tab (or FAB), whenever the user chooses (daily, weekly, monthly) → type "Spent ₹500 on groceries via UPI" →
 local parser (AI only if needed) extracts fields → review card → save →
 aggregates and dashboard update → brief impact note.
 
