@@ -92,9 +92,9 @@ describe('vault crypto', () => {
 describe('weakPinReason', () => {
   it('refuses PINs that are quick to guess offline', () => {
     expect(weakPinReason('12345')).toMatch(/at least 6/);
-    expect(weakPinReason('852456')).toMatch(/Too easy to guess/);
+    expect(weakPinReason('493817')).toMatch(/Too easy to guess/);
     expect(weakPinReason('123456789')).toMatch(/Too easy to guess/);
-    expect(weakPinReason('8524569731')).toBeNull(); // 10 digits
+    expect(weakPinReason('4938172605')).toBeNull(); // 10 digits
     expect(weakPinReason('river-mango-42')).toBeNull();
   });
 });
