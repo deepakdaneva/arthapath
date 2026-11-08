@@ -46,7 +46,7 @@ export interface Transaction {
   merchant?: string;
   goalId?: string;
   /** How the entry was understood: the on-device parser, the AI, or typed in the form. */
-  source: 'parser' | 'ai' | 'form';
+  source: 'parser' | 'ai' | 'form' | 'import';
   createdAt: number;
 }
 
@@ -151,6 +151,20 @@ const LIFESTYLE: ReadonlySet<string> = new Set(['dining', 'subscriptions']);
 const DISCRETIONARY: ReadonlySet<string> = new Set(['entertainment', 'travel', 'shopping']);
 /** Only the user's own words make spending "unnecessary". */
 const UNNECESSARY = /\b(unnecessary|wasted?|waste of money|impulse|shouldn'?t have|regret|useless)\b/i;
+
+/**
+ * Type and category from free text (a note or a bank narration). `direction`
+ * from a statement column wins over words: money in is income unless the
+ * words say refund or transfer.
+ */
+export function classify(text: string, direction?: 'in' | 'out'): { type: TxType; category: string; need?: Need } {
+  let type = TYPE_RULES.find(([, re]) => re.test(text))?.[0] ?? 'expense';
+  if (direction === 'in' && type !== 'transfer') type = 'income';
+  if (direction === 'out' && type === 'income') type = 'expense';
+  const fixed: Partial<Record<TxType, string>> = { income: 'income', investment: 'investments', saving: 'savings', loan_payment: 'loan', transfer: 'transfer' };
+  const category = fixed[type] ?? CATEGORY_RULES.find(([, re]) => re.test(text))?.[0] ?? 'other';
+  return { type, category, ...(type === 'expense' ? { need: defaultNeed(category, text) } : {}) };
+}
 
 export function defaultNeed(category: string, text = ''): Need {
   if (UNNECESSARY.test(text)) return 'unnecessary';

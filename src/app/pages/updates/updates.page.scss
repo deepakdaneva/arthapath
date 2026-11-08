@@ -250,3 +250,15 @@ h2 {
     color: var(--ion-color-success);
   }
 }
+
+.title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+}
+
+.import-link {
+  color: var(--ion-color-secondary);
+  font-size: 0.9rem;
+}

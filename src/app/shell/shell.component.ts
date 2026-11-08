@@ -33,6 +33,8 @@ import {
   receipt,
   receiptOutline,
   walletOutline,
+  analyticsOutline,
+  cloudUploadOutline,
 } from 'ionicons/icons';
 import { AuthService } from '../core/auth.service';
 import { SessionLockService } from '../core/crypto/session-lock.service';
@@ -129,6 +131,8 @@ export class ShellComponent {
       receipt,
       receiptOutline,
       walletOutline,
+      analyticsOutline,
+      cloudUploadOutline,
     });
   }
 

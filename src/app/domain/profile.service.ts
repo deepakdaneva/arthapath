@@ -4,11 +4,16 @@ import type { Extraction, PendingQuestionDraft } from '../ai/extraction';
 import { redacted } from '../ai/redact';
 import { computeMetrics, healthScore, planGoals, spendingBreakdown, suggestGoals } from './engine';
 import { emptyProfile, normalizeProfile, type FinancialProfile, type Goal } from './models';
+import { missingInfo } from './questions';
 
 export interface PendingQuestion extends PendingQuestionDraft {
   id: string;
   status: 'open' | 'answered' | 'dismissed';
   createdAt: number;
+  /** From gaps in the saved data (not stored until dismissed). */
+  derived?: boolean;
+  dependsOn?: string[];
+  quick?: 'health' | 'term';
 }
 
 type Section = 'incomes' | 'expenses' | 'liabilities' | 'assets' | 'family';
@@ -35,7 +40,16 @@ export class ProfileService {
   readonly health = computed(() => healthScore(this.profile(), this.metrics(), this.plans()));
   readonly suggestions = computed(() => suggestGoals(this.profile(), this.metrics(), this.goals()));
   readonly breakdown = computed(() => spendingBreakdown(this.profile(), this.metrics()));
-  readonly openQuestions = computed(() => this.questions().filter((q) => q.status === 'open'));
+  /** Questions the AI asked that are still open (stored). */
+  readonly storedOpen = computed(() => this.questions().filter((q) => q.status === 'open'));
+  /** Stored open questions plus gaps found in the data, unless the user dismissed that gap. */
+  readonly openQuestions = computed<PendingQuestion[]>(() => {
+    const seen = new Set(this.questions().map((q) => q.key));
+    const derived = missingInfo(this.profile(), this.goals())
+      .filter((d) => !seen.has(d.key))
+      .map((d) => ({ ...d, id: `derived:${d.key}`, status: 'open' as const, createdAt: 0, derived: true }));
+    return [...this.storedOpen(), ...derived];
+  });
   readonly hasData = computed(() => {
     const p = this.profile();
     return p.incomes.length + p.expenses.length + p.assets.length + p.liabilities.length + this.goals().length > 0;
@@ -164,7 +178,7 @@ export class ProfileService {
 
   /** Replaces open questions with the latest set from the assistant. */
   async setQuestions(drafts: PendingQuestionDraft[]): Promise<void> {
-    const open = this.openQuestions();
+    const open = this.storedOpen();
     const keep = new Set(drafts.map((d) => d.key));
     for (const q of open.filter((q) => !keep.has(q.key))) {
       await this.vault.put(['pendingQuestions', q.id], { ...q, status: 'answered' }, { status: 'answered' });
@@ -179,6 +193,15 @@ export class ProfileService {
   }
 
   async dismissQuestion(id: string): Promise<void> {
+    if (id.startsWith('derived:')) {
+      // Remember the dismissal so the gap is not asked about again.
+      const d = this.openQuestions().find((x) => x.id === id);
+      if (!d) return;
+      const q: PendingQuestion = { key: d.key, question: d.question, why: d.why, optional: d.optional, id: crypto.randomUUID(), status: 'dismissed', createdAt: Date.now() };
+      await this.vault.put(['pendingQuestions', q.id], q, { status: 'dismissed' });
+      this.questions.update((qs) => [...qs, q]);
+      return;
+    }
     const q = this.questions().find((x) => x.id === id);
     if (!q) return;
     const next = { ...q, status: 'dismissed' as const };
@@ -189,6 +212,11 @@ export class ProfileService {
   /** Goals live in their own documents; bump the profile version so AI context updates. */
   private async bumpVersion(): Promise<void> {
     await this.saveProfile(this.profile());
+  }
+
+  /** Yes/no answer for insurance questions. */
+  async setInsurance(kind: 'health' | 'term', has: boolean): Promise<void> {
+    await this.updateProfile((p) => ({ ...p, insurance: { ...p.insurance, [kind]: has } }));
   }
 
   async markOnboarded(): Promise<void> {

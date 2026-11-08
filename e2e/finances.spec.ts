@@ -117,11 +117,12 @@ test.describe('financial profile and engine', () => {
     await page.getByLabel('Amount in rupees for Household').blur();
     await page.getByRole('button', { name: 'Save these details' }).click();
     await expect(page.getByText('Still useful to know')).toBeVisible();
-    await expect(page.locator('.tabbar .badge')).toHaveText('1');
+    // The AI's question plus gaps found in the data (savings, insurance, family).
+    await expect(page.locator('.tabbar .badge').first()).toHaveText(/^[1-9]\d*$/);
 
     await page.getByRole('button', { name: 'See my plan' }).click();
     await expect(page).toHaveURL(/\/app$/);
-    await expect(page.getByText('1 question to improve your plan')).toBeVisible();
+    await expect(page.getByText(/\d+ questions? to improve your plan/).first()).toBeVisible();
     await expect(page.getByText('₹1,00,000').first()).toBeVisible(); // surplus uses the corrected ₹50,000
   });
 

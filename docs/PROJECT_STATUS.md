@@ -15,7 +15,7 @@ _Last updated: 2026-11-07_
 | 6 Financial engine and onboarding | Done (pending UAT verification with real keys) |
 | 7 Dashboard | Done (trend charts and transaction lists wait for Phase 8 data) |
 | 8 Updates (activity logging) | Done |
-| 9 Import and advanced features | Not started |
+| 9 Import and advanced features | Done |
 | 10 Production readiness | Not started |
 
 ## Phase 0 findings
@@ -235,6 +235,18 @@ local PDF parsing with consented AI assist.
 - Dashboard: this month vs plan, monthly trend line, over-plan warnings;
   details pages list the period's entries.
 
+## Phase 9 results
+
+- Statement import: CSV (common Indian bank layouts), text PDFs (including
+  password-protected; pdf.js in the browser, lazy-loaded), pasted text;
+  duplicates flagged; every row reviewable; file never stored.
+- Settings switch "Let AI categorize imported rows" (off by default).
+- Pending questions: AI questions plus gaps found in the data, with why and
+  what depends on each; quick yes/no for insurance; skip.
+- Analysis page: calculated recommendations, AI analysis on request (nudged
+  when due), encrypted history with the figures at the time.
+- Fixed: the Updates list now refreshes when the page is shown again.
+
 ## Security issues
 
 None open.
@@ -249,5 +261,5 @@ Not deployed.
 
 ## Next tasks
 
-1. Verify Phase 8 on UAT.
-2. Phase 9: statement imports, pending questions, analysis history.
+1. Verify Phase 9 on UAT.
+2. Phase 10: production readiness (full testing, security review, legal review, release).

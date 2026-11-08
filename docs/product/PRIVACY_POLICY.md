@@ -96,9 +96,18 @@ data practices when you add a key, with a link to its terms. As checked on
 - **Nothing extracted during onboarding is saved until you review and
   confirm it.**
 
-Statement imports are parsed on your device. Extracted text is sent to an
-AI provider only if you explicitly agree for that import. Raw files are
-never uploaded or stored.
+Statement imports (CSV, PDF, or pasted text) are read on your device. The
+file is never uploaded or stored, and a PDF password you type stays on your
+device. Only the transactions you review and confirm are saved, encrypted.
+Rows the device cannot categorize are sent to your AI provider only if you
+turn on "Let AI categorize imported rows" in Settings (off by default); then
+only the direction, amount, and a short description with account numbers
+removed are sent, without dates or balances.
+
+An AI analysis runs only when you ask for one. It sends your financial
+context (amounts, categories, goals, and monthly totals; no name, ID
+numbers, or account numbers) to your AI provider and is saved encrypted in
+your analysis history, which you can delete.
 
 ## API keys
 

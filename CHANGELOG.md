@@ -7,6 +7,16 @@ Versioning: [Semantic Versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Added
+- Statement import (Phase 9): CSV exports, PDFs (including password-
+  protected ones), or pasted text, read on the device. Duplicates are
+  flagged and unselected; every row can be corrected before saving. The file
+  is never stored.
+- Settings: "Let AI categorize imported rows" (off by default).
+- Questions to improve your plan: gaps found in your data plus the AI's
+  questions, each with why it matters and what depends on it; answer, quick
+  yes/no for insurance, or skip.
+- Analysis: calculated recommendations, AI analysis on request (suggested
+  when due), and an encrypted history with the figures at the time.
 - Updates (Phase 8): log spending, income, savings, investments, loan
   repayments, and transfers in one line ("Spent ₹500 on groceries via UPI
   and ₹200 on parking"). Understood on the device; the AI provider is asked

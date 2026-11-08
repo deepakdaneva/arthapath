@@ -91,6 +91,11 @@ export class UpdatesPage {
     void this.loadRecent();
   }
 
+  /** Ionic keeps this page cached: refresh the list whenever it is shown again (e.g. after an import). */
+  ionViewWillEnter(): void {
+    void this.loadRecent();
+  }
+
   async loadRecent(): Promise<void> {
     const r = periodRange('month', new Date())!;
     try {

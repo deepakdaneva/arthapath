@@ -37,6 +37,11 @@
                 "output": "./svg"
               },
               {
+                "glob": "pdf.worker.min.mjs",
+                "input": "node_modules/pdfjs-dist/build",
+                "output": "./pdfjs"
+              },
+              {
                 "glob": "*.html",
                 "input": "src/generated/legal",
                 "output": "legal"

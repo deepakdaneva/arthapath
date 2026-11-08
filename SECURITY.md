@@ -53,3 +53,6 @@ deployments that changed the security rules.
   only routes to providers that do not store or train on prompts.
 - AI replies are rendered as Markdown with raw HTML escaped and then
   sanitized by Angular.
+- Statement files are read in the browser (pdf.js for PDFs) and never
+  uploaded or stored; PDF passwords stay on the device. Files over 10 MB
+  are refused.
