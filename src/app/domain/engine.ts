@@ -311,7 +311,7 @@ export function suggestGoals(p: FinancialProfile, m: Metrics, goals: Goal[]): Go
 }
 
 // --- spending breakdown --------------------------------------------------------
-export type SliceKey = 'necessary' | 'discretionary' | 'unnecessary' | 'debt' | 'investments' | 'savings';
+export type SliceKey = 'necessary' | 'lifestyle' | 'discretionary' | 'unnecessary' | 'debt' | 'investments' | 'savings';
 
 export interface Slice {
   key: SliceKey;
@@ -322,6 +322,7 @@ export interface Slice {
 
 export const SLICE_LABELS: Record<SliceKey, string> = {
   necessary: 'Necessary',
+  lifestyle: 'Lifestyle',
   discretionary: 'Discretionary',
   unnecessary: 'Unnecessary',
   debt: 'Loan payments',
@@ -338,6 +339,7 @@ export function spendingBreakdown(p: FinancialProfile, m: Metrics): Slice[] {
     sum(p.expenses.filter((e) => e.category !== 'investments' && e.need === need).map((e) => toMonthly(e.amount, e.frequency)));
   const amounts: Record<SliceKey, Paise> = {
     necessary: byNeed('necessary'),
+    lifestyle: byNeed('lifestyle'),
     discretionary: byNeed('discretionary'),
     unnecessary: byNeed('unnecessary'),
     debt: m.monthlyDebtPayments,
@@ -372,10 +374,10 @@ const pct = (x: number) => `${Math.round(x * 100)}%`;
  * Deterministic warnings, most severe first. Thresholds are common planning
  * rules of thumb, stated in each message so the user can judge them.
  */
-export function financialWarnings(p: FinancialProfile, m: Metrics, plans: GoalPlan[], now: Date): Warning[] {
+export function financialWarnings(p: FinancialProfile, m: Metrics, plans: GoalPlan[], now: Date, lastActivityAt = p.updatedAt): Warning[] {
   const out: Warning[] = [];
   const inr = (x: Paise) => formatInr(x);
-  const idle = daysSince(p.updatedAt, now);
+  const idle = daysSince(lastActivityAt, now);
   if (idle !== null && idle > UPDATE_REMINDER_DAYS) {
     out.push({
       key: 'stale',

@@ -52,7 +52,7 @@ Respond with one JSON object only, matching:
 {
   "reply": "short friendly reply (max 70 words): acknowledge, then ask the single most useful next question",
   "incomes": [{"label": "", "kind": "${INCOME_KINDS.join('|')}", "amount": 0, "frequency": "weekly|monthly|quarterly|half_yearly|yearly", "earner": "self|spouse|other", "estimated": false}],
-  "expenses": [{"label": "", "category": "${EXPENSE_CATEGORIES.join('|')}", "amount": 0, "frequency": "monthly", "need": "necessary|discretionary|unnecessary", "estimated": false}],
+  "expenses": [{"label": "", "category": "${EXPENSE_CATEGORIES.join('|')}", "amount": 0, "frequency": "monthly", "need": "${NEEDS.join('|')}", "estimated": false}],
   "liabilities": [{"label": "", "kind": "${LIABILITY_KINDS.join('|')}", "outstanding": 0, "monthlyPayment": 0, "interestRate": null, "estimated": false}],
   "assets": [{"label": "", "kind": "${ASSET_KINDS.join('|')}", "value": 0, "estimated": false}],
   "family": [{"relation": "", "age": null, "dependent": true}],
@@ -65,8 +65,9 @@ Rules: use empty arrays when nothing applies. "estimated": true when the user
 gave a rough figure or range (use the midpoint). For a goal without an amount,
 estimate a typical target, set "estimated": true, and ask to confirm.
 "need": necessary (rent, groceries, utilities, school fees, insurance,
-medicine), discretionary (dining, travel, entertainment, shopping), or
-unnecessary (spending the user calls wasteful or wants to cut). Regular
+medicine), lifestyle (regular comforts the user plans for: gym, OTT, eating
+out), discretionary (occasional wants: travel, shopping, entertainment), or
+unnecessary (only when the user calls it wasteful or wants to cut it). Regular
 investments (SIP, RD, PPF) use category "investments".
 "questions" lists the important missing facts (income, essential expenses,
 loans, savings, dependents, insurance, goal amounts and dates), at most 4.

@@ -20,7 +20,7 @@
         <a class="manual" routerLink="/app/finances">Prefer a form? Enter details manually</a>
       </section>
     } @else {
-      @if (svc.warnings().length) {
+      @if (allWarnings().length) {
         <section class="ap-card warnings" aria-labelledby="h-warn">
           <h2 id="h-warn" class="sr-only">Things to look at</h2>
           <ul>
@@ -37,9 +37,9 @@
               </li>
             }
           </ul>
-          @if (svc.warnings().length > 3) {
+          @if (allWarnings().length > 3) {
             <button type="button" class="more" (click)="showAllWarnings.set(!showAllWarnings())">
-              {{ showAllWarnings() ? 'Show fewer' : 'Show all ' + svc.warnings().length }}
+              {{ showAllWarnings() ? 'Show fewer' : 'Show all ' + allWarnings().length }}
             </button>
           }
         </section>
@@ -202,15 +202,40 @@
       </div>
 
       <section class="ap-card trends" aria-labelledby="h-trends">
-        <h2 id="h-trends">Spending and income trends</h2>
-        <div class="trend-empty">
-          <ion-icon name="trending-up-outline" aria-hidden="true" />
-          <p class="ap-muted">
-            Trends appear once you log updates. Add what you spend, earn, and save, daily or weekly, and ArthaPath
-            will chart how things change and warn you early if a goal starts slipping.
-          </p>
-          <a routerLink="/app/updates">Go to Updates</a>
+        <div class="head">
+          <h2 id="h-trends">Spending and income trends</h2>
+          <a routerLink="/app/updates">Log an update</a>
         </div>
+        @if (monthSoFar(); as ms) {
+          @if (ms.count > 0) {
+            <p class="ap-muted small month-line">
+              This month so far: spent {{ fmt(ms.spent) }}{{ ms.planned > 0 ? ' of ' + fmt(ms.planned) + ' planned' : '' }},
+              received {{ fmt(ms.received) }}, saved and invested {{ fmt(ms.saved) }}.
+            </p>
+          }
+        }
+        @if (trendMonths().length) {
+          <div class="trend-chart">
+            <app-chart [option]="trendChart()" label="Monthly income, spending, and savings from logged updates" (pick)="openSlice($event)" />
+          </div>
+          <ul class="legend inline" aria-label="Trend legend">
+            <li><span class="swatch" [style.background]="trendColors()[0]" aria-hidden="true"></span>Income</li>
+            <li><span class="swatch" [style.background]="trendColors()[1]" aria-hidden="true"></span>Spending</li>
+            <li><span class="swatch" [style.background]="trendColors()[2]" aria-hidden="true"></span>Saved and invested</li>
+          </ul>
+          @if (trendMonths().length < 2) {
+            <p class="ap-muted small">The trend line grows as you keep logging updates over the coming months.</p>
+          }
+        } @else {
+          <div class="trend-empty">
+            <ion-icon name="trending-up-outline" aria-hidden="true" />
+            <p class="ap-muted">
+              Trends appear once you log updates. Add what you spend, earn, and save, daily or weekly, and ArthaPath
+              will chart how things change and warn you early if a goal starts slipping.
+            </p>
+            <a routerLink="/app/updates">Go to Updates</a>
+          </div>
+        }
       </section>
 
       @if (svc.suggestions().length) {

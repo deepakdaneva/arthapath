@@ -157,3 +157,58 @@ badge. Nothing is blocked or forced.
 from/to into a local-time range with an exclusive end, used by the
 transaction list on each details page.
 
+## Updates and transactions (Phase 8)
+
+Code: `src/app/domain/transactions.ts` (pure, unit-tested) and
+`transactions.service.ts`.
+
+### Plan versus actual
+
+Your finances holds the monthly **plan**. Logged entries are **actuals**.
+The dashboard compares this month's actual spending with the plan per
+category, and charts monthly income, spending, and saved-and-invested from
+the monthly aggregates.
+
+### Entry types
+
+`expense`, `income`, `investment`, `saving`, `loan_payment`, `transfer`.
+Expenses carry a category (built-in or the user's own) and a need:
+necessary, lifestyle, discretionary, or unnecessary. Unnecessary is set only
+when the user's own words say so ("wasted", "impulse") or they choose it.
+
+### Understanding a note
+
+1. Identity numbers and secrets are removed on the device.
+2. The on-device parser reads amounts (₹, Rs, 1.2k, 1.5 lakh, 2 cr), dates
+   (today, yesterday, N days ago, 5 Nov, 05/11; never in the future),
+   payment method, category keywords, merchant ("at Truffles"), and a goal
+   ("for the family car"). Several entries can be joined with "and" or
+   commas when each has its own amount.
+3. Only when no amount is found is the note sent to the AI provider, with
+   today's date and goal names (no amounts). Its JSON is validated field by
+   field.
+4. The user reviews and can correct every field before saving.
+
+### Saving
+
+Each entry is an encrypted document (`transactions/{id}`, plaintext `month`
+and `occurredAt` for queries). The month's encrypted aggregate
+(`aggregates/{YYYY-MM}`: totals by type, category, and need) is updated in
+step, so the dashboard reads one small document per month. A saving or
+investment linked to a goal is added to that goal's saved amount; deleting
+the entry reverses it.
+
+### Impact after saving
+
+Deterministic, no AI call: share of the category's monthly plan used (and
+whether that is ahead of the month's pace), overspend against the plan,
+the category compared with the average of the previous three months
+(flagged above +25%), total spending against the plan, goal progress for a
+linked saving, and income received this month.
+
+### Reminder
+
+The last activity is the later of the last saved profile change and the
+last logged entry. After 7 days without either, the dashboard and the
+Updates page show a reminder and the Updates tab shows a badge.
+

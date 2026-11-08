@@ -14,7 +14,9 @@ import {
   runTransaction,
   serverTimestamp,
   setDoc,
+  where,
   writeBatch,
+  type WhereFilterOp,
 } from 'firebase/firestore';
 import { db } from '../data/db';
 import type { CryptoParams, Envelope } from './crypto';
@@ -99,13 +101,22 @@ export interface EnvelopeRow {
 }
 
 /** Lists encrypted documents of a collection below users/{uid}, optionally ordered and limited. */
+/** Query options; `where` filters only on plaintext query fields (rules allow a few, such as `month`). */
+export interface ListOptions {
+  where?: [field: string, op: WhereFilterOp, value: unknown][];
+  orderBy?: string;
+  direction?: 'asc' | 'desc';
+  limit?: number;
+}
+
 export async function listEnvelopes(
   uid: string,
   collectionPath: DocPath,
-  opts: { orderBy?: string; direction?: 'asc' | 'desc'; limit?: number } = {},
+  opts: ListOptions = {},
 ): Promise<EnvelopeRow[]> {
   const col = collection(db, 'users', uid, ...collectionPath);
   const constraints = [
+    ...(opts.where ?? []).map(([f, op, v]) => where(f, op, v)),
     ...(opts.orderBy ? [orderBy(opts.orderBy, opts.direction ?? 'asc')] : []),
     ...(opts.limit ? [limit(opts.limit)] : []),
   ];

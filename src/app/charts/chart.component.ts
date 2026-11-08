@@ -1,15 +1,15 @@
 import { Component, ElementRef, afterNextRender, effect, inject, input, output, type OnDestroy } from '@angular/core';
-import { BarChart, PieChart } from 'echarts/charts';
+import { BarChart, LineChart, PieChart } from 'echarts/charts';
 import { GridComponent, TooltipComponent } from 'echarts/components';
 import { init, use, type ComposeOption, type ECharts } from 'echarts/core';
-import type { BarSeriesOption, PieSeriesOption } from 'echarts/charts';
+import type { BarSeriesOption, LineSeriesOption, PieSeriesOption } from 'echarts/charts';
 import type { GridComponentOption, TooltipComponentOption } from 'echarts/components';
 import { SVGRenderer } from 'echarts/renderers';
 
 // Only what the dashboard uses is bundled (tree-shaken ECharts core).
-use([PieChart, BarChart, GridComponent, TooltipComponent, SVGRenderer]);
+use([PieChart, BarChart, LineChart, GridComponent, TooltipComponent, SVGRenderer]);
 
-export type ChartOption = ComposeOption<PieSeriesOption | BarSeriesOption | GridComponentOption | TooltipComponentOption>;
+export type ChartOption = ComposeOption<PieSeriesOption | BarSeriesOption | LineSeriesOption | GridComponentOption | TooltipComponentOption>;
 
 /**
  * Thin ECharts host. The caller builds the option (so colours and labels stay

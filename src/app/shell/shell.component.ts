@@ -37,6 +37,7 @@ import {
 import { AuthService } from '../core/auth.service';
 import { SessionLockService } from '../core/crypto/session-lock.service';
 import { ThemeService } from '../core/theme.service';
+import { TransactionsService } from '../domain/transactions.service';
 import { ProfileService } from '../domain/profile.service';
 import { UpdateService } from '../core/update.service';
 import { AiStatusComponent } from './ai-status.component';
@@ -77,7 +78,8 @@ export class ShellComponent {
   readonly theme = inject(ThemeService);
   private readonly profileSvc = inject(ProfileService);
   readonly openQuestions = computed(() => this.profileSvc.openQuestions().length);
-  readonly updateOverdue = computed(() => this.profileSvc.updateOverdueDays());
+  private readonly txSvc = inject(TransactionsService);
+  readonly updateOverdue = computed(() => this.txSvc.updateOverdueDays());
   private static readonly THEME = {
     system: { label: 'System', icon: 'contrast-outline' },
     light: { label: 'Light', icon: 'sunny-outline' },
@@ -108,7 +110,7 @@ export class ShellComponent {
   );
   readonly onChat = computed(() => this.url().startsWith('/app/chat'));
   readonly onUpdates = computed(() => this.url().startsWith('/app/updates'));
-  readonly hasComposer = computed(() => this.onChat() || this.url().startsWith('/app/onboarding'));
+  readonly hasComposer = computed(() => this.onChat() || this.onUpdates() || this.url().startsWith('/app/onboarding'));
 
   constructor() {
     addIcons({

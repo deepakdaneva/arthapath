@@ -2,7 +2,7 @@ import { Injectable, computed, effect, inject, signal } from '@angular/core';
 import { VaultService } from '../core/crypto/vault.service';
 import type { Extraction, PendingQuestionDraft } from '../ai/extraction';
 import { redacted } from '../ai/redact';
-import { UPDATE_REMINDER_DAYS, computeMetrics, daysSince, financialWarnings, healthScore, planGoals, spendingBreakdown, suggestGoals } from './engine';
+import { computeMetrics, healthScore, planGoals, spendingBreakdown, suggestGoals } from './engine';
 import { emptyProfile, normalizeProfile, type FinancialProfile, type Goal } from './models';
 
 export interface PendingQuestion extends PendingQuestionDraft {
@@ -35,12 +35,6 @@ export class ProfileService {
   readonly health = computed(() => healthScore(this.profile(), this.metrics(), this.plans()));
   readonly suggestions = computed(() => suggestGoals(this.profile(), this.metrics(), this.goals()));
   readonly breakdown = computed(() => spendingBreakdown(this.profile(), this.metrics()));
-  readonly warnings = computed(() => financialWarnings(this.profile(), this.metrics(), this.plans(), new Date()));
-  /** Days since the last saved change, when past the reminder threshold; otherwise null. */
-  readonly updateOverdueDays = computed(() => {
-    const d = daysSince(this.profile().updatedAt, new Date());
-    return d !== null && d > UPDATE_REMINDER_DAYS ? d : null;
-  });
   readonly openQuestions = computed(() => this.questions().filter((q) => q.status === 'open'));
   readonly hasData = computed(() => {
     const p = this.profile();

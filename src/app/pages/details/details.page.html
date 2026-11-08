@@ -175,10 +175,27 @@
         }
         @if (range(); as r) {
           <p class="ap-muted small">{{ r.from | date: 'd MMM y' }} – {{ rangeEnd() | date: 'd MMM y' }}</p>
-          <p class="tx-empty">
-            No transactions in this period yet. When you log spending and income in
-            <a routerLink="/app/updates">Updates</a>, they appear here, filtered by this period.
-          </p>
+          @if (txs.isLoading()) {
+            <p class="ap-muted small">Loading…</p>
+          } @else if (matching().length) {
+            <p class="period-total">{{ matching().length }} entr{{ matching().length === 1 ? 'y' : 'ies' }} · <strong>{{ fmt(matchingTotal()) }}</strong></p>
+            <ul class="rows" aria-label="Transactions">
+              @for (t of matching(); track t.id) {
+                <li>
+                  <span>
+                    <strong>{{ t.description || t.category }}</strong>
+                    <span class="ap-muted small">{{ t.date }} · {{ typeLabels[t.type] }}{{ t.type === 'expense' ? ' · ' + t.category : '' }}{{ t.method ? ' · ' + methodLabels[t.method] : '' }}{{ t.merchant ? ' · ' + t.merchant : '' }}</span>
+                  </span>
+                  <span class="num">{{ fmt(t.amount) }}</span>
+                </li>
+              }
+            </ul>
+          } @else {
+            <p class="tx-empty">
+              No entries in this period. Log spending and income in <a routerLink="/app/updates">Updates</a> and they
+              appear here.
+            </p>
+          }
         } @else {
           <p class="ap-muted small">Choose a start and end date.</p>
         }
