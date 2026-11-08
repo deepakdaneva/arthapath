@@ -8,6 +8,7 @@ import { AiKeysService } from './ai-keys.service';
 import { buildMessages, type ContextSnapshot, type StoredMessage } from './context';
 import { AIError, type AIErrorKind } from './errors';
 import { OFF_TOPIC_REPLY, classifyIntent } from './guardrails';
+import { describeRedactions, redact, redacted } from './redact';
 import { SUMMARY_PROMPT } from './prompts';
 import { AllProvidersExhaustedError, exhaustedMessage, route, type RouteEvent } from './router';
 
@@ -85,8 +86,12 @@ export class ChatService {
   }
 
   async send(text: string): Promise<void> {
-    const content = text.trim();
+    // ID numbers and secrets are removed on this device: never stored, shown again, or sent.
+    const { text: content, found } = redact(text.trim());
     if (!content || this.sending()) return;
+    if (found.length) {
+      void this.notices.show(`Removed ${describeRedactions(found)} for your safety. ArthaPath never needs ID numbers or secrets.`, 'warning');
+    }
     this.sending.set(true);
     const history = this.messages().filter((m) => !m.local);
     await this.append({ role: 'user', content, createdAt: Date.now() });
@@ -111,7 +116,7 @@ export class ChatService {
       });
       await this.append({
         role: 'assistant',
-        content: response.text,
+        content: redacted(response.text),
         createdAt: Date.now(),
         provider: this.keys.nameOf(used),
         model: response.model,

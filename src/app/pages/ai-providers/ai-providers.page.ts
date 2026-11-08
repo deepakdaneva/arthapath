@@ -13,7 +13,7 @@ import { arrowDownOutline, arrowUpOutline, createOutline, openOutline, trashOutl
 import { adapterFor, pickModel, type AIModel } from '../../ai/adapters';
 import { AiKeysService, type AiKeyView } from '../../ai/ai-keys.service';
 import { AIError } from '../../ai/errors';
-import { keyGuideFor } from '../../ai/key-guides';
+import { PROVIDER_DATA_NOTICE, keyGuideFor } from '../../ai/key-guides';
 import { CUSTOM_PRESETS, PROVIDERS, customBaseUrlError, type ProviderId } from '../../ai/providers';
 
 interface Draft {
@@ -25,7 +25,7 @@ interface Draft {
 }
 
 // No model until the provider's live list is fetched.
-const EMPTY: Draft = { provider: 'gemini', label: '', apiKey: '', baseUrl: '', model: '' };
+const EMPTY: Draft = { provider: 'groq', label: '', apiKey: '', baseUrl: '', model: '' };
 
 @Component({
   selector: 'app-ai-providers',
@@ -37,6 +37,7 @@ export class AiProvidersPage {
   readonly svc = inject(AiKeysService);
   readonly providers = Object.values(PROVIDERS);
   readonly presets = CUSTOM_PRESETS;
+  readonly dataNotice = PROVIDER_DATA_NOTICE;
 
   /** null = closed; 'new' = adding; otherwise the id being edited. */
   readonly editing = signal<string | null>(null);

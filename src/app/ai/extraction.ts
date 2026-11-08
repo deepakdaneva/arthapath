@@ -3,6 +3,7 @@
  * returns JSON; this module validates every field before anything reaches
  * the profile, and the user reviews the result before it is saved.
  */
+import { redacted } from './redact';
 import {
   ASSET_KINDS,
   EXPENSE_CATEGORIES,
@@ -70,7 +71,8 @@ loans, savings, dependents, insurance, goal amounts and dates), at most 4.
 type Obj = Record<string, unknown>;
 const isObj = (v: unknown): v is Obj => typeof v === 'object' && v !== null && !Array.isArray(v);
 const arr = (v: unknown): Obj[] => (Array.isArray(v) ? v.filter(isObj).slice(0, 20) : []);
-const str = (v: unknown, max = 80): string => (typeof v === 'string' ? v.trim().slice(0, max) : '');
+// Model output is free text: ID numbers are removed from every string field.
+const str = (v: unknown, max = 80): string => (typeof v === 'string' ? redacted(v.trim()).slice(0, max) : '');
 const bool = (v: unknown): boolean | undefined => (typeof v === 'boolean' ? v : undefined);
 const oneOf = <T extends string>(v: unknown, allowed: readonly T[], fallback: T): T =>
   allowed.includes(v as T) ? (v as T) : fallback;

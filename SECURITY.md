@@ -41,4 +41,15 @@ deployments that changed the security rules.
   ciphertext only. See [ENCRYPTION_ARCHITECTURE.md](docs/architecture/ENCRYPTION_ARCHITECTURE.md).
 - **Known limitation:** BYOK API keys must be decrypted in the client at
   request time, so a compromised device or browser runtime can expose them.
-- Data sent to an AI provider is visible to that provider under its terms.
+- Data sent to an AI provider is visible to that provider under its terms,
+  which depend on the provider and the plan of the user's key. Requests go
+  directly from the device to the provider, never through ArthaPath servers.
+- Identity numbers and secrets (PAN, Aadhaar, card and account numbers,
+  passport, phone, email, UPI ID, OTP/PIN/CVV/password) are removed on the
+  device before messages, labels, or AI replies are stored, shown, or sent
+  (`src/app/ai/redact.ts`). Detection is pattern- and checksum-based and
+  best effort; amounts are never altered.
+- OpenRouter requests set `provider.data_collection: "deny"`, so OpenRouter
+  only routes to providers that do not store or train on prompts.
+- AI replies are rendered as Markdown with raw HTML escaped and then
+  sanitized by Angular.

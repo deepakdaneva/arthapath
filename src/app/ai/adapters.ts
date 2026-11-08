@@ -186,6 +186,8 @@ export const openAiAdapter: AIProviderAdapter = {
           temperature: req.temperature ?? 0.4,
           ...(req.maxOutputTokens ? { max_tokens: req.maxOutputTokens } : {}),
           ...(req.json ? { response_format: { type: 'json_object' } } : {}),
+          // OpenRouter: never route to a provider that stores or trains on prompts.
+          ...(c.provider === 'openrouter' ? { provider: { data_collection: 'deny' } } : {}),
         }),
       },
       providerName(c),

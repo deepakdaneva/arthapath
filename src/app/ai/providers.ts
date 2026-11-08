@@ -22,20 +22,21 @@ export interface ProviderInfo {
   keyUrl: string;
 }
 
+// Listed in the order offered; Groq first because it states it does not train on prompts.
 export const PROVIDERS: Record<ProviderId, ProviderInfo> = {
-  gemini: {
-    id: 'gemini',
-    name: 'Google Gemini',
-    kind: 'gemini',
-    baseUrl: 'https://generativelanguage.googleapis.com/v1beta',
-    keyUrl: 'https://aistudio.google.com/app/apikey',
-  },
   groq: {
     id: 'groq',
     name: 'Groq',
     kind: 'openai',
     baseUrl: 'https://api.groq.com/openai/v1',
     keyUrl: 'https://console.groq.com/keys',
+  },
+  gemini: {
+    id: 'gemini',
+    name: 'Google Gemini',
+    kind: 'gemini',
+    baseUrl: 'https://generativelanguage.googleapis.com/v1beta',
+    keyUrl: 'https://aistudio.google.com/app/apikey',
   },
   openrouter: {
     id: 'openrouter',

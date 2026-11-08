@@ -1,5 +1,5 @@
 import type { AIRequest, AIResponse, Credentials } from './adapters';
-import { AIError, FALLBACK_KINDS, type AIErrorKind } from './errors';
+import { AIError, FALLBACK_KINDS, PRIVACY_BLOCKED, type AIErrorKind } from './errors';
 
 /** A configured key as the router sees it (decrypted, in memory only). */
 export interface RouteCandidate {
@@ -55,8 +55,11 @@ export function exhaustedMessage(e: AllProvidersExhaustedError, nameOf: (c: Rout
   if (e.attempts.length > 0 && fixable.length === e.attempts.length) {
     if (fixable.length > 1) return 'None of your AI providers can be used right now. Check their keys and models under AI Providers.';
     const { candidate, error } = fixable[0]!;
+    if (error.message.includes(PRIVACY_BLOCKED)) {
+      return `${nameOf(candidate)} has no provider for the model "${candidate.credentials.model}" that promises not to store or train on your data, so ArthaPath did not send it. Choose another model under AI Providers.`;
+    }
     return error.kind === 'model_unavailable'
-      ? `${nameOf(candidate)} can no longer use the model "${candidate.credentials.model}" (it may have been retired). Choose another model under AI Providers.`
+      ? `${nameOf(candidate)} can no longer use the model "${candidate.credentials.model}" (it may have been retired, or not be offered under your privacy settings). Choose another model under AI Providers.`
       : `${nameOf(candidate)} rejected your API key. Update the key under AI Providers.`;
   }
   return 'All configured AI providers have reached their available limits. Please add another provider or try again later.';

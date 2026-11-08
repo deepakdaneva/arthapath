@@ -1,6 +1,7 @@
 import { Injectable, computed, effect, inject, signal } from '@angular/core';
 import { VaultService } from '../core/crypto/vault.service';
 import type { Extraction, PendingQuestionDraft } from '../ai/extraction';
+import { redacted } from '../ai/redact';
 import { computeMetrics, healthScore, planGoals, suggestGoals } from './engine';
 import { emptyProfile, type FinancialProfile, type Goal } from './models';
 
@@ -83,7 +84,16 @@ export class ProfileService {
   }
 
   async saveProfile(next: FinancialProfile): Promise<void> {
-    const versioned = { ...next, version: this.profile().version + 1 };
+    // Labels are free text: ID numbers typed into them are removed before saving.
+    const clean = <T extends { label: string }>(xs: T[]) => xs.map((x) => ({ ...x, label: redacted(x.label) }));
+    const versioned = {
+      ...next,
+      incomes: clean(next.incomes),
+      expenses: clean(next.expenses),
+      liabilities: clean(next.liabilities),
+      assets: clean(next.assets),
+      version: this.profile().version + 1,
+    };
     await this.vault.put(PROFILE_PATH, versioned);
     this.profile.set(versioned);
   }
@@ -96,7 +106,8 @@ export class ProfileService {
     await this.updateProfile((p) => ({ ...p, [section]: (p[section] as { id: string }[]).filter((x) => x.id !== id) }));
   }
 
-  async saveGoal(goal: Goal): Promise<void> {
+  async saveGoal(input: Goal): Promise<void> {
+    const goal = { ...input, label: redacted(input.label) };
     await this.vault.put(['goals', goal.id], goal);
     this.goals.update((gs) => (gs.some((g) => g.id === goal.id) ? gs.map((g) => (g.id === goal.id ? goal : g)) : [...gs, goal]));
     await this.bumpVersion();
