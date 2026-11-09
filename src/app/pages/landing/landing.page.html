@@ -26,6 +26,13 @@
           View source
         </ion-button>
       </div>
+      <img
+        class="shot"
+        src="screenshots/dashboard-dark.png"
+        width="1280"
+        height="860"
+        alt="The ArthaPath dashboard: health score, spending by category, goals and net worth"
+      />
     </div>
   </header>
 
@@ -42,6 +49,29 @@
           </article>
         }
       </div>
+    </section>
+
+    <section class="ap-container section" aria-labelledby="screens-title">
+      <p class="ap-eyebrow">See it in action</p>
+      <h2 id="screens-title">From a conversation to a plan</h2>
+      <div class="screens">
+        @for (s of screens; track s.src) {
+          <figure>
+            <img [src]="'screenshots/' + s.src" width="1280" height="860" [alt]="s.alt" loading="lazy" />
+            <figcaption class="ap-muted">{{ s.caption }}</figcaption>
+          </figure>
+        }
+      </div>
+      <figure class="phone">
+        <img
+          src="screenshots/mobile-dashboard.png"
+          width="390"
+          height="844"
+          alt="The dashboard on a phone"
+          loading="lazy"
+        />
+        <figcaption class="ap-muted">The same plan on your phone.</figcaption>
+      </figure>
     </section>
 
     <section class="ap-container section privacy" aria-labelledby="privacy-title">
@@ -69,11 +99,18 @@
 
     <section class="ap-container section" aria-labelledby="platforms-title">
       <p class="ap-eyebrow">Platforms</p>
-      <h2 id="platforms-title">Web today, Android next, iOS later</h2>
+      <h2 id="platforms-title">On the web and on Android</h2>
       <div class="platforms">
-        <span><ion-icon name="globe-outline" aria-hidden="true" /> Web</span>
-        <span><ion-icon name="logo-android" aria-hidden="true" /> Android</span>
+        <span><ion-icon name="globe-outline" aria-hidden="true" /> Web and installable app</span>
+        <a class="android" [href]="releases" target="_blank" rel="noopener">
+          <ion-icon name="logo-android" aria-hidden="true" /> Download the Android app
+        </a>
       </div>
+      <p class="ap-muted">
+        Install from your browser's menu (Install app, or Add to Home Screen on iPhone). The Android
+        app (APK) is attached to each release on GitHub; allow installs from your browser when
+        Android asks.
+      </p>
       <p class="ap-muted">
         ArthaPath is Apache-2.0 licensed and runs on Firebase's free plan. Anyone can deploy their own
         copy with their own Firebase project and AI keys.

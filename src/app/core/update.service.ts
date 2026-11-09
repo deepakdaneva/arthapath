@@ -1,4 +1,5 @@
 import { Injectable, Injector, inject } from '@angular/core';
+import { SwUpdate } from '@angular/service-worker';
 import { appVersion } from '../../environments/app-config';
 
 const CHECK_EVERY_MS = 15 * 60_000;
@@ -16,7 +17,8 @@ export function isNewer(remote: string, local: string): boolean {
  * Detects a newer deployment by polling the static /version.json (no
  * Firestore reads) when the app regains focus and every 15 minutes, then
  * offers a reload. Hashed asset names plus a no-cache index.html mean a
- * reload always loads the new version.
+ * reload loads the new version; with the service worker on, the new version
+ * is downloaded first so the reload does not serve the cached copy.
  */
 @Injectable({ providedIn: 'root' })
 export class UpdateService {
@@ -60,9 +62,15 @@ export class UpdateService {
       cssClass: 'update-toast',
       buttons: [
         { text: 'Later', role: 'cancel' },
-        { text: 'Reload', role: 'reload', handler: () => location.reload() },
+        { text: 'Reload', role: 'reload', handler: () => void this.reload() },
       ],
     });
     await toast.present();
+  }
+
+  private async reload(): Promise<void> {
+    const sw = this.injector.get(SwUpdate, null);
+    if (sw?.isEnabled) await sw.checkForUpdate().catch(() => false);
+    location.reload();
   }
 }

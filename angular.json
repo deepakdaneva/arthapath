@@ -47,6 +47,11 @@
                 "output": "legal"
               },
               {
+                "glob": "{dashboard-dark,chat,updates,analysis,import,mobile-dashboard}.png",
+                "input": "docs/screenshots",
+                "output": "screenshots"
+              },
+              {
                 "glob": "version.json",
                 "input": "src/generated",
                 "output": "."
@@ -75,6 +80,7 @@
                 }
               ],
               "outputHashing": "all",
+              "serviceWorker": "ngsw-config.json",
               "optimization": {
                 "scripts": true,
                 "styles": {
@@ -103,6 +109,7 @@
                 }
               ],
               "outputHashing": "all",
+              "serviceWorker": "ngsw-config.json",
               "optimization": {
                 "scripts": true,
                 "styles": {
