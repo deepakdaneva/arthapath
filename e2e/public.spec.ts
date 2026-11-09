@@ -9,6 +9,13 @@ test.describe('public pages', () => {
     await page.goto('/');
     await expect(page.getByRole('heading', { level: 1 })).toContainText('Your Money. Your Goals.');
     await expect(page.getByRole('link', { name: 'Docs' })).toHaveAttribute('href', new RegExp(`/tree/${REF}/docs$`));
+    await expect(page.getByRole('link', { name: 'Download the Android app' })).toHaveAttribute(
+      'href',
+      /\/arthapath\/releases\/latest$/,
+    );
+    // Installable as a PWA: manifest linked and served.
+    const manifest = await page.request.get('/manifest.webmanifest');
+    expect((await manifest.json()).display).toBe('standalone');
     // routerLink buttons render as links (navigation semantics).
     await page.getByRole('link', { name: 'Get Started' }).click();
     await expect(page).toHaveURL(/\/auth$/);
