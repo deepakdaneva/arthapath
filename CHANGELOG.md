@@ -11,6 +11,9 @@ Versioning: [Semantic Versioning](https://semver.org/).
   that caches the app for fast and offline loading. Not used in the Android
   app, which ships its files in the APK.
 - Landing page: "Download the Android app" link to the latest GitHub release.
+- Landing page: dashboard screenshot in the header and a "See it in action"
+  gallery (chat, updates, analysis, import, phone), served from
+  `docs/screenshots` so `npm run screenshots` keeps them current.
 
 ## [1.0.0] - first production release
 

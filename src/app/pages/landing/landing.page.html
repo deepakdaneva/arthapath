@@ -26,6 +26,13 @@
           View source
         </ion-button>
       </div>
+      <img
+        class="shot"
+        src="screenshots/dashboard-dark.png"
+        width="1280"
+        height="860"
+        alt="The ArthaPath dashboard: health score, spending by category, goals and net worth"
+      />
     </div>
   </header>
 
@@ -42,6 +49,29 @@
           </article>
         }
       </div>
+    </section>
+
+    <section class="ap-container section" aria-labelledby="screens-title">
+      <p class="ap-eyebrow">See it in action</p>
+      <h2 id="screens-title">From a conversation to a plan</h2>
+      <div class="screens">
+        @for (s of screens; track s.src) {
+          <figure>
+            <img [src]="'screenshots/' + s.src" width="1280" height="860" [alt]="s.alt" loading="lazy" />
+            <figcaption class="ap-muted">{{ s.caption }}</figcaption>
+          </figure>
+        }
+      </div>
+      <figure class="phone">
+        <img
+          src="screenshots/mobile-dashboard.png"
+          width="390"
+          height="844"
+          alt="The dashboard on a phone"
+          loading="lazy"
+        />
+        <figcaption class="ap-muted">The same plan on your phone.</figcaption>
+      </figure>
     </section>
 
     <section class="ap-container section privacy" aria-labelledby="privacy-title">

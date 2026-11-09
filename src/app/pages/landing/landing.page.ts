@@ -37,6 +37,29 @@ export class LandingPage {
   readonly releases = `${repoUrl}/releases/latest`;
   readonly year = new Date().getFullYear();
 
+  readonly screens = [
+    {
+      src: 'chat.png',
+      caption: 'Plan by chatting with the AI provider you choose.',
+      alt: 'Chat with the AI planner',
+    },
+    {
+      src: 'updates.png',
+      caption: 'Log spending in one line and review it before saving.',
+      alt: 'The Updates page with logged activity',
+    },
+    {
+      src: 'analysis.png',
+      caption: 'Calculated recommendations, with AI analysis on request.',
+      alt: 'The analysis page with recommendations',
+    },
+    {
+      src: 'import.png',
+      caption: 'Import bank statements, read on your device.',
+      alt: 'Reviewing rows from an imported statement',
+    },
+  ];
+
   readonly features: Feature[] = [
     {
       icon: 'chatbubbles-outline',

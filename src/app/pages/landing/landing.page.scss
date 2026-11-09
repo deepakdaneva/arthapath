@@ -37,6 +37,44 @@
   animation: rise 0.6s ease-out both;
 }
 
+.shot {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin-top: 48px;
+  border-radius: 16px;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.35);
+}
+
+.screens {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr));
+  gap: 24px;
+}
+
+figure {
+  margin: 0;
+
+  img {
+    display: block;
+    width: 100%;
+    height: auto;
+    border-radius: 12px;
+    border: 1px solid var(--ion-border-color, rgba(127, 127, 127, 0.25));
+  }
+
+  figcaption {
+    margin-top: 8px;
+    font-size: 0.95rem;
+  }
+}
+
+.phone {
+  max-width: 280px;
+  margin: 40px auto 0;
+  text-align: center;
+}
+
 .pill {
   display: inline-block;
   padding: 6px 14px;
