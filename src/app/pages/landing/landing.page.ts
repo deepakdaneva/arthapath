@@ -34,6 +34,7 @@ export class LandingPage {
   // Links follow the deployed branch: development on UAT, main in production.
   readonly repo = `${repoUrl}/tree/${repoRef}`;
   readonly docs = `${repoUrl}/tree/${repoRef}/docs`;
+  readonly releases = `${repoUrl}/releases/latest`;
   readonly year = new Date().getFullYear();
 
   readonly features: Feature[] = [

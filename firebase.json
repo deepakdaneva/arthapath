@@ -60,7 +60,7 @@
         ]
       },
       {
-        "source": "/index.html",
+        "source": "/@(index.html|ngsw-worker.js|ngsw.json|safety-worker.js|worker-basic.min.js|manifest.webmanifest)",
         "headers": [
           {
             "key": "Cache-Control",

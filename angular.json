@@ -75,6 +75,7 @@
                 }
               ],
               "outputHashing": "all",
+              "serviceWorker": "ngsw-config.json",
               "optimization": {
                 "scripts": true,
                 "styles": {
@@ -103,6 +104,7 @@
                 }
               ],
               "outputHashing": "all",
+              "serviceWorker": "ngsw-config.json",
               "optimization": {
                 "scripts": true,
                 "styles": {
