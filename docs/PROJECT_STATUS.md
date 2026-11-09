@@ -1,6 +1,6 @@
 # Project Status
 
-_Last updated: 2026-11-07_
+_Last updated: 2026-11-09_
 
 ## Phases
 
@@ -16,7 +16,7 @@ _Last updated: 2026-11-07_
 | 7 Dashboard | Done (trend charts and transaction lists wait for Phase 8 data) |
 | 8 Updates (activity logging) | Done |
 | 9 Import and advanced features | Done |
-| 10 Production readiness | In progress (release readiness done; awaiting release) |
+| 10 Production readiness | Done (1.0 released 2026-11-08) |
 
 ## Phase 0 findings
 
@@ -262,20 +262,39 @@ local PDF parsing with consented AI assist.
 - Dependency audit: no known vulnerabilities in runtime dependencies;
   moderate advisories remain in development-only tooling.
 
+## Release 1.0
+
+- Web: production `arthapath-prod.web.app`, UAT `arthapath-uat.web.app`.
+- Android: signed APK (`io.github.deepakdaneva.arthapath`) attached to each
+  GitHub release; UAT builds use the `.uat` suffix and are kept as workflow
+  artifacts. See [ANDROID_RELEASE](deployment/ANDROID_RELEASE.md).
+- Android experience: welcome slides on first launch, native Google sign-in
+  (no Firebase Dynamic Links), fingerprint unlock tied to the PIN, content
+  kept clear of the system bars, adaptive icon and animated launch screen.
+- App Check: reCAPTCHA Enterprise provider in both projects, enforced for
+  Firestore and Auth.
+- Home tab added next to Chat and Updates; terms and privacy agreement
+  required at sign-up; README screenshots.
+- Releases: 1.0.31 (first release), 1.0.35 (pdf.js 6.5, jsdom 31,
+  Dependabot TypeScript rule).
+
 ## Security issues
 
-None open.
+None open. Dependabot alerts remain for development-only tooling
+(`minimatch` through eslint and firebase-tools, `uuid` through
+firebase-tools); no fixed version is compatible with those tools yet, and
+none of them ships in the app.
 
 ## Failed tests
 
-None (no tests yet).
+None.
 
 ## Deployment status
 
-Not deployed.
+Production and UAT deployed by CI from `main` and `development`. Release
+pull requests from `development` to `main` use a merge commit; production
+deploys after maintainer approval.
 
 ## Next tasks
 
-1. Merge to development and verify on UAT.
-2. Configure reCAPTCHA keys, then enforce App Check.
-3. Release PR development → main; approve the production deployment.
+1. Choose the 1.1 scope.
